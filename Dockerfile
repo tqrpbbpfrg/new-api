@@ -1,6 +1,3 @@
-### --- Frontend Build Stage (bun) ---
-# 恢复使用 bun。为避免旧 bun.lock 锁死 TS 4.x，这里不复制 bun.lock，强制根据当前 package.json 解析并生成新锁文件。
-# 如果后续需要固定依赖版本，可在本地生成新的 bun.lock 并提交。
 FROM oven/bun:1.1.21 AS frontend
 WORKDIR /build
 ENV CI=1 \
@@ -10,8 +7,7 @@ COPY web/package.json ./
 RUN bun install
 COPY ./web .
 COPY ./VERSION .
-# 加 --silent 降低噪音。如再次出现 Rollup parse 错，可尝试移除 --silent 或添加 --debug 分析。
-RUN VITE_REACT_APP_VERSION=$(cat VERSION) bun run build --silent
+RUN DISABLE_ESLINT_PLUGIN='true' VITE_REACT_APP_VERSION=$(cat VERSION) bun run build
 
 FROM golang:alpine AS builder2
 
