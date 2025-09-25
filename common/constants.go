@@ -1,12 +1,11 @@
 package common
 
 import (
-	//"os"
-	//"strconv"
 	"sync"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 var StartTime = time.Now().Unix() // unit: second
@@ -50,6 +49,8 @@ var GitHubOAuthEnabled = false
 var LinuxDOOAuthEnabled = false
 var WeChatAuthEnabled = false
 var TelegramOAuthEnabled = false
+var DiscordOAuthEnabled = false
+var DiscordOAuthScopes = "identify email" // 可配置，逗号或空格分隔
 var TurnstileCheckEnabled = false
 var RegisterEnabled = true
 
@@ -85,6 +86,11 @@ var SMTPToken = ""
 
 var GitHubClientId = ""
 var GitHubClientSecret = ""
+var DiscordClientId = ""
+var DiscordClientSecret = ""
+// Prometheus metric placeholders (lazy init in router)
+var DiscordOAuthCounter *prometheus.CounterVec      // labels: action=login|bind result=success|failure
+var DiscordOAuthLatency *prometheus.HistogramVec    // labels: step=token|user action=login|bind result=success|failure
 var LinuxDOClientId = ""
 var LinuxDOClientSecret = ""
 var LinuxDOMinimumTrustLevel = 0

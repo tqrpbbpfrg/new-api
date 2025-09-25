@@ -1,4 +1,4 @@
-FROM oven/bun:latest AS builder
+FROM oven/bun:1.1.21 AS builder
 
 WORKDIR /build
 COPY web/package.json .
@@ -6,7 +6,9 @@ COPY web/bun.lock .
 RUN bun install
 COPY ./web .
 COPY ./VERSION .
-RUN DISABLE_ESLINT_PLUGIN='true' VITE_REACT_APP_VERSION=$(cat VERSION) bun run build
+ENV NODE_ENV=production \
+    VITE_REACT_APP_VERSION="unset"
+RUN VITE_REACT_APP_VERSION=$(cat VERSION) bun run build
 
 FROM golang:alpine AS builder2
 

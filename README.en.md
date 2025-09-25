@@ -105,6 +105,39 @@ New API offers a wide range of features, please refer to [Features Introduction]
         - [x] DeepSeek
         - [x] Claude
 
+### 🔑 Discord OAuth Login
+
+Native Discord OAuth login & account binding are integrated:
+
+1. Create an application in Discord Developer Portal (Settings → OAuth2)
+2. Add redirect URL: `https://<your-domain>/oauth/discord`
+3. In system settings fill:
+  - `DiscordClientId`
+  - `DiscordClientSecret`
+  - Optional: `DiscordOAuthScopes` (default: `identify email`; add `guilds` if you need guild info)
+4. Enable `DiscordOAuthEnabled`
+5. A Discord login button appears on the login/register screen; binding is available in personal account settings.
+
+Username strategy: start from the original Discord username, append `_2`, `_3`, … on conflict (max 50 attempts), final length limited to 12. Avatar is pulled & cached (fallback to initial letter on error).
+
+### 📊 Monitoring Metrics (Prometheus)
+
+`/metrics` exposes:
+
+| Metric | Type | Labels | Description |
+| ------ | ---- | ------ | ----------- |
+| `discord_oauth_total` | Counter | `action=login|bind`, `result=success|failure` | OAuth attempt counts |
+| `discord_oauth_step_seconds` | Histogram | `action`, `step=token|user`, `result` | External step latency distribution |
+| `process_uptime_seconds` | Gauge | – | Process uptime in seconds |
+
+PromQL examples:
+```
+sum by (result) (rate(discord_oauth_total{action="login"}[5m]))
+histogram_quantile(0.95, sum by (le, step) (rate(discord_oauth_step_seconds_bucket[5m])))
+```
+
+Keep label cardinality low if you extend metrics further (avoid per-user or per-error-code labels unless aggregated).
+
 ## Model Support
 
 This version supports multiple models, please refer to [API Documentation-Relay Interface](https://docs.newapi.pro/api) for details:

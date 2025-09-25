@@ -109,6 +109,39 @@ New API提供了丰富的功能，详细特性请参考[特性说明](https://do
         - [x] DeepSeek
         - [x] Claude
 
+### 🔑 Discord OAuth 登录
+
+已内置 Discord 原生 OAuth 登录与账号绑定流程：
+
+1. 在 Discord Developer Portal 创建应用（Settings → OAuth2）
+2. 添加回调 URL（Redirects）：`https://<你的域名或IP>/oauth/discord`
+3. 在系统后台「系统设置 → 登录注册」中填写：
+  - `DiscordClientId`
+  - `DiscordClientSecret`
+  - 可选：`DiscordOAuthScopes`（默认：`identify email`，可用空格或逗号分隔；如需公会信息可加 `guilds`）
+4. 启用 `DiscordOAuthEnabled`
+5. 前端登录页将显示 Discord 登录按钮，绑定操作可在个人中心账号管理中进行。
+
+用户名策略：默认以 Discord 用户名为基础，若冲突自动追加 `_2`、`_3`…（最多 50 次尝试），最终长度限制 12。头像会自动拉取并缓存，失败自动回退到首字母。 
+
+### 📊 监控指标（Prometheus）
+
+访问 `/metrics` 暴露以下与 Discord OAuth 相关的指标：
+
+| 指标 | 类型 | 标签 | 说明 |
+| ---- | ---- | ---- | ---- |
+| `discord_oauth_total` | Counter | `action=login|bind`, `result=success|failure` | 登录/绑定成功或失败次数累计 |
+| `discord_oauth_step_seconds` | Histogram | `action`, `step=token|user`, `result` | 外部调用分步耗时分布（获取 token / 获取用户信息） |
+| `process_uptime_seconds` | Gauge | 无 | 进程运行秒数 |
+
+示例 PromQL：
+```
+sum by (result) (rate(discord_oauth_total{action="login"}[5m]))
+histogram_quantile(0.95, sum by (le, step) (rate(discord_oauth_step_seconds_bucket[5m])))
+```
+
+如需扩展更多标签（例如渠道实例或错误代码），请保持标签基数可控，避免高基数造成存储膨胀。
+
 ## 模型支持
 
 此版本支持多种模型，详情请参考[接口文档-中继接口](https://docs.newapi.pro/api)：
