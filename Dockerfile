@@ -10,7 +10,7 @@ ENV CI=1 \
 
 # 仅复制 package.json（无 lock 文件情况下 npm 将生成 package-lock.json；可在后续提交以固定版本）
 COPY web/package.json ./
-RUN npm install --no-audit --no-fund
+RUN npm install --no-audit --no-fund --force
 
 COPY ./web .
 COPY ./VERSION .
