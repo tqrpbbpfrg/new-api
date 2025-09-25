@@ -1,30 +1,17 @@
-### --- Frontend Build Stage (Node) ---
-# 说明：原先使用 bun 在 CI 多架构（buildx）环境下触发 Rollup parseAst 报错（无源码行信息，疑似 bun+rollup 的解析兼容问题或 alpha 插件触发 bug）。
-# 为保证稳定发布，这里切换为官方 Node 20 Alpine 构建。若未来需要恢复 bun，可保留下方注释的 bun 版本片段快速回滚。
-
-FROM node:20-alpine AS frontend
+### --- Frontend Build Stage (bun) ---
+# 恢复使用 bun。为避免旧 bun.lock 锁死 TS 4.x，这里不复制 bun.lock，强制根据当前 package.json 解析并生成新锁文件。
+# 如果后续需要固定依赖版本，可在本地生成新的 bun.lock 并提交。
+FROM oven/bun:1.1.21 AS frontend
 WORKDIR /build
 ENV CI=1 \
+    NODE_ENV=production \
     VITE_REACT_APP_VERSION="unset"
-
-# 仅复制 package.json（无 lock 文件情况下 npm 将生成 package-lock.json；可在后续提交以固定版本）
 COPY web/package.json ./
-# 不设置 NODE_ENV=production，确保 devDependencies (vite 等) 被安装；使用 --legacy-peer-deps 避免严格 peer 冲突，保留审计/资助关闭。
-RUN npm install --no-audit --no-fund --legacy-peer-deps --include=dev
-
+RUN bun install
 COPY ./web .
 COPY ./VERSION .
-RUN VITE_REACT_APP_VERSION=$(cat VERSION) npm run build
-
-## --- 若需回退 bun，请恢复此段并注释掉上面 Node 段 ---
-# FROM oven/bun:1.1.21 AS frontend
-# WORKDIR /build
-# COPY web/package.json .
-# RUN bun install
-# COPY ./web .
-# COPY ./VERSION .
-# ENV NODE_ENV=production VITE_REACT_APP_VERSION="unset"
-# RUN VITE_REACT_APP_VERSION=$(cat VERSION) bun run build
+# 加 --silent 降低噪音。如再次出现 Rollup parse 错，可尝试移除 --silent 或添加 --debug 分析。
+RUN VITE_REACT_APP_VERSION=$(cat VERSION) bun run build --silent
 
 FROM golang:alpine AS builder2
 
