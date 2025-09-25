@@ -49,6 +49,8 @@ const routerMap = {
   models: '/console/models',
   playground: '/console/playground',
   personal: '/console/personal',
+  control: '/control',
+  info: '/console/info',
 };
 
 const SiderBar = ({ onNavigate = () => {} }) => {
@@ -71,6 +73,11 @@ const SiderBar = ({ onNavigate = () => {} }) => {
   const workspaceItems = useMemo(() => {
     const items = [
       {
+        text: t('工作台'),
+        itemKey: 'control',
+        to: '/control',
+      },
+      {
         text: t('数据看板'),
         itemKey: 'detail',
         to: '/detail',
@@ -78,6 +85,11 @@ const SiderBar = ({ onNavigate = () => {} }) => {
           localStorage.getItem('enable_data_export') === 'true'
             ? ''
             : 'tableHiddle',
+      },
+      {
+        text: t('信息处'),
+        itemKey: 'info',
+        to: '/console/info',
       },
       {
         text: t('令牌管理'),

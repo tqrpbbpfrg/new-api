@@ -16,6 +16,8 @@ import (
 
 	"one-api/constant"
 
+	"time"
+
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
@@ -116,6 +118,12 @@ func setupLogin(user *model.User, c *gin.Context) {
 		Status:      user.Status,
 		Group:       user.Group,
 	}
+	// update last login time (non-blocking best-effort)
+	go func(uid int) {
+		// store unix seconds
+		now := time.Now().Unix()
+		model.DB.Model(&model.User{}).Where("id = ?", uid).Update("last_login_at", now)
+	}(user.Id)
 	c.JSON(http.StatusOK, gin.H{
 		"message": "",
 		"success": true,
@@ -462,6 +470,7 @@ func GetSelf(c *gin.Context) {
 		"linux_do_id":       user.LinuxDOId,
 		"setting":           user.Setting,
 		"stripe_customer":   user.StripeCustomer,
+		"last_login_at":     user.LastLoginAt,
 		"sidebar_modules":   userSetting.SidebarModules, // 正确提取sidebar_modules字段
 		"permissions":       permissions,                // 新增权限字段
 	}

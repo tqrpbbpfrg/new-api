@@ -38,6 +38,7 @@ import Channel from './pages/Channel';
 import Chat from './pages/Chat';
 import Chat2Link from './pages/Chat2Link';
 import Checkin from './pages/Checkin';
+import InfoCenter from './pages/InfoCenter';
 import Log from './pages/Log';
 import Midjourney from './pages/Midjourney';
 import ModelPage from './pages/Model';
@@ -48,6 +49,7 @@ import Setup from './pages/Setup';
 import Task from './pages/Task';
 import Token from './pages/Token';
 import TopUp from './pages/TopUp';
+import Workspace from './pages/Workspace';
 
 const Home = lazy(() => import('./pages/Home'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
@@ -282,6 +284,22 @@ function App() {
               <Suspense fallback={<Loading></Loading>} key={location.pathname}>
                 <Checkin />
               </Suspense>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path='/control'
+          element={
+            <PrivateRoute>
+              <Workspace />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path='/console/info'
+          element={
+            <PrivateRoute>
+              <InfoCenter />
             </PrivateRoute>
           }
         />

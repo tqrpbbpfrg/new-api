@@ -168,6 +168,33 @@ func SetApiRouter(router *gin.Engine) {
 			checkinRoute.POST("/", controller.PostCheckin)
 		}
 
+		// internal message routes
+		messageRoute := apiRouter.Group("/message")
+		messageRoute.Use(middleware.UserAuth())
+		{
+			messageRoute.GET("/list", controller.ListMessages)
+			messageRoute.GET("/unread_count", controller.UnreadCount)
+			messageRoute.POST("/mark_read", controller.MarkMessagesRead)
+			messageRoute.POST("/mark_all_read", controller.MarkAllRead)
+			// send (user can reply; admin can broadcast / direct)
+			messageRoute.POST("/send", controller.SendMessage)
+			messageRoute.GET("/thread/:id", controller.GetMessageThread)
+			messageRoute.GET("/stream", controller.MessageStream)
+			// admin overview of sent messages with read statistics
+			messageRoute.GET("/sent", middleware.AdminAuth(), controller.AdminListSentMessages)
+			messageRoute.GET("/stats/:id", middleware.AdminAuth(), controller.AdminMessageStats)
+			messageRoute.GET("/broadcast_summary", middleware.AdminAuth(), controller.AdminBroadcastSummary)
+		}
+
+		userSearch := apiRouter.Group("/user")
+		userSearch.Use(middleware.AdminAuth())
+		{
+			userSearch.GET("/search_simple", controller.SearchSimpleUsers)
+		}
+
+		// announcements list for info center (public/readonly)
+		apiRouter.GET("/announcements", controller.ListAnnouncements)
+
 		redemptionRoute := apiRouter.Group("/redemption")
 		redemptionRoute.Use(middleware.AdminAuth())
 		{

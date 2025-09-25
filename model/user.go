@@ -9,6 +9,7 @@ import (
 	"one-api/logger"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/bytedance/gopkg/util/gopool"
 	"gorm.io/gorm"
@@ -45,6 +46,9 @@ type User struct {
 	Setting          string         `json:"setting" gorm:"type:text;column:setting"`
 	Remark           string         `json:"remark,omitempty" gorm:"type:varchar(255)" validate:"max=255"`
 	StripeCustomer   string         `json:"stripe_customer" gorm:"type:varchar(64);column:stripe_customer;index"`
+	LastLoginAt      *int64         `json:"last_login_at" gorm:"column:last_login_at"` // Unix timestamp of last login
+	CreatedAt        time.Time      `json:"created_at"`                                // user create time for segmentation
+	UpdatedAt        time.Time      `json:"updated_at"`
 }
 
 func (user *User) ToBaseUser() *UserBase {

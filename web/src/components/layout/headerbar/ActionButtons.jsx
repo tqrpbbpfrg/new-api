@@ -17,11 +17,11 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React from 'react';
+import { useGlobalUnread } from '../../../hooks/message/useGlobalUnread';
+import LanguageSelector from './LanguageSelector';
 import NewYearButton from './NewYearButton';
 import NotificationButton from './NotificationButton';
 import ThemeToggle from './ThemeToggle';
-import LanguageSelector from './LanguageSelector';
 import UserArea from './UserArea';
 
 const ActionButtons = ({
@@ -40,15 +40,12 @@ const ActionButtons = ({
   navigate,
   t,
 }) => {
+  const inboxUnread = useGlobalUnread();
   return (
     <div className='flex items-center gap-2 md:gap-3'>
       <NewYearButton isNewYear={isNewYear} />
 
-      <NotificationButton
-        unreadCount={unreadCount}
-        onNoticeOpen={onNoticeOpen}
-        t={t}
-      />
+      <NotificationButton unreadCount={(unreadCount||0) + (inboxUnread||0)} onNoticeOpen={()=>{ onNoticeOpen(); }} t={t} />
 
       <ThemeToggle theme={theme} onThemeToggle={onThemeToggle} t={t} />
 

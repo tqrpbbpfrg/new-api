@@ -47,9 +47,9 @@ export default function GeneralSettings(props) {
     CheckinMaxReward: '',
     CheckinStreakBonus: '',
     CheckinEnabled: false,
-  UIBlurGlassEnabled: false,
-  UIBlurGlassStrength: '',
-  UIBlurGlassArea: 'both',
+    UIBlurGlassEnabled: false,
+    UIBlurGlassStrength: '',
+    UIBlurGlassArea: 'both',
   });
   const refForm = useRef();
   const [inputsRow, setInputsRow] = useState(inputs);
@@ -61,7 +61,7 @@ export default function GeneralSettings(props) {
   }
 
   function onSubmit() {
-    const updateArray = compareObjects(inputs, inputsRow);
+  const updateArray = compareObjects(inputsRow, inputs);
     if (!updateArray.length) return showWarning(t('你似乎并没有修改什么'));
     const requestQueue = updateArray.map((item) => {
       let value = '';
@@ -85,6 +85,8 @@ export default function GeneralSettings(props) {
             return showError(t('部分保存失败，请重试'));
         }
         showSuccess(t('保存成功'));
+        // 保存成功后，将当前 inputs 复制为新的基线，避免再次提示“未修改”
+        setInputsRow(structuredClone(inputs));
         props.refresh();
         // 即时刷新本地 blur 状态
         if(updateArray.some(i=>['UIBlurGlassEnabled','UIBlurGlassStrength','UIBlurGlassArea'].includes(i.key))){
@@ -94,6 +96,10 @@ export default function GeneralSettings(props) {
             if('UIBlurGlassArea' in inputs) localStorage.setItem('UIBlurGlassArea', String(inputs.UIBlurGlassArea));
             window.dispatchEvent(new Event('ui-option-update'));
           } catch{}
+        }
+        // 同步签到开关到本地（用于前端模块显示控制）
+        if(updateArray.some(i=>i.key==='CheckinEnabled')){
+          try { localStorage.setItem('CheckinEnabled', String(inputs.CheckinEnabled)); } catch{}
         }
       })
       .catch(() => {
@@ -105,15 +111,19 @@ export default function GeneralSettings(props) {
   }
 
   useEffect(() => {
-    const currentInputs = {};
-    for (let key in props.options) {
-      if (Object.keys(inputs).includes(key)) {
-        currentInputs[key] = props.options[key];
+    const template = { ...inputs };
+    const optionKeys = Object.keys(template);
+    const filled = {};
+    optionKeys.forEach(k=>{
+      if(k in props.options){
+        filled[k] = props.options[k];
+      } else {
+        filled[k] = template[k];
       }
-    }
-    setInputs(currentInputs);
-    setInputsRow(structuredClone(currentInputs));
-    refForm.current.setValues(currentInputs);
+    });
+    setInputs(filled);
+    setInputsRow(structuredClone(filled));
+    if(refForm.current){ refForm.current.setValues(filled); }
   }, [props.options]);
 
   return (
