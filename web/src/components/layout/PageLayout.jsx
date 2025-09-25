@@ -17,26 +17,26 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import HeaderBar from './headerbar';
 import { Layout } from '@douyinfe/semi-ui';
-import SiderBar from './SiderBar';
-import App from '../../App';
-import FooterBar from './Footer';
+import { useContext, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useLocation } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
-import React, { useContext, useEffect, useState } from 'react';
+import App from '../../App';
+import { StatusContext } from '../../context/Status';
+import { UserContext } from '../../context/User';
+import {
+    API,
+    getLogo,
+    getSystemName,
+    setStatusData,
+    showError,
+} from '../../helpers';
 import { useIsMobile } from '../../hooks/common/useIsMobile';
 import { useSidebarCollapsed } from '../../hooks/common/useSidebarCollapsed';
-import { useTranslation } from 'react-i18next';
-import {
-  API,
-  getLogo,
-  getSystemName,
-  showError,
-  setStatusData,
-} from '../../helpers';
-import { UserContext } from '../../context/User';
-import { StatusContext } from '../../context/Status';
-import { useLocation } from 'react-router-dom';
+import FooterBar from './Footer';
+import HeaderBar from './headerbar';
+import SiderBar from './SiderBar';
 const { Sider, Content, Header } = Layout;
 
 const PageLayout = () => {

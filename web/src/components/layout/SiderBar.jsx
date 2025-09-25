@@ -80,7 +80,7 @@ const SiderBar = ({ onNavigate = () => {} }) => {
       {
         text: t('数据看板'),
         itemKey: 'detail',
-        to: '/detail',
+        to: '/console',
         className:
           localStorage.getItem('enable_data_export') === 'true'
             ? ''
@@ -94,17 +94,17 @@ const SiderBar = ({ onNavigate = () => {} }) => {
       {
         text: t('令牌管理'),
         itemKey: 'token',
-        to: '/token',
+        to: '/console/token',
       },
       {
         text: t('使用日志'),
         itemKey: 'log',
-        to: '/log',
+        to: '/console/log',
       },
       {
         text: t('绘图日志'),
         itemKey: 'midjourney',
-        to: '/midjourney',
+        to: '/console/midjourney',
         className:
           localStorage.getItem('enable_drawing') === 'true'
             ? ''
@@ -113,14 +113,14 @@ const SiderBar = ({ onNavigate = () => {} }) => {
       {
         text: t('任务日志'),
         itemKey: 'task',
-        to: '/task',
+        to: '/console/task',
         className:
           localStorage.getItem('enable_task') === 'true' ? '' : 'tableHiddle',
       },
       {
         text: t('每日签到'),
         itemKey: 'checkin',
-        to: '/checkin',
+        to: '/console/checkin',
         className: localStorage.getItem('CheckinEnabled') === 'false' ? 'tableHiddle' : ''
       },
     ];
@@ -145,12 +145,12 @@ const SiderBar = ({ onNavigate = () => {} }) => {
       {
         text: t('钱包管理'),
         itemKey: 'topup',
-        to: '/topup',
+        to: '/console/topup',
       },
       {
         text: t('个人设置'),
         itemKey: 'personal',
-        to: '/personal',
+        to: '/console/personal',
       },
     ];
 
@@ -168,7 +168,7 @@ const SiderBar = ({ onNavigate = () => {} }) => {
       {
         text: t('渠道管理'),
         itemKey: 'channel',
-        to: '/channel',
+        to: '/console/channel',
         className: isAdmin() ? '' : 'tableHiddle',
       },
       {
@@ -180,19 +180,19 @@ const SiderBar = ({ onNavigate = () => {} }) => {
       {
         text: t('兑换码管理'),
         itemKey: 'redemption',
-        to: '/redemption',
+        to: '/console/redemption',
         className: isAdmin() ? '' : 'tableHiddle',
       },
       {
         text: t('用户管理'),
         itemKey: 'user',
-        to: '/user',
+        to: '/console/user',
         className: isAdmin() ? '' : 'tableHiddle',
       },
       {
         text: t('系统设置'),
         itemKey: 'setting',
-        to: '/setting',
+        to: '/console/setting',
         className: isRoot() ? '' : 'tableHiddle',
       },
     ];
@@ -211,7 +211,7 @@ const SiderBar = ({ onNavigate = () => {} }) => {
       {
         text: t('操练场'),
         itemKey: 'playground',
-        to: '/playground',
+        to: '/console/playground',
       },
       {
         text: t('聊天'),

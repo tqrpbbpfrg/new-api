@@ -6,7 +6,7 @@ on:
       confirm:
         description: "Type 'YES' to confirm cache cleanup"
         required: true
-        default: "NO"
+        default: 'NO'
 
 permissions:
   actions: write

@@ -2,8 +2,8 @@ import { IconGift, IconTickCircle } from '@douyinfe/semi-icons';
 import { Banner, Button, Card, Divider, Spin, Typography } from '@douyinfe/semi-ui';
 import dayjs from 'dayjs';
 import { useEffect, useMemo, useState } from 'react';
-import { isLoggedIn } from '../../helpers/auth';
 import { useTranslation } from 'react-i18next';
+import { isLoggedIn } from '../../helpers/auth';
 import './style.css';
 
 const fetchJSON = async (url, options={}) => {
