@@ -32,6 +32,16 @@ export function authHeader() {
   }
 }
 
+// Lightweight login state detector – used to avoid unauthenticated API calls during app bootstrap
+export function isLoggedIn(){
+  try {
+    const raw = localStorage.getItem('user');
+    if(!raw) return false;
+    const u = JSON.parse(raw);
+    return !!(u && u.token);
+  } catch(_) { return false; }
+}
+
 export const AuthRedirect = ({ children }) => {
   const user = localStorage.getItem('user');
 

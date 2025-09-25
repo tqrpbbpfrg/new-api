@@ -82,10 +82,12 @@ const PageLayout = () => {
         statusDispatch({ type: 'set', payload: data });
         setStatusData(data);
       } else {
-        showError('Unable to connect to server');
+        // 若后端返回特定失败但非 401，提示；否则静默
+        if(res.status !== 401) showError('Unable to connect to server');
       }
     } catch (error) {
-      showError('Failed to load status');
+      // 对 401 静默，避免初始化阶段未登录噪音
+      if(error?.response?.status !== 401) showError('Failed to load status');
     }
   };
 

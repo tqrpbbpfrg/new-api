@@ -1,6 +1,7 @@
 import { Button, Card, Space } from '@douyinfe/semi-ui';
 import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
+import { isLoggedIn } from '../../helpers/auth';
 import { useTranslation } from 'react-i18next';
 
 export default function Workspace(){
@@ -25,7 +26,7 @@ export default function Workspace(){
       if(data.success){ await loadStatus(); }
     }finally{ setSigning(false); }
   };
-  useEffect(()=>{ loadStatus(); },[]);
+  useEffect(()=>{ if(isLoggedIn()) loadStatus(); },[]); // 未登录时跳过，避免初始化阶段产生 401
   const lastLoginTs = window?.CURRENT_USER?.last_login_at || null;
   return (
     <div className='p-4 space-y-16'>

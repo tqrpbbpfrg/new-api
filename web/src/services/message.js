@@ -9,6 +9,7 @@ export async function fetchUnreadCount() {
     if (!raw) return 0;
     const headers = authHeader();
     const res = await fetch('/api/message/unread_count', { headers, credentials: 'include' });
+    if(res.status === 401) return 0; // 防止未登录 / 过期导致初始化阶段抛错
     const data = await res.json();
     if (!data.success) return 0;
     return data.data.unread || 0;

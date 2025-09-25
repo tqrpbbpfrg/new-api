@@ -2,6 +2,7 @@ import { IconGift, IconTickCircle } from '@douyinfe/semi-icons';
 import { Banner, Button, Card, Divider, Spin, Typography } from '@douyinfe/semi-ui';
 import dayjs from 'dayjs';
 import { useEffect, useMemo, useState } from 'react';
+import { isLoggedIn } from '../../helpers/auth';
 import { useTranslation } from 'react-i18next';
 import './style.css';
 
@@ -74,7 +75,7 @@ const CheckinPage = () => {
     } finally { setLoading(false); }
   };
 
-  useEffect(()=>{load();},[month]);
+  useEffect(()=>{ if(isLoggedIn()) load(); },[month]);
 
   const handleCheckin = async () => {
     setPosting(true);
@@ -109,6 +110,14 @@ const CheckinPage = () => {
     return <div className='mt-[60px] px-4'>
       <Card title={t('每日签到')}>
         <Banner type='warning' description={error || t('签到功能未开启')} closeIcon={null} />
+      </Card>
+    </div>;
+  }
+
+  if(!isLoggedIn()){
+    return <div className='mt-[60px] px-4'>
+      <Card title={t('每日签到')}>
+        <Banner type='warning' description={t('请先登录后查看签到信息')} closeIcon={null} />
       </Card>
     </div>;
   }
