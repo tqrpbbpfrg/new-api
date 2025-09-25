@@ -17,34 +17,36 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useContext, useEffect, useState } from 'react';
+import { Button, Card, Divider, Form, Icon, Modal } from '@douyinfe/semi-ui';
+import Text from '@douyinfe/semi-ui/lib/es/typography/text';
+import Title from '@douyinfe/semi-ui/lib/es/typography/title';
+import { useContext, useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import TelegramLoginButton from 'react-telegram-login';
+import Turnstile from 'react-turnstile';
 import { UserContext } from '../../context/User';
 import {
-  API,
-  getLogo,
-  showError,
-  showInfo,
-  showSuccess,
-  updateAPI,
-  getSystemName,
-  setUserData,
-  onGitHubOAuthClicked,
-  onOIDCClicked,
-  onLinuxDOOAuthClicked,
+    API,
+    getLogo,
+    getSystemName,
+    onDiscordOAuthClicked,
+    onGitHubOAuthClicked,
+    onLinuxDOOAuthClicked,
+    onOIDCClicked,
+    setUserData,
+    showError,
+    showInfo,
+    showSuccess,
+    updateAPI,
 } from '../../helpers';
-import Turnstile from 'react-turnstile';
-import { Button, Card, Divider, Form, Icon, Modal } from '@douyinfe/semi-ui';
-import Title from '@douyinfe/semi-ui/lib/es/typography/title';
-import Text from '@douyinfe/semi-ui/lib/es/typography/text';
-import TelegramLoginButton from 'react-telegram-login';
 
-import { IconGithubLogo, IconMail, IconLock } from '@douyinfe/semi-icons';
+import { IconGithubLogo, IconLock, IconMail } from '@douyinfe/semi-icons';
+import { useTranslation } from 'react-i18next';
+import DiscordIcon from '../common/logo/DiscordIcon';
+import LinuxDoIcon from '../common/logo/LinuxDoIcon';
 import OIDCIcon from '../common/logo/OIDCIcon';
 import WeChatIcon from '../common/logo/WeChatIcon';
-import LinuxDoIcon from '../common/logo/LinuxDoIcon';
 import TwoFAVerification from './TwoFAVerification';
-import { useTranslation } from 'react-i18next';
 
 const LoginForm = () => {
   let navigate = useNavigate();
@@ -74,6 +76,7 @@ const LoginForm = () => {
     useState(false);
   const [wechatCodeSubmitLoading, setWechatCodeSubmitLoading] = useState(false);
   const [showTwoFA, setShowTwoFA] = useState(false);
+  const [discordIconReady] = useState(true); // 预留：未来可做动态加载
 
   const logo = getLogo();
   const systemName = getSystemName();
@@ -237,6 +240,16 @@ const LoginForm = () => {
     }
   };
 
+  // 包装的Discord登录点击处理
+  const handleDiscordClick = () => {
+    setGithubLoading(true);
+    try {
+      onDiscordOAuthClicked(status.discord_client_id, status.discord_scopes);
+    } finally {
+      setTimeout(() => setGithubLoading(false), 3000);
+    }
+  };
+
   // 包装的OIDC登录点击处理
   const handleOIDCClick = () => {
     setOidcLoading(true);
@@ -339,6 +352,25 @@ const LoginForm = () => {
                     loading={githubLoading}
                   >
                     <span className='ml-3'>{t('使用 GitHub 继续')}</span>
+                  </Button>
+                )}
+
+                {status.discord_oauth && (
+                  <Button
+                    theme='outline'
+                    className='w-full h-12 flex items-center justify-center !rounded-full border border-gray-200 hover:bg-gray-50 transition-colors'
+                    type='tertiary'
+                    icon={
+                      discordIconReady ? (
+                        <DiscordIcon size={20} style={{ color: '#5865F2' }} />
+                      ) : (
+                        <span className='w-5 h-5 rounded animate-pulse bg-gray-300' />
+                      )
+                    }
+                    onClick={handleDiscordClick}
+                    loading={githubLoading}
+                  >
+                    <span className='ml-3'>{t('使用 Discord 继续')}</span>
                   </Button>
                 )}
 
@@ -482,6 +514,7 @@ const LoginForm = () => {
               </Form>
 
               {(status.github_oauth ||
+                status.discord_oauth ||
                 status.oidc_enabled ||
                 status.wechat_login ||
                 status.linuxdo_oauth ||
@@ -617,6 +650,7 @@ const LoginForm = () => {
         {showEmailLogin ||
         !(
           status.github_oauth ||
+          status.discord_oauth ||
           status.oidc_enabled ||
           status.wechat_login ||
           status.linuxdo_oauth ||

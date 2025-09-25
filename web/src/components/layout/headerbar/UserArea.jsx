@@ -17,16 +17,16 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useRef } from 'react';
-import { Link } from 'react-router-dom';
+import {
+    IconCreditCard,
+    IconExit,
+    IconKey,
+    IconUserSetting,
+} from '@douyinfe/semi-icons';
 import { Avatar, Button, Dropdown, Typography } from '@douyinfe/semi-ui';
 import { ChevronDown } from 'lucide-react';
-import {
-  IconExit,
-  IconUserSetting,
-  IconCreditCard,
-  IconKey,
-} from '@douyinfe/semi-icons';
+import { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { stringToColor } from '../../../helpers';
 import SkeletonWrapper from '../components/SkeletonWrapper';
 
@@ -50,6 +50,30 @@ const UserArea = ({
       />
     );
   }
+
+  // 本地缓存的 discord 头像，减少每次刷新首屏闪烁
+  const [cachedAvatar, setCachedAvatar] = useState(null);
+
+  useEffect(() => {
+    if (userState?.user?.id) {
+      const cacheKey = `discord_avatar_${userState.user.id}`;
+      // 如果状态里无头像但缓存有，先用缓存展示
+      if (!userState.user.discord_avatar) {
+        const stored = localStorage.getItem(cacheKey);
+        if (stored) {
+          setCachedAvatar(stored);
+        }
+      } else {
+        // 有新的头像则更新缓存与 state
+        try {
+          localStorage.setItem(cacheKey, userState.user.discord_avatar);
+          setCachedAvatar(userState.user.discord_avatar);
+        } catch (_) {
+          // 忽略 quota 错误
+        }
+      }
+    }
+  }, [userState?.user?.id, userState?.user?.discord_avatar]);
 
   if (userState.user) {
     return (
@@ -125,8 +149,18 @@ const UserArea = ({
               size='extra-small'
               color={stringToColor(userState.user.username)}
               className='mr-1'
+              // 优先使用 runtime -> 缓存 -> 空
+              src={userState.user.discord_avatar || cachedAvatar || undefined}
+              imgProps={{
+                referrerPolicy: 'no-referrer',
+                onError: (e) => {
+                  if (e?.target) {
+                    e.target.removeAttribute('src');
+                  }
+                },
+              }}
             >
-              {userState.user.username[0].toUpperCase()}
+              {userState.user.username[0]?.toUpperCase?.()}
             </Avatar>
             <span className='hidden md:inline'>
               <Typography.Text className='!text-xs !font-medium !text-semi-color-text-1 dark:!text-gray-300 mr-1'>

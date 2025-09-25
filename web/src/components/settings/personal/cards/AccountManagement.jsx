@@ -17,34 +17,35 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React from 'react';
 import {
-  Button,
-  Card,
-  Input,
-  Space,
-  Typography,
-  Avatar,
-  Tabs,
-  TabPane,
-  Popover,
-} from '@douyinfe/semi-ui';
-import {
-  IconMail,
-  IconShield,
-  IconGithubLogo,
-  IconKey,
-  IconLock,
-  IconDelete,
+    IconDelete,
+    IconGithubLogo,
+    IconKey,
+    IconLock,
+    IconMail,
+    IconShield,
 } from '@douyinfe/semi-icons';
-import { SiTelegram, SiWechat, SiLinux } from 'react-icons/si';
-import { UserPlus, ShieldCheck } from 'lucide-react';
+import {
+    Avatar,
+    Button,
+    Card,
+    Input,
+    Popover,
+    Space,
+    TabPane,
+    Tabs,
+    Typography,
+} from '@douyinfe/semi-ui';
+import { ShieldCheck, UserPlus } from 'lucide-react';
+import { SiLinux, SiTelegram, SiWechat } from 'react-icons/si';
 import TelegramLoginButton from 'react-telegram-login';
 import {
-  onGitHubOAuthClicked,
-  onOIDCClicked,
-  onLinuxDOOAuthClicked,
+    onDiscordOAuthClicked,
+    onGitHubOAuthClicked,
+    onLinuxDOOAuthClicked,
+    onOIDCClicked,
 } from '../../../../helpers';
+import DiscordIcon from '../../../common/logo/DiscordIcon';
 import TwoFASetting from '../components/TwoFASetting';
 
 const AccountManagement = ({
@@ -225,6 +226,34 @@ const AccountManagement = ({
                       }
                     >
                       {status.github_oauth ? t('绑定') : t('未启用')}
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Discord 绑定 */}
+              <Card className='!rounded-xl'>
+                <div className='flex items-center justify-between gap-3'>
+                  <div className='flex items-center flex-1 min-w-0'>
+                    <div className='w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center mr-3 flex-shrink-0'>
+                      <DiscordIcon size={22} style={{ color: '#5865F2' }} />
+                    </div>
+                    <div className='flex-1 min-w-0'>
+                      <div className='font-medium text-gray-900'>Discord</div>
+                      <div className='text-sm text-gray-500 truncate'>
+                        {renderAccountInfo(userState.user?.discord_id, t('Discord ID'))}
+                      </div>
+                    </div>
+                  </div>
+                  <div className='flex-shrink-0'>
+                    <Button
+                      type='primary'
+                      theme='outline'
+                      size='small'
+                      onClick={() => onDiscordOAuthClicked(status.discord_client_id, status.discord_scopes)}
+                      disabled={(userState.user && userState.user.discord_id !== '') || !status.discord_oauth}
+                    >
+                      {status.discord_oauth ? t('绑定') : t('未启用')}
                     </Button>
                   </div>
                 </div>

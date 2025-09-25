@@ -17,14 +17,14 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import {
-  getUserIdFromLocalStorage,
-  showError,
-  formatMessageForAPI,
-  isValidMessage,
-} from './utils';
 import axios from 'axios';
 import { MESSAGE_ROLES } from '../constants/playground.constants';
+import {
+  formatMessageForAPI,
+  getUserIdFromLocalStorage,
+  isValidMessage,
+  showError,
+} from './utils';
 
 export let API = axios.create({
   baseURL: import.meta.env.VITE_REACT_APP_SERVER_URL
@@ -254,6 +254,16 @@ export async function onGitHubOAuthClicked(github_client_id) {
   window.open(
     `https://github.com/login/oauth/authorize?client_id=${github_client_id}&state=${state}&scope=user:email`,
   );
+}
+
+export async function onDiscordOAuthClicked(discord_client_id, scopesFromStatus) {
+  const state = await getOAuthState();
+  if (!state) return;
+  const redirect = `${window.location.origin}/oauth/discord`;
+  let scopes = scopesFromStatus || 'identify email';
+  scopes = scopes.replace(/,/g, ' ').split(/\s+/).filter(Boolean).join('%20');
+  const url = `https://discord.com/api/oauth2/authorize?client_id=${discord_client_id}&response_type=code&scope=${scopes}&redirect_uri=${encodeURIComponent(redirect)}&state=${state}`;
+  window.open(url);
 }
 
 export async function onLinuxDOOAuthClicked(linuxdo_client_id) {

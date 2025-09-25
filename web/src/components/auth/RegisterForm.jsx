@@ -17,40 +17,40 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useContext, useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
 import {
-  API,
-  getLogo,
-  showError,
-  showInfo,
-  showSuccess,
-  updateAPI,
-  getSystemName,
-  setUserData,
-} from '../../helpers';
-import Turnstile from 'react-turnstile';
-import { Button, Card, Divider, Form, Icon, Modal } from '@douyinfe/semi-ui';
-import Title from '@douyinfe/semi-ui/lib/es/typography/title';
-import Text from '@douyinfe/semi-ui/lib/es/typography/text';
-import {
-  IconGithubLogo,
-  IconMail,
-  IconUser,
-  IconLock,
-  IconKey,
+    IconGithubLogo,
+    IconKey,
+    IconLock,
+    IconMail,
+    IconUser,
 } from '@douyinfe/semi-icons';
-import {
-  onGitHubOAuthClicked,
-  onLinuxDOOAuthClicked,
-  onOIDCClicked,
-} from '../../helpers';
-import OIDCIcon from '../common/logo/OIDCIcon';
-import LinuxDoIcon from '../common/logo/LinuxDoIcon';
-import WeChatIcon from '../common/logo/WeChatIcon';
-import TelegramLoginButton from 'react-telegram-login/src';
-import { UserContext } from '../../context/User';
+import { Button, Card, Divider, Form, Icon, Modal } from '@douyinfe/semi-ui';
+import Text from '@douyinfe/semi-ui/lib/es/typography/text';
+import Title from '@douyinfe/semi-ui/lib/es/typography/title';
+import { useContext, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Link, useNavigate } from 'react-router-dom';
+import TelegramLoginButton from 'react-telegram-login/src';
+import Turnstile from 'react-turnstile';
+import { UserContext } from '../../context/User';
+import {
+    API,
+    getLogo,
+    getSystemName,
+    onDiscordOAuthClicked,
+    onGitHubOAuthClicked,
+    onLinuxDOOAuthClicked,
+    onOIDCClicked,
+    setUserData,
+    showError,
+    showInfo,
+    showSuccess,
+    updateAPI,
+} from '../../helpers';
+import DiscordIcon from '../common/logo/DiscordIcon';
+import LinuxDoIcon from '../common/logo/LinuxDoIcon';
+import OIDCIcon from '../common/logo/OIDCIcon';
+import WeChatIcon from '../common/logo/WeChatIcon';
 
 const RegisterForm = () => {
   let navigate = useNavigate();
@@ -342,6 +342,19 @@ const RegisterForm = () => {
                     loading={githubLoading}
                   >
                     <span className='ml-3'>{t('使用 GitHub 继续')}</span>
+                  </Button>
+                )}
+                
+                {status.discord_oauth && (
+                  <Button
+                    theme='outline'
+                    className='w-full h-12 flex items-center justify-center !rounded-full border border-gray-200 hover:bg-gray-50 transition-colors'
+                    type='tertiary'
+                    icon={<DiscordIcon size={20} style={{ color: '#5865F2' }} />}
+                    onClick={() => onDiscordOAuthClicked(status.discord_client_id, status.discord_scopes)}
+                    loading={githubLoading}
+                  >
+                    <span className='ml-3'>{t('使用 Discord 继续')}</span>
                   </Button>
                 )}
 
