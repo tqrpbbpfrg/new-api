@@ -5,12 +5,12 @@
 FROM node:20-alpine AS frontend
 WORKDIR /build
 ENV CI=1 \
-    NODE_ENV=production \
     VITE_REACT_APP_VERSION="unset"
 
 # 仅复制 package.json（无 lock 文件情况下 npm 将生成 package-lock.json；可在后续提交以固定版本）
 COPY web/package.json ./
-RUN npm install --no-audit --no-fund --force
+# 不设置 NODE_ENV=production，确保 devDependencies (vite 等) 被安装；使用 --legacy-peer-deps 避免严格 peer 冲突，保留审计/资助关闭。
+RUN npm install --no-audit --no-fund --legacy-peer-deps --include=dev
 
 COPY ./web .
 COPY ./VERSION .
@@ -42,6 +42,7 @@ COPY --from=frontend /build/dist ./web/dist
 RUN go build -ldflags "-s -w -X 'one-api/common.Version=$(cat VERSION)'" -o one-api
 
 FROM alpine
+ENV NODE_ENV=production
 
 RUN apk upgrade --no-cache \
     && apk add --no-cache ca-certificates tzdata ffmpeg \
