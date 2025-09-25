@@ -1,8 +1,9 @@
 FROM oven/bun:1.1.21 AS builder
 
 WORKDIR /build
+# 仅复制 package.json 以便在升级依赖（如 TypeScript 5.x）后不被旧 bun.lock 锁死版本；
+# bun.lock 暂不复制，从而强制根据最新 package.json 解析并生成新的锁文件（解决 CI 中仍安装 TS 4.4.2 导致 Vite/Rollup 解析失败的问题）。
 COPY web/package.json .
-COPY web/bun.lock .
 RUN bun install
 COPY ./web .
 COPY ./VERSION .
