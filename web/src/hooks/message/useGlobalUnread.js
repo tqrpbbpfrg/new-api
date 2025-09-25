@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import SSE from 'sse.js';
+import { SSE } from 'sse.js';
 import { fetchUnreadCount } from '../../services/message';
 
 // Global unread manager: initialize via fetch, then keep in sync with SSE unread events.

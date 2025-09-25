@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import SSE from 'sse.js';
+import { SSE } from 'sse.js';
 
 // Enhanced realtime hook supporting Last-Event-ID replay (server now supports backlog fill)
 export function useMessageRealtime({ onUnread, onMessage } = {}){
