@@ -76,19 +76,23 @@ func GetCheckinStatus(c *gin.Context) {
 	// 有序 streak bonus 列表 [{threshold, percent}, ...]
 	ordered := make([]gin.H, 0, len(common.CheckinStreakBonus))
 	keys := make([]int, 0, len(common.CheckinStreakBonus))
-	for k := range common.CheckinStreakBonus { keys = append(keys, k) }
+	for k := range common.CheckinStreakBonus {
+		keys = append(keys, k)
+	}
 	sort.Ints(keys)
-	for _, k := range keys { ordered = append(ordered, gin.H{"threshold": k, "percent": common.CheckinStreakBonus[k]}) }
+	for _, k := range keys {
+		ordered = append(ordered, gin.H{"threshold": k, "percent": common.CheckinStreakBonus[k]})
+	}
 	c.JSON(http.StatusOK, ok(gin.H{
-		"today_checked":       exist,
-		"today":               today,
-		"streak":              streak,
-		"best_streak":         bestStreak,
-		"reward_min":          common.CheckinMinReward,
-		"reward_max":          common.CheckinMaxReward,
-		"month_checked_days":  totalDays,
-		"month_reward_sum":    monthSum,
-		"config":              gin.H{"streak_bonus": common.CheckinStreakBonus, "streak_bonus_list": ordered},
+		"today_checked":      exist,
+		"today":              today,
+		"streak":             streak,
+		"best_streak":        bestStreak,
+		"reward_min":         common.CheckinMinReward,
+		"reward_max":         common.CheckinMaxReward,
+		"month_checked_days": totalDays,
+		"month_reward_sum":   monthSum,
+		"config":             gin.H{"streak_bonus": common.CheckinStreakBonus, "streak_bonus_list": ordered},
 	}))
 }
 

@@ -301,8 +301,12 @@ func updateOptionMap(key string, value string) (err error) {
 		// 非 bool 选项追加处理
 		if key == "UIBlurGlassStrength" {
 			iv, _ := strconv.Atoi(value)
-			if iv <= 0 { iv = 14 }
-			if iv > 40 { iv = 40 } // 上限避免过重性能浪费
+			if iv <= 0 {
+				iv = 14
+			}
+			if iv > 40 {
+				iv = 40
+			} // 上限避免过重性能浪费
 			common.UIBlurGlassStrength = iv
 		}
 		if key == "UIBlurGlassArea" {

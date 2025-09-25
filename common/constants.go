@@ -152,6 +152,7 @@ var CheckinMaxReward = DefaultCheckinMaxReward
 
 // 连续签到额外加成(百分比)的阶梯, key=连续天数阈值(>=), value=加成百分比
 var CheckinStreakBonus = map[int]int{7: 5, 15: 10, 30: 15}
+
 // 签到功能开关（可通过 Option 覆盖）
 var CheckinEnabled = true
 
@@ -186,7 +187,7 @@ var (
 	CriticalRateLimitNum            = 20
 	CriticalRateLimitDuration int64 = 20 * 60
 
-	CheckinRateLimitNum            = 5   // 单位时间内允许的签到尝试（幂等情况下主要防刷）
+	CheckinRateLimitNum            = 5  // 单位时间内允许的签到尝试（幂等情况下主要防刷）
 	CheckinRateLimitDuration int64 = 60 // 秒，允许重复点击的缓冲
 )
 

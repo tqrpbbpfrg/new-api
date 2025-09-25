@@ -3,10 +3,11 @@ package middleware
 import (
 	"context"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"one-api/common"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 var timeFormat = "2006-01-02T15:04:05.000Z"
@@ -114,5 +115,5 @@ func UploadRateLimit() func(c *gin.Context) {
 
 // CheckinRateLimit 针对签到接口的轻量限流（幂等但防滥刷）
 func CheckinRateLimit() func(c *gin.Context) {
-    return rateLimitFactory(common.CheckinRateLimitNum, common.CheckinRateLimitDuration, "CI")
+	return rateLimitFactory(common.CheckinRateLimitNum, common.CheckinRateLimitDuration, "CI")
 }

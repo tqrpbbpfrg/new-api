@@ -234,13 +234,21 @@ func UpdateOption(c *gin.Context) {
 		valid := true
 		for _, p := range pairs {
 			p = strings.TrimSpace(p)
-			if p == "" { continue }
+			if p == "" {
+				continue
+			}
 			p = strings.ReplaceAll(p, ":", "=")
 			kv := strings.Split(p, "=")
-			if len(kv) != 2 { valid = false; break }
+			if len(kv) != 2 {
+				valid = false
+				break
+			}
 			k, err1 := strconv.Atoi(strings.TrimSpace(kv[0]))
 			v, err2 := strconv.Atoi(strings.TrimSpace(kv[1]))
-			if err1 != nil || err2 != nil || k <= 0 || v < 0 { valid = false; break }
+			if err1 != nil || err2 != nil || k <= 0 || v < 0 {
+				valid = false
+				break
+			}
 		}
 		if !valid {
 			c.JSON(http.StatusOK, gin.H{"success": false, "message": "加成配置格式错误，示例: 3=10,7=20"})

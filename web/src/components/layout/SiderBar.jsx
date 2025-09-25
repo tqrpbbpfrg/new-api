@@ -19,7 +19,6 @@ For commercial licensing, please contact support@quantumnous.com
 
 import { ChevronLeft } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { useBlurGlass } from '../../hooks/ui/useBlurGlass';
 import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from 'react-router-dom';
 import { isAdmin, isRoot, showError } from '../../helpers';
@@ -27,6 +26,7 @@ import { getLucideIcon } from '../../helpers/render';
 import { useMinimumLoadingTime } from '../../hooks/common/useMinimumLoadingTime';
 import { useSidebar } from '../../hooks/common/useSidebar';
 import { useSidebarCollapsed } from '../../hooks/common/useSidebarCollapsed';
+import { useBlurGlass } from '../../hooks/ui/useBlurGlass';
 import SkeletonWrapper from './components/SkeletonWrapper';
 
 import { Button, Divider, Nav } from '@douyinfe/semi-ui';

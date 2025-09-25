@@ -1,5 +1,5 @@
-import { Button, Card, Spin, Tag, Tooltip, Typography, Banner, Divider } from '@douyinfe/semi-ui';
-import { IconTickCircle, IconGift } from '@douyinfe/semi-icons';
+import { IconGift, IconTickCircle } from '@douyinfe/semi-icons';
+import { Banner, Button, Card, Divider, Spin, Typography } from '@douyinfe/semi-ui';
 import dayjs from 'dayjs';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
