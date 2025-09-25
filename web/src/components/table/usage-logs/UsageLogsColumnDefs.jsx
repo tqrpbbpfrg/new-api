@@ -17,31 +17,24 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React from 'react';
+import { IconHelpCircle } from '@douyinfe/semi-icons';
 import {
   Avatar,
+  Popover,
   Space,
   Tag,
   Tooltip,
-  Popover,
   Typography,
 } from '@douyinfe/semi-ui';
-import {
-  timestamp2string,
-  renderGroup,
-  renderQuota,
-  stringToColor,
-  getLogOther,
-  renderModelTag,
-  renderClaudeLogContent,
-  renderLogContent,
-  renderModelPriceSimple,
-  renderAudioModelPrice,
-  renderClaudeModelPrice,
-  renderModelPrice,
-} from '../../../helpers';
-import { IconHelpCircle } from '@douyinfe/semi-icons';
 import { Route } from 'lucide-react';
+import {
+  getLogOther,
+  renderGroup,
+  renderModelPriceSimple,
+  renderModelTag,
+  renderQuota,
+  stringToColor
+} from '../../../helpers';
 
 const colors = [
   'amber',
@@ -242,7 +235,7 @@ export const getLogsColumns = ({
   showUserInfoFunc,
   isAdminUser,
 }) => {
-  return [
+  const cols = [
     {
       key: COLUMN_KEYS.TIME,
       title: t('时间'),
@@ -454,41 +447,40 @@ export const getLogsColumns = ({
         );
       },
     },
-    {
-      key: COLUMN_KEYS.IP,
-      title: (
-        <div className='flex items-center gap-1'>
-          {t('IP')}
-          <Tooltip
-            content={t(
-              '只有当用户设置开启IP记录时，才会进行请求和错误类型日志的IP记录',
-            )}
-          >
-            <IconHelpCircle className='text-gray-400 cursor-help' />
-          </Tooltip>
-        </div>
-      ),
-      dataIndex: 'ip',
-      render: (text, record, index) => {
-        return (record.type === 2 || record.type === 5) && text ? (
-          <Tooltip content={text}>
-            <span>
-              <Tag
-                color='orange'
-                shape='circle'
-                onClick={(event) => {
-                  copyText(event, text);
-                }}
-              >
-                {text}
-              </Tag>
-            </span>
-          </Tooltip>
-        ) : (
-          <></>
-        );
-      },
-    },
+    // IP 列仅管理员可见
+    ...(isAdminUser
+      ? [
+          {
+            key: COLUMN_KEYS.IP,
+            title: (
+              <div className='flex items-center gap-1'>
+                {t('IP')}
+                <Tooltip content={t('调用客户端 IP')}>
+                  <IconHelpCircle className='text-gray-400 cursor-help' />
+                </Tooltip>
+              </div>
+            ),
+            dataIndex: 'ip',
+            render: (text, record) => {
+              return (record.type === 2 || record.type === 5) && text ? (
+                <Tooltip content={text}>
+                  <span>
+                    <Tag
+                      color='orange'
+                      shape='circle'
+                      onClick={(event) => {
+                        copyText(event, text);
+                      }}
+                    >
+                      {text}
+                    </Tag>
+                  </span>
+                </Tooltip>
+              ) : null;
+            },
+          },
+        ]
+      : []),
     {
       key: COLUMN_KEYS.RETRY,
       title: t('重试'),
@@ -583,4 +575,5 @@ export const getLogsColumns = ({
       },
     },
   ];
+  return cols;
 };

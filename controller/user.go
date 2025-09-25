@@ -1108,7 +1108,6 @@ type UpdateUserSettingRequest struct {
 	NotificationEmail          string  `json:"notification_email,omitempty"`
 	BarkUrl                    string  `json:"bark_url,omitempty"`
 	AcceptUnsetModelRatioModel bool    `json:"accept_unset_model_ratio_model"`
-	RecordIpLog                bool    `json:"record_ip_log"`
 }
 
 func UpdateUserSetting(c *gin.Context) {
@@ -1209,7 +1208,6 @@ func UpdateUserSetting(c *gin.Context) {
 		NotifyType:            req.QuotaWarningType,
 		QuotaWarningThreshold: req.QuotaWarningThreshold,
 		AcceptUnsetRatioModel: req.AcceptUnsetModelRatioModel,
-		RecordIpLog:           req.RecordIpLog,
 	}
 
 	// 如果是webhook类型,添加webhook相关设置

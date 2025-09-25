@@ -17,21 +17,21 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useContext, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { API, copy, showError, showInfo, showSuccess } from '../../helpers';
-import { UserContext } from '../../context/User';
 import { Modal } from '@douyinfe/semi-ui';
+import { useContext, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
+import { UserContext } from '../../context/User';
+import { API, copy, showError, showInfo, showSuccess } from '../../helpers';
 
 // 导入子组件
-import UserInfoHeader from './personal/components/UserInfoHeader';
 import AccountManagement from './personal/cards/AccountManagement';
 import NotificationSettings from './personal/cards/NotificationSettings';
-import EmailBindModal from './personal/modals/EmailBindModal';
-import WeChatBindModal from './personal/modals/WeChatBindModal';
+import UserInfoHeader from './personal/components/UserInfoHeader';
 import AccountDeleteModal from './personal/modals/AccountDeleteModal';
 import ChangePasswordModal from './personal/modals/ChangePasswordModal';
+import EmailBindModal from './personal/modals/EmailBindModal';
+import WeChatBindModal from './personal/modals/WeChatBindModal';
 
 const PersonalSetting = () => {
   const [userState, userDispatch] = useContext(UserContext);
@@ -67,7 +67,6 @@ const PersonalSetting = () => {
     notificationEmail: '',
     barkUrl: '',
     acceptUnsetModelRatioModel: false,
-    recordIpLog: false,
   });
 
   useEffect(() => {
@@ -110,7 +109,6 @@ const PersonalSetting = () => {
         barkUrl: settings.bark_url || '',
         acceptUnsetModelRatioModel:
           settings.accept_unset_model_ratio_model || false,
-        recordIpLog: settings.record_ip_log || false,
       });
     }
   }, [userState?.user?.setting]);
@@ -288,7 +286,6 @@ const PersonalSetting = () => {
         bark_url: notificationSettings.barkUrl,
         accept_unset_model_ratio_model:
           notificationSettings.acceptUnsetModelRatioModel,
-        record_ip_log: notificationSettings.recordIpLog,
       });
 
       if (res.data.success) {

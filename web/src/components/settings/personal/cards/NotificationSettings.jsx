@@ -17,34 +17,34 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useRef, useEffect, useState, useContext } from 'react';
+import { IconBell, IconKey, IconLink, IconMail } from '@douyinfe/semi-icons';
 import {
-  Button,
-  Typography,
-  Card,
-  Avatar,
-  Form,
-  Radio,
-  Toast,
-  Tabs,
-  TabPane,
-  Switch,
-  Row,
-  Col,
+    Avatar,
+    Button,
+    Card,
+    Col,
+    Form,
+    Radio,
+    Row,
+    Switch,
+    TabPane,
+    Tabs,
+    Toast,
+    Typography,
 } from '@douyinfe/semi-ui';
-import { IconMail, IconKey, IconBell, IconLink } from '@douyinfe/semi-icons';
-import { ShieldCheck, Bell, DollarSign, Settings } from 'lucide-react';
-import {
-  renderQuotaWithPrompt,
-  API,
-  showSuccess,
-  showError,
-} from '../../../../helpers';
-import CodeViewer from '../../../playground/CodeViewer';
+import { Bell, DollarSign, Settings } from 'lucide-react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { StatusContext } from '../../../../context/Status';
 import { UserContext } from '../../../../context/User';
-import { useUserPermissions } from '../../../../hooks/common/useUserPermissions';
+import {
+    API,
+    renderQuotaWithPrompt,
+    showError,
+    showSuccess,
+} from '../../../../helpers';
 import { useSidebar } from '../../../../hooks/common/useSidebar';
+import { useUserPermissions } from '../../../../hooks/common/useUserPermissions';
+import CodeViewer from '../../../playground/CodeViewer';
 
 const NotificationSettings = ({
   t,
@@ -625,29 +625,6 @@ const NotificationSettings = ({
               </div>
             </TabPane>
 
-            {/* 隐私设置 Tab */}
-            <TabPane
-              tab={
-                <div className='flex items-center'>
-                  <ShieldCheck size={16} className='mr-2' />
-                  {t('隐私设置')}
-                </div>
-              }
-              itemKey='privacy'
-            >
-              <div className='py-4'>
-                <Form.Switch
-                  field='recordIpLog'
-                  label={t('记录请求与错误日志IP')}
-                  checkedText={t('开')}
-                  uncheckedText={t('关')}
-                  onChange={(value) => handleFormChange('recordIpLog', value)}
-                  extraText={t(
-                    '开启后，仅"消费"和"错误"日志将记录您的客户端IP地址',
-                  )}
-                />
-              </div>
-            </TabPane>
 
             {/* 左侧边栏设置 Tab - 根据后端权限控制显示 */}
             {hasSidebarSettingsPermission() && (

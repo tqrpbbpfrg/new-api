@@ -1,9 +1,11 @@
 // Message related API helpers
 import { showError, showSuccess } from '../helpers';
+import { authHeader } from '../helpers/auth';
 
 export async function fetchUnreadCount() {
   try {
-    const res = await fetch('/api/message/unread_count');
+    const headers = authHeader();
+    const res = await fetch('/api/message/unread_count',{ headers });
     const data = await res.json();
     if (!data.success) return 0;
     return data.data.unread || 0;

@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { SSE } from 'sse.js';
+import { authHeader } from '../../helpers/auth';
 
 // Enhanced realtime hook supporting Last-Event-ID replay (server now supports backlog fill)
 export function useMessageRealtime({ onUnread, onMessage } = {}){
@@ -7,7 +8,10 @@ export function useMessageRealtime({ onUnread, onMessage } = {}){
   useEffect(()=>{
     let es; let closed = false; let retryTimer;
     const connect = () => {
-      const headers = {};
+      const userHeaders = authHeader();
+      // 若未登录则不建立 SSE
+      if(!userHeaders || !userHeaders.Authorization){ return; }
+      const headers = { ...userHeaders };
       if(lastIdRef.current>0) headers['Last-Event-ID'] = String(lastIdRef.current);
       es = new SSE('/api/message/stream',{ headers });
       es.addEventListener('unread', e=>{ try { const d=JSON.parse(e.data); onUnread && onUnread(d.unread); } catch(_){} });
