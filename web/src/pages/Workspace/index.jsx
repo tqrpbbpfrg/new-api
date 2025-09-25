@@ -1,5 +1,7 @@
 /*
-Copyright (C) 2025 QuantumNous
+Copyright (C) 2025 import { useTranslation } from 'react-i18next';
+import { isLoggedIn, API } from '../../helpers';
+import { useIsMobile } from '../../hooks/common/useIsMobile';antumNous
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as
@@ -22,13 +24,14 @@ import { IconUser, IconClock, IconActivity, IconCalendar, IconGift } from '@douy
 import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { isLoggedIn, isMobile } from '../../helpers';
-import { API } from '../../helpers';
+import { isLoggedIn, API } from '../../helpers';
+import { useIsMobile } from '../../hooks/common/useIsMobile';
 
 const { Title, Text } = Typography;
 
 export default function Workspace(){
   const { t } = useTranslation();
+  const isMobile = useIsMobile();
   const [checkinStatus, setCheckinStatus] = useState(null);
   const [userStats, setUserStats] = useState(null);
   const [loading, setLoading] = useState(false);
