@@ -47,14 +47,13 @@ export default function SettingsSidebarModulesAdmin(props) {
     },
     console: {
       enabled: true,
-      detail: true,
+      control: true,
       token: true,
       log: true,
-      midjourney: true,
-      task: true,
     },
     personal: {
       enabled: true,
+      info: true,
       topup: true,
       personal: true,
     },
@@ -106,14 +105,13 @@ export default function SettingsSidebarModulesAdmin(props) {
       },
       console: {
         enabled: true,
-        detail: true,
+        control: true,
         token: true,
         log: true,
-        midjourney: true,
-        task: true,
       },
       personal: {
         enabled: true,
+        info: true,
         topup: true,
         personal: true,
       },
@@ -177,13 +175,16 @@ export default function SettingsSidebarModulesAdmin(props) {
           chat: { enabled: true, playground: true, chat: true },
           console: {
             enabled: true,
-            detail: true,
+            control: true,
             token: true,
             log: true,
-            midjourney: true,
-            task: true,
           },
-          personal: { enabled: true, topup: true, personal: true },
+          personal: { 
+            enabled: true, 
+            info: true,
+            topup: true, 
+            personal: true 
+          },
           admin: {
             enabled: true,
             channel: true,

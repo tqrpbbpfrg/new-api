@@ -78,20 +78,6 @@ const SiderBar = ({ onNavigate = () => {} }) => {
         to: '/control',
       },
       {
-        text: t('数据看板'),
-        itemKey: 'detail',
-        to: '/console',
-        className:
-          localStorage.getItem('enable_data_export') === 'true'
-            ? ''
-            : 'tableHiddle',
-      },
-      {
-        text: t('信息处'),
-        itemKey: 'info',
-        to: '/console/info',
-      },
-      {
         text: t('令牌管理'),
         itemKey: 'token',
         to: '/console/token',
@@ -100,28 +86,6 @@ const SiderBar = ({ onNavigate = () => {} }) => {
         text: t('使用日志'),
         itemKey: 'log',
         to: '/console/log',
-      },
-      {
-        text: t('绘图日志'),
-        itemKey: 'midjourney',
-        to: '/console/midjourney',
-        className:
-          localStorage.getItem('enable_drawing') === 'true'
-            ? ''
-            : 'tableHiddle',
-      },
-      {
-        text: t('任务日志'),
-        itemKey: 'task',
-        to: '/console/task',
-        className:
-          localStorage.getItem('enable_task') === 'true' ? '' : 'tableHiddle',
-      },
-      {
-        text: t('每日签到'),
-        itemKey: 'checkin',
-        to: '/console/checkin',
-        className: localStorage.getItem('CheckinEnabled') === 'false' ? 'tableHiddle' : ''
       },
     ];
 
@@ -132,16 +96,15 @@ const SiderBar = ({ onNavigate = () => {} }) => {
     });
 
     return filteredItems;
-  }, [
-    localStorage.getItem('enable_data_export'),
-    localStorage.getItem('enable_drawing'),
-    localStorage.getItem('enable_task'),
-    t,
-    isModuleVisible,
-  ]);
+  }, [t, isModuleVisible]);
 
   const financeItems = useMemo(() => {
     const items = [
+      {
+        text: t('信息处'),
+        itemKey: 'info',
+        to: '/console/info',
+      },
       {
         text: t('钱包管理'),
         itemKey: 'topup',

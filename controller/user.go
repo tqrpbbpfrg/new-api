@@ -1243,3 +1243,46 @@ func UpdateUserSetting(c *gin.Context) {
 		"message": "设置已更新",
 	})
 }
+
+// GetUserDashboard 获取用户仪表板数据
+func GetUserDashboard(c *gin.Context) {
+	userId := c.GetInt("id")
+	
+	user, err := model.GetUserById(userId, true)
+	if err != nil {
+		common.ApiError(c, err)
+		return
+	}
+
+	// 获取用户的额度使用统计
+	usedQuota, err := model.GetUserUsedQuota(userId)
+	if err != nil {
+		common.SysError("GetUserDashboard failed to get user used quota: " + err.Error())
+		usedQuota = 0
+	}
+
+	// 获取用户的令牌数量
+	var tokenCount int64
+	err = model.DB.Model(&model.Token{}).Where("user_id = ?", userId).Count(&tokenCount).Error
+	if err != nil {
+		common.SysError("GetUserDashboard failed to get user token count: " + err.Error())
+		tokenCount = 0
+	}
+
+	dashboardData := gin.H{
+		"quota":         user.Quota,
+		"used_quota":    usedQuota,
+		"request_count": user.RequestCount,
+		"token_count":   tokenCount,
+		"username":      user.Username,
+		"email":         user.Email,
+		"group":         user.Group,
+		"created_at":    user.CreatedAt.Unix(),
+		"last_login":    user.LastLoginAt,
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data":    dashboardData,
+	})
+}

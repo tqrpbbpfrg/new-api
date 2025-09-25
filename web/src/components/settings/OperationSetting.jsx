@@ -26,6 +26,7 @@ import SettingsSensitiveWords from '../../pages/Setting/Operation/SettingsSensit
 import SettingsLog from '../../pages/Setting/Operation/SettingsLog';
 import SettingsMonitoring from '../../pages/Setting/Operation/SettingsMonitoring';
 import SettingsCreditLimit from '../../pages/Setting/Operation/SettingsCreditLimit';
+import SettingsOAuth from '../../pages/Setting/Operation/SettingsOAuth';
 import { API, showError, toBoolean } from '../../helpers';
 
 const OperationSetting = () => {
@@ -70,6 +71,25 @@ const OperationSetting = () => {
     AutomaticDisableKeywords: '',
     'monitor_setting.auto_test_channel_enabled': false,
     'monitor_setting.auto_test_channel_minutes': 10,
+
+    /* OAuth设置 */
+    GitHubOAuthEnabled: false,
+    GitHubClientId: '',
+    GitHubClientSecret: '',
+    DiscordOAuthEnabled: false,
+    DiscordClientId: '',
+    DiscordClientSecret: '',
+    DiscordOAuthScopes: 'identify email',
+    TelegramOAuthEnabled: false,
+    TelegramBotToken: '',
+    TelegramBotName: '',
+    LinuxDOOAuthEnabled: false,
+    LinuxDOClientId: '',
+    LinuxDOClientSecret: '',
+    WeChatAuthEnabled: false,
+    WeChatServerAddress: '',
+    WeChatServerToken: '',
+    WeChatAccountQRCodeImageURL: '',
   });
 
   let [loading, setLoading] = useState(false);
@@ -138,6 +158,10 @@ const OperationSetting = () => {
         {/* 额度设置 */}
         <Card style={{ marginTop: '10px' }}>
           <SettingsCreditLimit options={inputs} refresh={onRefresh} />
+        </Card>
+        {/* OAuth设置 */}
+        <Card style={{ marginTop: '10px' }}>
+          <SettingsOAuth options={inputs} refresh={onRefresh} />
         </Card>
       </Spin>
     </>

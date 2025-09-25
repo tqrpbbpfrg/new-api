@@ -95,6 +95,8 @@ func InitOptionMap() {
 	common.OptionMap["DiscordOAuthScopes"] = common.DiscordOAuthScopes
 	common.OptionMap["TelegramBotToken"] = ""
 	common.OptionMap["TelegramBotName"] = ""
+	common.OptionMap["LinuxDOClientId"] = ""
+	common.OptionMap["LinuxDOClientSecret"] = ""
 	common.OptionMap["WeChatServerAddress"] = ""
 	common.OptionMap["WeChatServerToken"] = ""
 	common.OptionMap["WeChatAccountQRCodeImageURL"] = ""

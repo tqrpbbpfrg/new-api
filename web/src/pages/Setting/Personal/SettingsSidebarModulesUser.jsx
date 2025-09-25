@@ -81,11 +81,9 @@ export default function SettingsSidebarModulesUser() {
     if (isSidebarSectionAllowed('console')) {
       defaultConfig.console = {
         enabled: true,
-        detail: isSidebarModuleAllowed('console', 'detail'),
+        control: isSidebarModuleAllowed('console', 'control'),
         token: isSidebarModuleAllowed('console', 'token'),
         log: isSidebarModuleAllowed('console', 'log'),
-        midjourney: isSidebarModuleAllowed('console', 'midjourney'),
-        task: isSidebarModuleAllowed('console', 'task'),
       };
     }
 
@@ -93,6 +91,7 @@ export default function SettingsSidebarModulesUser() {
     if (isSidebarSectionAllowed('personal')) {
       defaultConfig.personal = {
         enabled: true,
+        info: isSidebarModuleAllowed('personal', 'info'),
         topup: isSidebarModuleAllowed('personal', 'topup'),
         personal: isSidebarModuleAllowed('personal', 'personal'),
       };
