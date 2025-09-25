@@ -111,3 +111,8 @@ func DownloadRateLimit() func(c *gin.Context) {
 func UploadRateLimit() func(c *gin.Context) {
 	return rateLimitFactory(common.UploadRateLimitNum, common.UploadRateLimitDuration, "UP")
 }
+
+// CheckinRateLimit 针对签到接口的轻量限流（幂等但防滥刷）
+func CheckinRateLimit() func(c *gin.Context) {
+    return rateLimitFactory(common.CheckinRateLimitNum, common.CheckinRateLimitDuration, "CI")
+}

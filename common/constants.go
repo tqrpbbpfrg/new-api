@@ -27,6 +27,10 @@ var DataExportEnabled = true
 var DataExportInterval = 5         // unit: minute
 var DataExportDefaultTime = "hour" // unit: minute
 var DefaultCollapseSidebar = false // default value of collapse sidebar
+// UI 外观相关
+var UIBlurGlassEnabled = false // 是否启用毛玻璃（前端 header/sidebar 背景模糊）
+var UIBlurGlassStrength = 14   // 毛玻璃模糊强度 (px)
+var UIBlurGlassArea = "both"   // 应用区域 both|header|sidebar|none
 
 // Any options with "Secret", "Token" in its key won't be return by GetOptions
 
@@ -136,6 +140,21 @@ const (
 	RoleRootUser   = 100
 )
 
+// 签到奖励额度区间（可根据需要改为从环境变量读取）
+const (
+	DefaultCheckinMinReward = 3000   // 最小奖励（内部额度单位）
+	DefaultCheckinMaxReward = 100000 // 最大奖励
+)
+
+// 可运行时覆盖的签到配置（通过 Option 更新）
+var CheckinMinReward = DefaultCheckinMinReward
+var CheckinMaxReward = DefaultCheckinMaxReward
+
+// 连续签到额外加成(百分比)的阶梯, key=连续天数阈值(>=), value=加成百分比
+var CheckinStreakBonus = map[int]int{7: 5, 15: 10, 30: 15}
+// 签到功能开关（可通过 Option 覆盖）
+var CheckinEnabled = true
+
 func IsValidateRole(role int) bool {
 	return role == RoleGuestUser || role == RoleCommonUser || role == RoleAdminUser || role == RoleRootUser
 }
@@ -166,6 +185,9 @@ var (
 
 	CriticalRateLimitNum            = 20
 	CriticalRateLimitDuration int64 = 20 * 60
+
+	CheckinRateLimitNum            = 5   // 单位时间内允许的签到尝试（幂等情况下主要防刷）
+	CheckinRateLimitDuration int64 = 60 // 秒，允许重复点击的缓冲
 )
 
 var RateLimitKeyExpirationDuration = 20 * time.Minute

@@ -17,16 +17,16 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useEffect, useState, useRef } from 'react';
-import { Banner, Button, Col, Form, Row, Spin, Modal } from '@douyinfe/semi-ui';
-import {
-  compareObjects,
-  API,
-  showError,
-  showSuccess,
-  showWarning,
-} from '../../../helpers';
+import { Banner, Button, Col, Form, Modal, Row, Spin } from '@douyinfe/semi-ui';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import {
+    API,
+    compareObjects,
+    showError,
+    showSuccess,
+    showWarning,
+} from '../../../helpers';
 
 export default function GeneralSettings(props) {
   const { t } = useTranslation();
@@ -43,6 +43,13 @@ export default function GeneralSettings(props) {
     DefaultCollapseSidebar: false,
     DemoSiteEnabled: false,
     SelfUseModeEnabled: false,
+    CheckinMinReward: '',
+    CheckinMaxReward: '',
+    CheckinStreakBonus: '',
+    CheckinEnabled: false,
+  UIBlurGlassEnabled: false,
+  UIBlurGlassStrength: '',
+  UIBlurGlassArea: 'both',
   });
   const refForm = useRef();
   const [inputsRow, setInputsRow] = useState(inputs);
@@ -79,6 +86,15 @@ export default function GeneralSettings(props) {
         }
         showSuccess(t('保存成功'));
         props.refresh();
+        // 即时刷新本地 blur 状态
+        if(updateArray.some(i=>['UIBlurGlassEnabled','UIBlurGlassStrength','UIBlurGlassArea'].includes(i.key))){
+          try {
+            if('UIBlurGlassEnabled' in inputs) localStorage.setItem('UIBlurGlassEnabled', String(inputs.UIBlurGlassEnabled));
+            if('UIBlurGlassStrength' in inputs) localStorage.setItem('UIBlurGlassStrength', String(inputs.UIBlurGlassStrength));
+            if('UIBlurGlassArea' in inputs) localStorage.setItem('UIBlurGlassArea', String(inputs.UIBlurGlassArea));
+            window.dispatchEvent(new Event('ui-option-update'));
+          } catch{}
+        }
       })
       .catch(() => {
         showError(t('保存失败，请重试'));
@@ -110,6 +126,53 @@ export default function GeneralSettings(props) {
         >
           <Form.Section text={t('通用设置')}>
             <Row gutter={16}>
+                <Col xs={24} sm={12} md={8} lg={8} xl={8}>
+                  <Form.Input
+                    field={'CheckinMinReward'}
+                    label={t('签到最小奖励')}
+                    placeholder={t('签到最小奖励')}
+                    onChange={handleFieldChange('CheckinMinReward')}
+                    showClear
+                  />
+                </Col>
+                <Col xs={24} sm={12} md={8} lg={8} xl={8}>
+                  <Form.Input
+                    field={'CheckinMaxReward'}
+                    label={t('签到最大奖励')}
+                    placeholder={t('签到最大奖励')}
+                    onChange={handleFieldChange('CheckinMaxReward')}
+                    showClear
+                  />
+                </Col>
+                <Col xs={24} sm={24} md={8} lg={8} xl={8}>
+                  <Form.Input
+                    field={'CheckinStreakBonus'}
+                    label={t('签到加成配置')}
+                    placeholder={t('格式：天数=加成百分比，多条以逗号分隔，如 3=10,7=20')}
+                    onChange={handleFieldChange('CheckinStreakBonus')}
+                    showClear
+                  />
+                </Col>
+              </Row>
+              <Row gutter={16}>
+                <Col xs={24} sm={12} md={8} lg={8} xl={8}>
+                  <Form.Switch
+                    field={'CheckinEnabled'}
+                    label={t('签到功能开关')}
+                    extraText={t('开启后用户可在控制台每日签到领取随机额度奖励')}
+                    size='default'
+                    checkedText='｜'
+                    uncheckedText='〇'
+                    onChange={handleFieldChange('CheckinEnabled')}
+                  />
+                </Col>
+              </Row>
+              <Row>
+                <Button size='default' onClick={onSubmit} style={{marginTop:8}}>
+                  {t('保存签到设置')}
+                </Button>
+              </Row>
+              <Row gutter={16}>
               <Col xs={24} sm={12} md={8} lg={8} xl={8}>
                 <Form.Input
                   field={'TopUpLink'}
@@ -193,6 +256,39 @@ export default function GeneralSettings(props) {
                   checkedText='｜'
                   uncheckedText='〇'
                   onChange={handleFieldChange('DefaultCollapseSidebar')}
+                />
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={8} xl={8}>
+                <Form.Switch
+                  field={'UIBlurGlassEnabled'}
+                  label={t('启用毛玻璃界面样式')}
+                  size='default'
+                  checkedText='｜'
+                  uncheckedText='〇'
+                  onChange={handleFieldChange('UIBlurGlassEnabled')}
+                />
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={8} xl={8}>
+                <Form.Input
+                  field={'UIBlurGlassStrength'}
+                  label={t('毛玻璃模糊强度(px)')}
+                  placeholder={t('建议 6 - 24，越大越模糊与耗性能')}
+                  onChange={handleFieldChange('UIBlurGlassStrength')}
+                  showClear
+                />
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={8} xl={8}>
+                <Form.Select
+                  field={'UIBlurGlassArea'}
+                  label={t('毛玻璃作用区域')}
+                  placeholder={t('选择作用范围')}
+                  optionList={[
+                    {label:t('顶部与侧边'), value:'both'},
+                    {label:t('仅顶部'), value:'header'},
+                    {label:t('仅侧边'), value:'sidebar'},
+                    {label:t('不应用'), value:'none'},
+                  ]}
+                  onChange={handleFieldChange('UIBlurGlassArea')}
                 />
               </Col>
             </Row>

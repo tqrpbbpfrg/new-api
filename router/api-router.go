@@ -158,6 +158,16 @@ func SetApiRouter(router *gin.Engine) {
 			}
 		}
 
+		// checkin routes
+		checkinRoute := apiRouter.Group("/checkin")
+		checkinRoute.Use(middleware.UserAuth())
+		checkinRoute.Use(middleware.CheckinRateLimit())
+		{
+			checkinRoute.GET("/status", controller.GetCheckinStatus)
+			checkinRoute.GET("/calendar", controller.GetCheckinCalendar)
+			checkinRoute.POST("/", controller.PostCheckin)
+		}
+
 		redemptionRoute := apiRouter.Group("/redemption")
 		redemptionRoute.Use(middleware.AdminAuth())
 		{

@@ -140,9 +140,18 @@ code {
 }
 
 .sidebar-nav-item-selected {
-  background-color: rgba(var(--semi-blue-0), 0.12);
+  background-color: rgba(var(--semi-blue-0), 0.09);
   color: var(--semi-color-primary);
-  font-weight: 500;
+  font-weight: 600;
+  position: relative;
+}
+.sidebar-nav-item-selected::before{
+  content:'';
+  position:absolute;left:0;top:4px;bottom:4px;width:4px;border-radius:2px;background:var(--semi-color-primary);
+}
+.sidebar-blur-enabled{backdrop-filter:blur(14px);background:rgba(255,255,255,0.65)!important}
+@media (prefers-color-scheme: dark){
+  .sidebar-blur-enabled{background:rgba(24,24,27,0.5)!important}
 }
 
 /* 图标容器样式 */
@@ -175,7 +184,7 @@ code {
 
 /* 分组标签样式 */
 .sidebar-group-label {
-  padding: 4px 15px 8px;
+  padding: 2px 15px 4px;
   color: var(--semi-color-text-2);
   font-size: 12px;
   text-transform: uppercase;
@@ -198,6 +207,11 @@ code {
   box-shadow: 0 -10px 10px -5px var(--semi-color-bg-0);
   backdrop-filter: blur(4px);
   border-top: 1px solid rgba(var(--semi-grey-0), 0.08);
+}
+@media (max-width: 640px){
+  .sidebar-container{width:220px !important;}
+  body.sidebar-collapsed .sidebar-container{transform:translateX(-100%);transition:transform .25s ease;}
+  .sidebar-container{transition:transform .25s ease;}
 }
 
 .sidebar-collapse-button-inner {
@@ -342,6 +356,13 @@ code {
 /* 页脚样式 */
 .custom-footer {
   font-size: 1.1em;
+}
+
+/* ============== Header Responsive Tweaks ============== */
+.header-bar-root{backdrop-filter:none}
+@media (max-width:640px){
+  .header-bar-root{box-shadow:0 1px 2px rgba(0,0,0,0.04);}
+  .header-bar-root .semi-button{--ifm-btn-padding:0 10px}
 }
 
 /* 卡片内容容器通用样式 */

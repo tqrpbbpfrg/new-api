@@ -10,6 +10,7 @@ import (
 	"one-api/setting/console_setting"
 	"one-api/setting/ratio_setting"
 	"one-api/setting/system_setting"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -198,6 +199,57 @@ func UpdateOption(c *gin.Context) {
 				"success": false,
 				"message": err.Error(),
 			})
+			return
+		}
+	case "CheckinMinReward", "CheckinMaxReward":
+		iv, convErr := strconv.Atoi(option.Value.(string))
+		if convErr != nil || iv <= 0 {
+			c.JSON(http.StatusOK, gin.H{"success": false, "message": "签到奖励必须为正整数"})
+			return
+		}
+		// 临时获取另一个值做范围校验
+		common.OptionMapRWMutex.RLock()
+		minStr := common.OptionMap["CheckinMinReward"]
+		maxStr := common.OptionMap["CheckinMaxReward"]
+		common.OptionMapRWMutex.RUnlock()
+		minVal, _ := strconv.Atoi(minStr)
+		maxVal, _ := strconv.Atoi(maxStr)
+		if option.Key == "CheckinMinReward" {
+			if maxVal != 0 && iv > maxVal {
+				c.JSON(http.StatusOK, gin.H{"success": false, "message": "最小奖励不能大于最大奖励"})
+				return
+			}
+		} else { // Max
+			if minVal != 0 && iv < minVal {
+				c.JSON(http.StatusOK, gin.H{"success": false, "message": "最大奖励不能小于最小奖励"})
+				return
+			}
+		}
+	case "CheckinStreakBonus":
+		valueStr := option.Value.(string)
+		if valueStr == "" {
+			break
+		}
+		pairs := strings.Split(valueStr, ",")
+		valid := true
+		for _, p := range pairs {
+			p = strings.TrimSpace(p)
+			if p == "" { continue }
+			p = strings.ReplaceAll(p, ":", "=")
+			kv := strings.Split(p, "=")
+			if len(kv) != 2 { valid = false; break }
+			k, err1 := strconv.Atoi(strings.TrimSpace(kv[0]))
+			v, err2 := strconv.Atoi(strings.TrimSpace(kv[1]))
+			if err1 != nil || err2 != nil || k <= 0 || v < 0 { valid = false; break }
+		}
+		if !valid {
+			c.JSON(http.StatusOK, gin.H{"success": false, "message": "加成配置格式错误，示例: 3=10,7=20"})
+			return
+		}
+	case "UIBlurGlassStrength":
+		iv, errStrength := strconv.Atoi(option.Value.(string))
+		if errStrength != nil || iv <= 0 || iv > 60 {
+			c.JSON(http.StatusOK, gin.H{"success": false, "message": "毛玻璃强度需为 1-60 之间的整数"})
 			return
 		}
 	}

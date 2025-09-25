@@ -17,18 +17,19 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useEffect, useMemo, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { getLucideIcon } from '../../helpers/render';
 import { ChevronLeft } from 'lucide-react';
-import { useSidebarCollapsed } from '../../hooks/common/useSidebarCollapsed';
-import { useSidebar } from '../../hooks/common/useSidebar';
-import { useMinimumLoadingTime } from '../../hooks/common/useMinimumLoadingTime';
+import { useEffect, useMemo, useState } from 'react';
+import { useBlurGlass } from '../../hooks/ui/useBlurGlass';
+import { useTranslation } from 'react-i18next';
+import { Link, useLocation } from 'react-router-dom';
 import { isAdmin, isRoot, showError } from '../../helpers';
+import { getLucideIcon } from '../../helpers/render';
+import { useMinimumLoadingTime } from '../../hooks/common/useMinimumLoadingTime';
+import { useSidebar } from '../../hooks/common/useSidebar';
+import { useSidebarCollapsed } from '../../hooks/common/useSidebarCollapsed';
 import SkeletonWrapper from './components/SkeletonWrapper';
 
-import { Nav, Divider, Button } from '@douyinfe/semi-ui';
+import { Button, Divider, Nav } from '@douyinfe/semi-ui';
 
 const routerMap = {
   home: '/',
@@ -44,6 +45,7 @@ const routerMap = {
   detail: '/console',
   pricing: '/pricing',
   task: '/console/task',
+  checkin: '/console/checkin',
   models: '/console/models',
   playground: '/console/playground',
   personal: '/console/personal',
@@ -102,6 +104,12 @@ const SiderBar = ({ onNavigate = () => {} }) => {
         to: '/task',
         className:
           localStorage.getItem('enable_task') === 'true' ? '' : 'tableHiddle',
+      },
+      {
+        text: t('每日签到'),
+        itemKey: 'checkin',
+        to: '/checkin',
+        className: localStorage.getItem('CheckinEnabled') === 'false' ? 'tableHiddle' : ''
       },
     ];
 
@@ -372,13 +380,18 @@ const SiderBar = ({ onNavigate = () => {} }) => {
     }
   };
 
+  const blurState = useBlurGlass();
+  const blurActive = blurState.enabled && (blurState.area==='both' || blurState.area==='sidebar');
+  const sidebarStyle = {
+    width:'var(--sidebar-current-width)',
+    background:'var(--semi-color-bg-0)',
+    ...(blurActive?{ backdropFilter:`blur(${blurState.strength}px)`}:{})
+  };
+
   return (
     <div
-      className='sidebar-container'
-      style={{
-        width: 'var(--sidebar-current-width)',
-        background: 'var(--semi-color-bg-0)',
-      }}
+      className={`sidebar-container ${blurActive ? 'sidebar-blur-enabled bg-white/70 dark:bg-zinc-900/50' : 'bg-white dark:bg-zinc-900'}`}
+      style={sidebarStyle}
     >
       <SkeletonWrapper
         loading={showSkeleton}
@@ -502,11 +515,7 @@ const SiderBar = ({ onNavigate = () => {} }) => {
             }
             onClick={toggleCollapsed}
             icononly={collapsed}
-            style={
-              collapsed
-                ? { width: 36, height: 24, padding: 0 }
-                : { padding: '4px 12px', width: '100%' }
-            }
+            style={collapsed ? { width: 36, height: 24, padding: 0 } : { padding: '4px 12px', width: '100%' }}
           >
             {!collapsed ? t('收起侧边栏') : null}
           </Button>

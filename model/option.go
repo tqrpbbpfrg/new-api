@@ -123,6 +123,10 @@ func InitOptionMap() {
 	common.OptionMap["DataExportInterval"] = strconv.Itoa(common.DataExportInterval)
 	common.OptionMap["DataExportDefaultTime"] = common.DataExportDefaultTime
 	common.OptionMap["DefaultCollapseSidebar"] = strconv.FormatBool(common.DefaultCollapseSidebar)
+	// UI 外观
+	common.OptionMap["UIBlurGlassEnabled"] = strconv.FormatBool(common.UIBlurGlassEnabled)
+	common.OptionMap["UIBlurGlassStrength"] = strconv.Itoa(common.UIBlurGlassStrength)
+	common.OptionMap["UIBlurGlassArea"] = common.UIBlurGlassArea
 	common.OptionMap["MjNotifyEnabled"] = strconv.FormatBool(setting.MjNotifyEnabled)
 	common.OptionMap["MjAccountFilterEnabled"] = strconv.FormatBool(setting.MjAccountFilterEnabled)
 	common.OptionMap["MjModeClearEnabled"] = strconv.FormatBool(setting.MjModeClearEnabled)
@@ -138,6 +142,16 @@ func InitOptionMap() {
 	common.OptionMap["StreamCacheQueueLength"] = strconv.Itoa(setting.StreamCacheQueueLength)
 	common.OptionMap["AutomaticDisableKeywords"] = operation_setting.AutomaticDisableKeywordsToString()
 	common.OptionMap["ExposeRatioEnabled"] = strconv.FormatBool(ratio_setting.IsExposeRatioEnabled())
+	// 签到配置默认值
+	common.OptionMap["CheckinMinReward"] = strconv.Itoa(common.CheckinMinReward)
+	common.OptionMap["CheckinMaxReward"] = strconv.Itoa(common.CheckinMaxReward)
+	// StreakBonus 形如 7=5,15=10,30=15 (天数=百分比) 兼容旧格式 :
+	var streakParts []string
+	for k, v := range common.CheckinStreakBonus {
+		streakParts = append(streakParts, strconv.Itoa(k)+"="+strconv.Itoa(v))
+	}
+	common.OptionMap["CheckinStreakBonus"] = strings.Join(streakParts, ",")
+	common.OptionMap["CheckinEnabled"] = strconv.FormatBool(common.CheckinEnabled)
 
 	// 自动添加所有注册的模型配置
 	modelConfigs := config.GlobalConfig.ExportAllConfigs()
@@ -280,6 +294,26 @@ func updateOptionMap(key string, value string) (err error) {
 			setting.DefaultUseAutoGroup = boolValue
 		case "ExposeRatioEnabled":
 			ratio_setting.SetExposeRatioEnabled(boolValue)
+		case "UIBlurGlassEnabled":
+			common.UIBlurGlassEnabled = boolValue
+		}
+
+		// 非 bool 选项追加处理
+		if key == "UIBlurGlassStrength" {
+			iv, _ := strconv.Atoi(value)
+			if iv <= 0 { iv = 14 }
+			if iv > 40 { iv = 40 } // 上限避免过重性能浪费
+			common.UIBlurGlassStrength = iv
+		}
+		if key == "UIBlurGlassArea" {
+			v := strings.ToLower(strings.TrimSpace(value))
+			switch v {
+			case "header", "sidebar", "both", "none":
+				// valid
+			default:
+				v = "both"
+			}
+			common.UIBlurGlassArea = v
 		}
 	}
 	switch key {
@@ -424,6 +458,36 @@ func updateOptionMap(key string, value string) (err error) {
 		setting.StreamCacheQueueLength, _ = strconv.Atoi(value)
 	case "PayMethods":
 		err = operation_setting.UpdatePayMethodsByJsonString(value)
+	case "CheckinMinReward":
+		common.CheckinMinReward, _ = strconv.Atoi(value)
+	case "CheckinMaxReward":
+		common.CheckinMaxReward, _ = strconv.Atoi(value)
+	case "CheckinStreakBonus":
+		m := map[int]int{}
+		if value != "" {
+			pairs := strings.Split(value, ",")
+			for _, p := range pairs {
+				p = strings.TrimSpace(p)
+				if p == "" {
+					continue
+				}
+				p = strings.ReplaceAll(p, ":", "=") // 兼容旧格式
+				kv := strings.Split(p, "=")
+				if len(kv) != 2 {
+					continue
+				}
+				k, _ := strconv.Atoi(strings.TrimSpace(kv[0]))
+				v, _ := strconv.Atoi(strings.TrimSpace(kv[1]))
+				if k > 0 && v >= 0 {
+					m[k] = v
+				}
+			}
+		}
+		if len(m) > 0 {
+			common.CheckinStreakBonus = m
+		}
+	case "CheckinEnabled":
+		common.CheckinEnabled = value == "true"
 	}
 	return err
 }

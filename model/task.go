@@ -11,13 +11,13 @@ import (
 type TaskStatus string
 
 const (
-	TaskStatusNotStart   TaskStatus = "NOT_START"
-	TaskStatusSubmitted             = "SUBMITTED"
-	TaskStatusQueued                = "QUEUED"
-	TaskStatusInProgress            = "IN_PROGRESS"
-	TaskStatusFailure               = "FAILURE"
-	TaskStatusSuccess               = "SUCCESS"
-	TaskStatusUnknown               = "UNKNOWN"
+	TaskStatusNotStart   = "NOT_START"
+	TaskStatusSubmitted  = "SUBMITTED"
+	TaskStatusQueued     = "QUEUED"
+	TaskStatusInProgress = "IN_PROGRESS"
+	TaskStatusFailure    = "FAILURE"
+	TaskStatusSuccess    = "SUCCESS"
+	TaskStatusUnknown    = "UNKNOWN"
 )
 
 type Task struct {

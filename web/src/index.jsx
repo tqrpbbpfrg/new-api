@@ -26,6 +26,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { StatusProvider } from './context/Status';
 import { ThemeProvider } from './context/Theme';
 import PageLayout from './components/layout/PageLayout';
+import { UIOptionsProvider } from './context/UIOptions';
 import './i18n/i18n';
 import './index.css';
 import { LocaleProvider } from '@douyinfe/semi-ui';
@@ -66,9 +67,11 @@ root.render(
           }}
         >
           <ThemeProvider>
-            <SemiLocaleWrapper>
-              <PageLayout />
-            </SemiLocaleWrapper>
+            <UIOptionsProvider>
+              <SemiLocaleWrapper>
+                <PageLayout />
+              </SemiLocaleWrapper>
+            </UIOptionsProvider>
           </ThemeProvider>
         </BrowserRouter>
       </UserProvider>

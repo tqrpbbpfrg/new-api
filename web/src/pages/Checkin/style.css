@@ -1,0 +1,51 @@
+.checkin-calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;font-size:12px;margin-top:4px}
+.checkin-week-header{font-weight:600;text-align:center;color:var(--semi-color-text-2);padding:4px 0}
+.checkin-cell{border:1px solid var(--semi-color-border);border-radius:6px;padding:4px;min-height:78px;position:relative;font-size:12px;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;background:var(--semi-color-bg-1);transition:background .2s,border-color .2s}
+.checkin-cell.today{border:2px solid var(--semi-color-primary);}
+.checkin-cell.checked{background:rgba(16,185,129,.15);}
+.checkin-cell .date{font-weight:600;font-size:12px;}
+.checkin-cell .reward{font-size:11px;margin-top:auto;color:#0a7f42;font-weight:600;}
+.checkin-cell.today .date{color:var(--semi-color-primary)}
+.today-dot{width:6px;height:6px;background:var(--semi-color-primary);border-radius:50%;display:inline-block}
+
+/* 头部统计条 */
+.checkin-stats-bar{display:flex;align-items:center;flex-wrap:wrap;gap:12px;background:var(--semi-color-fill-0);padding:8px 12px;border:1px solid var(--semi-color-border);border-radius:8px}
+.checkin-stats-bar .stat-item{display:flex;flex-direction:column;min-width:70px}
+.checkin-stats-bar .label{font-size:11px;color:var(--semi-color-text-2)}
+.checkin-stats-bar .value{font-weight:600;font-size:14px;color:var(--semi-color-text-0)}
+.checkin-stats-bar .value.ok{color:#059669}
+.checkin-stats-bar .value.warn{color:#dc2626}
+
+/* 奖励信息块 */
+.reward-info-box{display:flex;gap:12px;padding:10px 14px;border:1px solid var(--semi-color-border);background:var(--semi-color-fill-0);border-radius:8px}
+.reward-info-box .icon{font-size:24px;display:flex;align-items:center;color:var(--semi-color-warning)}
+.reward-info-box .title{font-weight:600;margin-bottom:4px}
+.reward-info-box .desc{font-size:12px;color:var(--semi-color-text-2);line-height:1.4}
+
+.checkin-wrapper .semi-divider-vertical{height:36px}
+
+/* ================= Mobile Adaptive ================= */
+@media (max-width: 640px){
+	.checkin-stats-bar{flex-wrap:wrap;gap:8px;padding:10px}
+	.checkin-stats-bar .stat-item{flex:1 1 calc(33.33% - 8px);min-width:84px}
+	.checkin-stats-bar .ml-auto{width:100%;justify-content:flex-end;margin-left:0 !important}
+	.checkin-stats-bar .ml-auto .semi-button{flex:1 1 auto}
+	.checkin-calendar-grid{gap:4px}
+	.checkin-cell{min-height:64px;padding:4px}
+	.reward-info-box{flex-direction:column;align-items:flex-start}
+	.reward-info-box .icon{display:none}
+	.reward-info-box .desc{font-size:11px}
+}
+@media (max-width: 480px){
+	.checkin-calendar-grid{font-size:11px}
+	.checkin-cell .date{font-size:11px}
+	.checkin-cell{min-height:58px}
+	.checkin-stats-bar .stat-item{min-width:70px}
+}
+@media (max-width: 400px){
+	.checkin-cell .reward{font-size:10px}
+}
+@media (max-width: 370px){
+	.checkin-cell .reward{display:none}
+	.checkin-cell.checked{justify-content:flex-start}
+}
