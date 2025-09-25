@@ -2,7 +2,7 @@ version: '3.4'
 
 services:
   new-api:
-    image: ghcr.io/tqrpbbpfrg/new-api:alpha-20250925-799b92b
+    image: ghcr.io/tqrpbbpfrg/new-api:latest
     container_name: new-api
     restart: always
     command: --log-dir /app/logs

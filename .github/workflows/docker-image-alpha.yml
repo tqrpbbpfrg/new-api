@@ -1,9 +1,9 @@
-name: Publish GHCR image (alpha)
+name: Publish GHCR image (latest)
 
 on:
   push:
     branches:
-      - alpha
+      - main
   workflow_dispatch:
     inputs:
       name:
@@ -23,7 +23,7 @@ jobs:
 
       - name: Save version info
         run: |
-          echo "alpha-$(date +'%Y%m%d')-$(git rev-parse --short HEAD)" > VERSION
+          echo "latest-$(date +'%Y%m%d')-$(git rev-parse --short HEAD)" > VERSION
 
       - name: Log in to the Container registry
         uses: docker/login-action@v3
@@ -41,8 +41,8 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository }}
           tags: |
-            type=raw,value=alpha
-            type=raw,value=alpha-{{date 'YYYYMMDD'}}-{{sha}}
+            type=raw,value=latest
+            type=raw,value=latest-{{date 'YYYYMMDD'}}-{{sha}}
 
       - name: Build and push Docker images
         uses: docker/build-push-action@v5
