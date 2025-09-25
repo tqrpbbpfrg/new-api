@@ -18,7 +18,7 @@ For commercial licensing, please contact support@quantumnous.com
 */
 
 import { Tabs, Card, Typography, Space } from '@douyinfe/semi-ui';
-import { IconBulb, IconMail, IconBarChart } from '@douyinfe/semi-icons';
+import { IconBulb, IconMail, IconActivity } from '@douyinfe/semi-icons';
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { isAdmin } from '../../helpers';
@@ -142,7 +142,7 @@ export default function InfoCenter(){
             <Tabs.TabPane 
               tab={
                 <Space>
-                  <IconBarChart />
+                  <IconActivity />
                   {t('消息统计')}
                 </Space>
               } 

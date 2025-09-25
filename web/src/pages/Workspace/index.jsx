@@ -18,7 +18,7 @@ For commercial licensing, please contact support@quantumnous.com
 */
 
 import { Button, Card, Space, Row, Col, Typography, Progress, Avatar, Descriptions, Divider } from '@douyinfe/semi-ui';
-import { IconUser, IconClock, IconActivity, IconBarChart, IconCalendar, IconGift } from '@douyinfe/semi-icons';
+import { IconUser, IconClock, IconActivity, IconCalendar, IconGift } from '@douyinfe/semi-icons';
 import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -149,7 +149,7 @@ export default function Workspace(){
           <Card 
             title={
               <Space>
-                <IconBarChart />
+                <IconActivity />
                 {t('数据看板')}
               </Space>
             }
