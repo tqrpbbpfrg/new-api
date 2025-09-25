@@ -11,7 +11,7 @@ export function useGlobalUnread(){
   useEffect(()=>{
     const headers = authHeader();
     if(!headers.Authorization){ return; }
-    const es = new SSE('/api/message/stream',{ headers });
+  const es = new SSE('/api/message/stream',{ headers, withCredentials: true });
     es.addEventListener('unread', e=>{ try { const d=JSON.parse(e.data); if(typeof d.unread==='number') setUnread(d.unread); } catch(_){} });
     return ()=>{ try { es.close(); } catch(_){} };
   },[]);
