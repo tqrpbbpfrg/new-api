@@ -21,6 +21,8 @@ import { useHeaderBar } from '../../../hooks/common/useHeaderBar';
 import { useNavigation } from '../../../hooks/common/useNavigation';
 import { useNotifications } from '../../../hooks/common/useNotifications';
 import { useBlurGlass } from '../../../hooks/ui/useBlurGlass';
+import ErrorBoundary from '../../common/ErrorBoundary';
+import SafeActionButtonsWrapper from '../../common/SafeActionButtonsWrapper';
 import NoticeModal from '../NoticeModal';
 import ActionButtons from './ActionButtons';
 import HeaderLogo from './HeaderLogo';
@@ -108,22 +110,26 @@ const HeaderBar = ({ onMobileMenuToggle, drawerOpen }) => {
             pricingRequireAuth={pricingRequireAuth}
           />
 
-          <ActionButtons
-            isNewYear={isNewYear}
-            unreadCount={unreadCount}
-            onNoticeOpen={handleNoticeOpen}
-            theme={theme}
-            onThemeToggle={handleThemeToggle}
-            currentLang={currentLang}
-            onLanguageChange={handleLanguageChange}
-            userState={userState}
-            isLoading={isLoading}
-            isMobile={isMobile}
-            isSelfUseMode={isSelfUseMode}
-            logout={logout}
-            navigate={navigate}
-            t={t}
-          />
+          <ErrorBoundary>
+            <SafeActionButtonsWrapper>
+              <ActionButtons
+                isNewYear={isNewYear}
+                unreadCount={unreadCount}
+                onNoticeOpen={handleNoticeOpen}
+                theme={theme}
+                onThemeToggle={handleThemeToggle}
+                currentLang={currentLang}
+                onLanguageChange={handleLanguageChange}
+                userState={userState}
+                isLoading={isLoading}
+                isMobile={isMobile}
+                isSelfUseMode={isSelfUseMode}
+                logout={logout}
+                navigate={navigate}
+                t={t}
+              />
+            </SafeActionButtonsWrapper>
+          </ErrorBoundary>
         </div>
       </div>
     </header>

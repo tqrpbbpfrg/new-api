@@ -5,20 +5,80 @@ import { authHeader } from '../../helpers/auth';
 // Enhanced realtime hook supporting Last-Event-ID replay (server now supports backlog fill)
 export function useMessageRealtime({ onUnread, onMessage } = {}){
   const lastIdRef = useRef(0);
+  
   useEffect(()=>{
-    let es; let closed = false; let retryTimer;
+    let es = null; 
+    let closed = false; 
+    let retryTimer = null;
+    
     const connect = () => {
-      const userHeaders = authHeader();
-      // 若未登录则不建立 SSE
-      if(!userHeaders || !userHeaders.Authorization){ return; }
-      const headers = { ...userHeaders };
-      if(lastIdRef.current>0) headers['Last-Event-ID'] = String(lastIdRef.current);
-  es = new SSE('/api/message/stream',{ headers, withCredentials: true });
-      es.addEventListener('unread', e=>{ try { const d=JSON.parse(e.data); onUnread && onUnread(d.unread); } catch(_){} });
-      es.addEventListener('message', e=>{ try { const d=JSON.parse(e.data); if(d.id){ lastIdRef.current = Math.max(lastIdRef.current,d.id); onMessage && onMessage(d);} } catch(_){} });
-      es.addEventListener('error', ()=>{ if(closed) return; try { es.close(); } catch(_){}; retryTimer = setTimeout(connect, 2000); });
+      if (closed) return;
+      
+      try {
+        const userHeaders = authHeader();
+        // 若未登录则不建立 SSE
+        if(!userHeaders || !userHeaders.Authorization){ 
+          return; 
+        }
+        
+        const headers = { ...userHeaders };
+        if(lastIdRef.current > 0) {
+          headers['Last-Event-ID'] = String(lastIdRef.current);
+        }
+        
+        es = new SSE('/api/message/stream', { headers, withCredentials: true });
+        
+        es.addEventListener('unread', e => { 
+          try { 
+            const d = JSON.parse(e.data); 
+            onUnread && onUnread(d.unread); 
+          } catch(_){} 
+        });
+        
+        es.addEventListener('message', e => { 
+          try { 
+            const d = JSON.parse(e.data); 
+            if(d.id){ 
+              lastIdRef.current = Math.max(lastIdRef.current, d.id); 
+              onMessage && onMessage(d);
+            } 
+          } catch(_){} 
+        });
+        
+        es.addEventListener('error', () => { 
+          if(closed) return; 
+          try { 
+            if (es) es.close(); 
+          } catch(_){}
+          
+          retryTimer = setTimeout(() => {
+            if (!closed) connect();
+          }, 2000); 
+        });
+        
+      } catch (error) {
+        console.warn('Failed to setup message realtime connection:', error);
+        if (!closed) {
+          retryTimer = setTimeout(() => {
+            if (!closed) connect();
+          }, 5000);
+        }
+      }
     };
+    
     connect();
-    return ()=>{ closed = true; if(retryTimer) clearTimeout(retryTimer); try { es && es.close(); } catch(_){} };
-  },[onUnread,onMessage]);
+    
+    return () => { 
+      closed = true; 
+      if(retryTimer) {
+        clearTimeout(retryTimer);
+        retryTimer = null;
+      }
+      if (es) {
+        try { 
+          es.close(); 
+        } catch(_){} 
+      }
+    };
+  }, [onUnread, onMessage]);
 }
