@@ -21,16 +21,14 @@ import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SSE } from 'sse.js';
 import {
-  API_ENDPOINTS,
-  MESSAGE_STATUS,
-  DEBUG_TABS,
+    API_ENDPOINTS,
+    DEBUG_TABS,
+    MESSAGE_STATUS,
 } from '../../constants/playground.constants';
-import {
-  getUserIdFromLocalStorage,
-  handleApiError,
-  processThinkTags,
-  processIncompleteThinkTags,
-} from '../../helpers';
+import { handleApiError, processIncompleteThinkTags, processThinkTags } from '../../helpers';
+import { authHeader, USER_ID_HEADER_KEY } from '../../helpers/auth';
+import { secureFetch } from '../../helpers/secureFetch';
+import { getUserIdFromLocalStorage } from '../../helpers/utils';
 
 export const useApiRequest = (
   setMessage,
@@ -183,11 +181,13 @@ export const useApiRequest = (
       setActiveDebugTab(DEBUG_TABS.REQUEST);
 
       try {
-        const response = await fetch(API_ENDPOINTS.CHAT_COMPLETIONS, {
+        const base = authHeader();
+        const response = await secureFetch(API_ENDPOINTS.CHAT_COMPLETIONS, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'New-Api-User': getUserIdFromLocalStorage(),
+            ...(base || {}),
+            [USER_ID_HEADER_KEY]: (base && base[USER_ID_HEADER_KEY]) || String(getUserIdFromLocalStorage()),
           },
           body: JSON.stringify(payload),
         });
@@ -294,11 +294,16 @@ export const useApiRequest = (
       }));
       setActiveDebugTab(DEBUG_TABS.REQUEST);
 
+      const base = authHeader();
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(base || {}),
+      };
+      if (!headers[USER_ID_HEADER_KEY]) {
+        headers[USER_ID_HEADER_KEY] = String(getUserIdFromLocalStorage());
+      }
       const source = new SSE(API_ENDPOINTS.CHAT_COMPLETIONS, {
-        headers: {
-          'Content-Type': 'application/json',
-          'New-Api-User': getUserIdFromLocalStorage(),
-        },
+        headers,
         method: 'POST',
         payload: JSON.stringify(payload),
       });

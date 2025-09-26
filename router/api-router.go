@@ -275,5 +275,28 @@ func SetApiRouter(router *gin.Engine) {
 			modelsRoute.PUT("/", controller.UpdateModelMeta)
 			modelsRoute.DELETE("/:id", controller.DeleteModelMeta)
 		}
+
+		// admin mail broadcast / targeted sending endpoint
+		apiRouter.POST("/admin/mail/send", middleware.AdminAuth(), controller.AdminSendMail)
+
+		// Lottery routes
+		lotteryAdmin := apiRouter.Group("/lottery")
+		lotteryAdmin.Use(middleware.AdminAuth())
+		{
+			lotteryAdmin.GET("/prize", controller.AdminListLotteryPrizes)
+			lotteryAdmin.POST("/prize", controller.AdminUpsertLotteryPrize)
+			lotteryAdmin.DELETE("/prize/:id", controller.AdminDeleteLotteryPrize)
+			lotteryAdmin.GET("/ticket/code", controller.AdminListTicketCodes)
+			lotteryAdmin.POST("/ticket/code", controller.AdminCreateTicketCodes)
+		}
+		lotteryUser := apiRouter.Group("/lottery")
+		lotteryUser.Use(middleware.UserAuth(), middleware.LotteryRateLimit())
+		{
+			lotteryUser.GET("/status", controller.GetLotteryStatus)
+			lotteryUser.GET("/pool", controller.GetLotteryPool)
+			lotteryUser.POST("/draw", controller.PostLotteryDraw)
+			lotteryUser.POST("/draw/multi", controller.PostLotteryMultiDraw)
+			lotteryUser.POST("/redeem", controller.PostLotteryRedeem)
+		}
 	}
 }

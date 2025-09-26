@@ -31,7 +31,8 @@ export let API = axios.create({
     ? import.meta.env.VITE_REACT_APP_SERVER_URL
     : '',
   headers: {
-    'New-API-User': getUserIdFromLocalStorage(),
+    // 统一改成后端识别的 New-Api-User（大小写不敏感，但保持一致避免混淆）
+    'New-Api-User': getUserIdFromLocalStorage(),
     'Cache-Control': 'no-store',
   },
 });
@@ -72,7 +73,7 @@ export function updateAPI() {
       ? import.meta.env.VITE_REACT_APP_SERVER_URL
       : '',
     headers: {
-      'New-API-User': getUserIdFromLocalStorage(),
+      'New-Api-User': getUserIdFromLocalStorage(),
       'Cache-Control': 'no-store',
     },
   });
@@ -256,7 +257,10 @@ export async function onGitHubOAuthClicked(github_client_id) {
   );
 }
 
-export async function onDiscordOAuthClicked(discord_client_id, scopesFromStatus) {
+export async function onDiscordOAuthClicked(
+  discord_client_id,
+  scopesFromStatus,
+) {
   const state = await getOAuthState();
   if (!state) return;
   const redirect = `${window.location.origin}/oauth/discord`;

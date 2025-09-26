@@ -48,7 +48,7 @@ const ActionButtons = ({
   return (
     <div className='flex items-center gap-2 md:gap-3'>
       <NewYearButton isNewYear={isNewYear} />
-      <Tooltip content={t('信息处')} position='bottom'>
+  <Tooltip content={t('信息中心')} position='bottom'>
         <Badge count={unread?.total||0} overflowCount={99} type='danger' style={{ transform:'scale(.85)' }}>
           <Button size='small' theme='borderless' icon={<IconMail />} onClick={goInfo} aria-label='info-center' />
         </Badge>

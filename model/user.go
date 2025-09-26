@@ -51,6 +51,9 @@ type User struct {
 	LastLoginAt      *int64         `json:"last_login_at" gorm:"column:last_login_at"` // Unix timestamp of last login
 	CreatedAt        time.Time      `json:"created_at"`                                // user create time for segmentation
 	UpdatedAt        time.Time      `json:"updated_at"`
+	// Lottery bonus related windows (Unix timestamp seconds). 0 means inactive.
+	FreeQuotaUntil  int64 `json:"free_quota_until" gorm:"column:free_quota_until;default:0"`   // 在此时间前调用不扣用户额度
+	DoubleCostUntil int64 `json:"double_cost_until" gorm:"column:double_cost_until;default:0"` // 在此时间前调用扣费翻倍
 }
 
 func (user *User) ToBaseUser() *UserBase {

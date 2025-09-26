@@ -17,23 +17,22 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import { useState, useEffect, useContext } from 'react';
-import { useTranslation } from 'react-i18next';
 import {
-  Card,
-  Button,
-  Switch,
-  Typography,
-  Row,
-  Col,
-  Avatar,
+    Avatar,
+    Button,
+    Card,
+    Col,
+    Row,
+    Switch,
+    Typography,
 } from '@douyinfe/semi-ui';
-import { API, showSuccess, showError } from '../../../helpers';
-import { StatusContext } from '../../../context/Status';
-import { UserContext } from '../../../context/User';
-import { useUserPermissions } from '../../../hooks/common/useUserPermissions';
-import { useSidebar } from '../../../hooks/common/useSidebar';
 import { Settings } from 'lucide-react';
+import { useContext, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { StatusContext } from '../../../context/Status';
+import { API, showError, showSuccess } from '../../../helpers';
+import { useSidebar } from '../../../hooks/common/useSidebar';
+import { useUserPermissions } from '../../../hooks/common/useUserPermissions';
 
 const { Text } = Typography;
 
@@ -67,27 +66,20 @@ export default function SettingsSidebarModulesUser() {
   // 根据用户权限生成默认配置
   const generateDefaultConfig = () => {
     const defaultConfig = {};
-
-    // 聊天区域 - 所有用户都可以访问
-    if (isSidebarSectionAllowed('chat')) {
-      defaultConfig.chat = {
-        enabled: true,
-        playground: isSidebarModuleAllowed('chat', 'playground'),
-        chat: isSidebarModuleAllowed('chat', 'chat'),
-      };
-    }
-
-    // 控制台区域 - 所有用户都可以访问
+    // 控制台区域（已合并操练场）
     if (isSidebarSectionAllowed('console')) {
       defaultConfig.console = {
         enabled: true,
-        control: isSidebarModuleAllowed('console', 'control'),
+        detail: isSidebarModuleAllowed('console', 'detail') || isSidebarModuleAllowed('console', 'control'), // 兼容旧 control -> detail
+        playground: isSidebarModuleAllowed('console', 'playground'),
         token: isSidebarModuleAllowed('console', 'token'),
         log: isSidebarModuleAllowed('console', 'log'),
+        midjourney: isSidebarModuleAllowed('console', 'midjourney'),
+        task: isSidebarModuleAllowed('console', 'task'),
       };
     }
 
-    // 个人中心区域 - 所有用户都可以访问
+    // 个人中心区域（新增信息中心 info 模块）
     if (isSidebarSectionAllowed('personal')) {
       defaultConfig.personal = {
         enabled: true,
@@ -97,7 +89,7 @@ export default function SettingsSidebarModulesUser() {
       };
     }
 
-    // 管理员区域 - 只有管理员可以访问
+    // 管理员区域
     if (isSidebarSectionAllowed('admin')) {
       defaultConfig.admin = {
         enabled: true,
@@ -205,34 +197,49 @@ export default function SettingsSidebarModulesUser() {
         const userRes = await API.get('/api/user/self');
         if (userRes.data.success && userRes.data.data.sidebar_modules) {
           let userConf;
-          // 检查sidebar_modules是字符串还是对象
           if (typeof userRes.data.data.sidebar_modules === 'string') {
             userConf = JSON.parse(userRes.data.data.sidebar_modules);
           } else {
             userConf = userRes.data.data.sidebar_modules;
           }
-          console.log('从API加载的用户配置:', userConf);
+          console.log('从API加载的用户配置(原始):', userConf);
 
-          // 确保用户配置也经过权限过滤
+          // 迁移逻辑：chat.playground -> console.playground
+          if (userConf.chat?.playground) {
+            userConf.console = userConf.console || { enabled: true };
+            if (!userConf.console.playground) {
+              userConf.console.playground = userConf.chat.playground;
+            }
+          }
+          // 迁移逻辑：console.control -> console.detail
+          if (userConf.console?.control && !userConf.console.detail) {
+            userConf.console.detail = userConf.console.control;
+            delete userConf.console.control;
+          }
+          // 强制隐藏 chat 区域（不再展示）
+          if (userConf.chat) {
+            userConf.chat.enabled = false;
+          }
+
+          // 确保存在必要的 section（防止过滤后缺失导致 UI 崩溃）
+            if (!userConf.console) userConf.console = { enabled: true };
+            if (!userConf.personal) userConf.personal = { enabled: true };
+
+          // 权限过滤
           const filteredUserConf = {};
           Object.keys(userConf).forEach((sectionKey) => {
             if (isSidebarSectionAllowed(sectionKey)) {
               filteredUserConf[sectionKey] = { ...userConf[sectionKey] };
-              // 过滤不允许的模块
               Object.keys(userConf[sectionKey]).forEach((moduleKey) => {
-                if (
-                  moduleKey !== 'enabled' &&
-                  !isSidebarModuleAllowed(sectionKey, moduleKey)
-                ) {
+                if (moduleKey !== 'enabled' && !isSidebarModuleAllowed(sectionKey, moduleKey)) {
                   delete filteredUserConf[sectionKey][moduleKey];
                 }
               });
             }
           });
           setSidebarModulesUser(filteredUserConf);
-          console.log('权限过滤后的用户配置:', filteredUserConf);
+          console.log('权限过滤+迁移后的用户配置:', filteredUserConf);
         } else {
-          // 如果用户没有配置，使用权限过滤后的默认配置
           const defaultConfig = generateDefaultConfig();
           setSidebarModulesUser(defaultConfig);
           console.log('用户无配置，使用默认配置:', defaultConfig);
@@ -273,45 +280,26 @@ export default function SettingsSidebarModulesUser() {
   // 区域配置数据（根据后端权限过滤）
   const sectionConfigs = [
     {
-      key: 'chat',
-      title: t('聊天区域'),
-      description: t('操练场和聊天功能'),
-      modules: [
-        {
-          key: 'playground',
-          title: t('操练场'),
-          description: t('AI模型测试环境'),
-        },
-        { key: 'chat', title: t('聊天'), description: t('聊天会话管理') },
-      ],
-    },
-    {
       key: 'console',
       title: t('控制台区域'),
-      description: t('数据管理和日志查看'),
+      description: t('数据与任务、操练场等功能'),
       modules: [
         { key: 'detail', title: t('数据看板'), description: t('系统数据统计') },
+        { key: 'playground', title: t('操练场'), description: t('AI模型测试环境') },
         { key: 'token', title: t('令牌管理'), description: t('API令牌管理') },
         { key: 'log', title: t('使用日志'), description: t('API使用记录') },
-        {
-          key: 'midjourney',
-          title: t('绘图日志'),
-          description: t('绘图任务记录'),
-        },
+        { key: 'midjourney', title: t('绘图日志'), description: t('绘图任务记录') },
         { key: 'task', title: t('任务日志'), description: t('系统任务记录') },
       ],
     },
     {
       key: 'personal',
       title: t('个人中心区域'),
-      description: t('用户个人功能'),
+      description: t('信息中心与个人偏好'),
       modules: [
+        { key: 'info', title: t('信息中心'), description: t('系统消息与通知') },
         { key: 'topup', title: t('钱包管理'), description: t('余额充值管理') },
-        {
-          key: 'personal',
-          title: t('个人设置'),
-          description: t('个人信息设置'),
-        },
+        { key: 'personal', title: t('个人设置'), description: t('个人信息设置') },
       ],
     },
     {
@@ -321,17 +309,9 @@ export default function SettingsSidebarModulesUser() {
       modules: [
         { key: 'channel', title: t('渠道管理'), description: t('API渠道配置') },
         { key: 'models', title: t('模型管理'), description: t('AI模型配置') },
-        {
-          key: 'redemption',
-          title: t('兑换码管理'),
-          description: t('兑换码生成管理'),
-        },
+        { key: 'redemption', title: t('兑换码管理'), description: t('兑换码生成管理') },
         { key: 'user', title: t('用户管理'), description: t('用户账户管理') },
-        {
-          key: 'setting',
-          title: t('系统设置'),
-          description: t('系统参数配置'),
-        },
+        { key: 'setting', title: t('系统设置'), description: t('系统参数配置') },
       ],
     },
   ]
@@ -352,7 +332,7 @@ export default function SettingsSidebarModulesUser() {
     );
 
   return (
-    <Card className='!rounded-2xl shadow-sm border-0'>
+    <Card className='info-center-panel !rounded-2xl border-0'>
       {/* 卡片头部 */}
       <div className='flex items-center mb-4'>
         <Avatar size='small' color='purple' className='mr-3 shadow-md'>
@@ -377,7 +357,7 @@ export default function SettingsSidebarModulesUser() {
       {sectionConfigs.map((section) => (
         <div key={section.key} className='mb-6'>
           {/* 区域标题和总开关 */}
-          <div className='flex justify-between items-center mb-4 p-4 bg-gray-50 rounded-xl border border-gray-200'>
+          <div className='info-center-section-head flex justify-between items-center mb-4 p-4 rounded-xl'>
             <div>
               <div className='font-semibold text-base text-gray-900 mb-1'>
                 {section.title}
@@ -398,7 +378,7 @@ export default function SettingsSidebarModulesUser() {
             {section.modules.map((module) => (
               <Col key={module.key} xs={24} sm={12} md={8} lg={6} xl={6}>
                 <Card
-                  className={`!rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-200 ${
+                  className={`info-center-module !rounded-xl transition-all duration-200 ${
                     sidebarModulesUser[section.key]?.enabled ? '' : 'opacity-50'
                   }`}
                   bodyStyle={{ padding: '16px' }}

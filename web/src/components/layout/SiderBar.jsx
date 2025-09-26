@@ -30,8 +30,8 @@ import { useSidebarCollapsed } from '../../hooks/common/useSidebarCollapsed';
 import { useBlurGlass } from '../../hooks/ui/useBlurGlass';
 import SkeletonWrapper from './components/SkeletonWrapper';
 
-import { Badge, Button, Divider, Nav } from '@douyinfe/semi-ui';
-
+import { Badge, Button, Divider, Nav, Tag, Tooltip } from '@douyinfe/semi-ui';
+import { API } from '../../helpers';
 const routerMap = {
   home: '/',
   channel: '/console/channel',
@@ -52,6 +52,7 @@ const routerMap = {
   personal: '/console/personal',
   control: '/control',
   info: '/console/info',
+  entertainment: '/console/entertainment',
 };
 
 const SiderBar = ({ onNavigate = () => {} }) => {
@@ -72,31 +73,22 @@ const SiderBar = ({ onNavigate = () => {} }) => {
   const [routerMapState, setRouterMapState] = useState(routerMap);
 
   const workspaceItems = useMemo(() => {
-    const items = [
-      {
-        text: t('工作台'),
-        itemKey: 'control',
-        to: '/control',
-      },
-      {
-        text: t('令牌管理'),
-        itemKey: 'token',
-        to: '/console/token',
-      },
-      {
-        text: t('使用日志'),
-        itemKey: 'log',
-        to: '/console/log',
-      },
+  const [windows,setWindows] = useState({free_quota_until:0,double_cost_until:0,now:0});
+  // 定时刷新用户窗口（每 30s 轻量一次）
+  useEffect(()=>{ let mounted=true; const fetch=async()=>{ try{ const r=await API.get('/api/user/self'); if(r.data?.success){ const d=r.data.data; setWindows(w=>({...w, free_quota_until:d.free_quota_until||0, double_cost_until:d.double_cost_until||0, now: Math.floor(Date.now()/1000)})); } }catch(e){} }; fetch(); const iv=setInterval(fetch,30000); return ()=>clearInterval(iv); },[]);
+  // 秒级本地 now 增量
+  useEffect(()=>{ const iv=setInterval(()=> setWindows(w=>({...w, now:w.now+1})),1000); return ()=>clearInterval(iv); },[]);
+  const renderWindows = ()=>{ const {free_quota_until,double_cost_until,now}=windows; if(free_quota_until<=now && double_cost_until<=now) return null; const pillStyle={display:'inline-flex',alignItems:'center',gap:4,padding:'2px 6px',borderRadius:4,fontSize:12,background:'var(--semi-color-bg-1)',marginRight:6}; const remainFmt=(sec)=>{ if(sec<=0)return '0s'; const h=Math.floor(sec/3600),m=Math.floor(sec%3600/60),s=sec%60; if(h>0)return `${h}h${m.toString().padStart(2,'0')}m`; if(m>0)return `${m}m${s.toString().padStart(2,'0')}s`; return `${s}s`; }; return <div style={{padding:'8px 12px',borderTop:'1px solid var(--semi-color-border)',marginTop:8}}> {free_quota_until>now && <Tooltip content={t('免费调用期内调用不扣额度')}><span style={pillStyle}><Tag color='green' size='small'>{t('免费期剩余')}</Tag>{remainFmt(free_quota_until-now)}</span></Tooltip>} {double_cost_until>now && <Tooltip content={t('双倍消耗期内调用扣费翻倍')}><span style={pillStyle}><Tag color='red' size='small'>{t('双倍期剩余')}</Tag>{remainFmt(double_cost_until-now)}</span></Tooltip>} </div>; };
+
+  const items = [
+      { text: t('工作台'), itemKey: 'control', to: '/control' },
+      { text: t('操练场'), itemKey: 'playground', to: '/console/playground' },
+      { text: t('令牌管理'), itemKey: 'token', to: '/console/token' },
+      { text: t('使用日志'), itemKey: 'log', to: '/console/log' },
     ];
-
-    // 根据配置过滤项目
-    const filteredItems = items.filter((item) => {
-      const configVisible = isModuleVisible('console', item.itemKey);
-      return configVisible;
-    });
-
-    return filteredItems;
+      {renderWindows()}
+  {renderWindows()}
+    return items.filter(item => isModuleVisible('console', item.itemKey));
   }, [t, isModuleVisible]);
 
   const { total:infoUnread } = useUnread() || { total:0 };
@@ -106,13 +98,18 @@ const SiderBar = ({ onNavigate = () => {} }) => {
       {
         text: (
           <span className='flex items-center gap-1'>
-            {t('信息处')}
+            {t('信息中心')}
             {infoUnread>0 && <Badge count={infoUnread} overflowCount={99} type='danger' style={{ transform:'scale(0.75)' }} />}
           </span>
         ),
-        rawText: t('信息处'),
+        rawText: t('信息中心'),
         itemKey: 'info',
         to: '/console/info',
+      },
+      {
+        text: t('娱乐中心'),
+        itemKey: 'entertainment',
+        to: '/console/entertainment',
       },
       {
         text: t('钱包管理'),
@@ -142,6 +139,18 @@ const SiderBar = ({ onNavigate = () => {} }) => {
         className: isAdmin() ? '' : 'tableHiddle',
       },
       {
+        text: t('抽奖奖品'),
+        itemKey: 'lottery-prize',
+        to: '/console/entertainment/admin',
+        className: isAdmin() ? '' : 'tableHiddle',
+      },
+      {
+        text: t('抽奖券兑换码'),
+        itemKey: 'lottery-codes',
+        to: '/console/entertainment/admin/codes',
+        className: isAdmin() ? '' : 'tableHiddle',
+      },
+      {
         text: t('模型管理'),
         itemKey: 'models',
         to: '/console/models',
@@ -157,6 +166,12 @@ const SiderBar = ({ onNavigate = () => {} }) => {
         text: t('用户管理'),
         itemKey: 'user',
         to: '/console/user',
+        className: isAdmin() ? '' : 'tableHiddle',
+      },
+      {
+        text: t('邮件'),
+        itemKey: 'admin-mail',
+        to: '/console/admin/mail',
         className: isAdmin() ? '' : 'tableHiddle',
       },
       {
@@ -421,15 +436,7 @@ const SiderBar = ({ onNavigate = () => {} }) => {
             setOpenedKeys(data.openKeys);
           }}
         >
-          {/* 聊天区域 */}
-          {hasSectionVisibleModules('chat') && (
-            <div className='sidebar-section'>
-              {!collapsed && (
-                <div className='sidebar-group-label'>{t('聊天')}</div>
-              )}
-              {chatMenuItems.map((item) => renderSubItem(item))}
-            </div>
-          )}
+          {/* 聊天分组已合并 / 隐藏：playground 迁移至控制台，聊天对话暂不在侧边栏展示 */}
 
           {/* 控制台区域 */}
           {hasSectionVisibleModules('console') && (

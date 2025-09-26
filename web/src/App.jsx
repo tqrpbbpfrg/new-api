@@ -34,10 +34,15 @@ import PasswordResetConfirm from './components/auth/PasswordResetConfirm';
 import PasswordResetForm from './components/auth/PasswordResetForm';
 import SetupCheck from './components/layout/SetupCheck';
 import PersonalSetting from './components/settings/PersonalSetting';
+import AdminMail from './pages/AdminMail';
 import Channel from './pages/Channel';
 import Chat from './pages/Chat';
 import Chat2Link from './pages/Chat2Link';
 import Checkin from './pages/Checkin';
+import DebugHeaders from './pages/DebugHeaders';
+import Entertainment from './pages/Entertainment';
+import AdminPrize from './pages/Entertainment/AdminPrize';
+import AdminTicketCodes from './pages/Entertainment/AdminTicketCodes';
 import InfoCenter from './pages/InfoCenter';
 import Log from './pages/Log';
 import Midjourney from './pages/Midjourney';
@@ -296,10 +301,50 @@ function App() {
           }
         />
         <Route
+          path='/console/entertainment'
+          element={
+            <PrivateRoute>
+              <Entertainment />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path='/console/entertainment/admin'
+          element={
+            <AdminRoute>
+              <AdminPrize />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path='/console/entertainment/admin/codes'
+          element={
+            <AdminRoute>
+              <AdminTicketCodes />
+            </AdminRoute>
+          }
+        />
+        <Route
           path='/console/info'
           element={
             <PrivateRoute>
               <InfoCenter />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path='/console/admin/mail'
+          element={
+            <PrivateRoute>
+              <AdminMail />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path='/console/debug/headers'
+          element={
+            <PrivateRoute>
+              <DebugHeaders />
             </PrivateRoute>
           }
         />

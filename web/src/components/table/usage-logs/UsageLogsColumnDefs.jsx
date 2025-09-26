@@ -19,21 +19,21 @@ For commercial licensing, please contact support@quantumnous.com
 
 import { IconHelpCircle } from '@douyinfe/semi-icons';
 import {
-  Avatar,
-  Popover,
-  Space,
-  Tag,
-  Tooltip,
-  Typography,
+    Avatar,
+    Popover,
+    Space,
+    Tag,
+    Tooltip,
+    Typography,
 } from '@douyinfe/semi-ui';
 import { Route } from 'lucide-react';
 import {
-  getLogOther,
-  renderGroup,
-  renderModelPriceSimple,
-  renderModelTag,
-  renderQuota,
-  stringToColor
+    getLogOther,
+    renderGroup,
+    renderModelPriceSimple,
+    renderModelTag,
+    renderQuota,
+    stringToColor
 } from '../../../helpers';
 
 const colors = [
@@ -85,6 +85,18 @@ function renderType(type, t) {
       return (
         <Tag color='red' shape='circle'>
           {t('错误')}
+        </Tag>
+      );
+    case 6:
+      return (
+        <Tag color='pink' shape='circle'>
+          {t('抽奖')}
+        </Tag>
+      );
+    case 7:
+      return (
+        <Tag color='green' shape='circle'>
+          {t('加成')}
         </Tag>
       );
     default:

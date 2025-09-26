@@ -473,6 +473,8 @@ func GetSelf(c *gin.Context) {
 		"last_login_at":     user.LastLoginAt,
 		"sidebar_modules":   userSetting.SidebarModules, // 正确提取sidebar_modules字段
 		"permissions":       permissions,                // 新增权限字段
+		"free_quota_until":  user.FreeQuotaUntil,
+		"double_cost_until": user.DoubleCostUntil,
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -480,7 +482,6 @@ func GetSelf(c *gin.Context) {
 		"message": "",
 		"data":    responseData,
 	})
-	return
 }
 
 // 计算用户权限的辅助函数
@@ -681,9 +682,42 @@ func UpdateSelf(c *gin.Context) {
 		// 获取当前用户设置
 		currentSetting := user.GetSetting()
 
-		// 更新sidebar_modules字段
+		// 更新sidebar_modules字段，并执行结构迁移：
+		// 1. 将 chat.playground 合并到 console.playground
+		// 2. 强制 chat.enabled = false 以隐藏旧分组
 		if sidebarModulesStr, ok := sidebarModules.(string); ok {
-			currentSetting.SidebarModules = sidebarModulesStr
+			processed := sidebarModulesStr
+			// 解析 JSON 并处理
+			var sm map[string]map[string]interface{}
+			if err := json.Unmarshal([]byte(sidebarModulesStr), &sm); err == nil {
+				changed := false
+				// 确保 console 节点存在
+				if _, okc := sm["console"]; !okc {
+					sm["console"] = map[string]interface{}{"enabled": true}
+					changed = true
+				}
+				// 迁移 playground
+				if chatNode, okChat := sm["chat"]; okChat {
+					if _, has := sm["console"]["playground"]; !has {
+						if pg, okPg := chatNode["playground"]; okPg {
+							sm["console"]["playground"] = pg
+							changed = true
+						}
+					}
+					// 禁用 chat 分组
+					if chatNode["enabled"] != false {
+						chatNode["enabled"] = false
+						changed = true
+					}
+					sm["chat"] = chatNode
+				}
+				if changed {
+					if newBytes, err := json.Marshal(sm); err == nil {
+						processed = string(newBytes)
+					}
+				}
+			}
+			currentSetting.SidebarModules = processed
 		}
 
 		// 保存更新后的设置
@@ -1247,7 +1281,7 @@ func UpdateUserSetting(c *gin.Context) {
 // GetUserDashboard 获取用户仪表板数据
 func GetUserDashboard(c *gin.Context) {
 	userId := c.GetInt("id")
-	
+
 	user, err := model.GetUserById(userId, true)
 	if err != nil {
 		common.ApiError(c, err)

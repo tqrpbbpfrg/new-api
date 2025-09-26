@@ -17,27 +17,25 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
 import { Modal } from '@douyinfe/semi-ui';
-import {
-  API,
-  getTodayStartTimestamp,
-  isAdmin,
-  showError,
-  showSuccess,
-  timestamp2string,
-  renderQuota,
-  renderNumber,
-  getLogOther,
-  copy,
-  renderClaudeLogContent,
-  renderLogContent,
-  renderAudioModelPrice,
-  renderClaudeModelPrice,
-  renderModelPrice,
-} from '../../helpers';
+import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ITEMS_PER_PAGE } from '../../constants';
+import {
+    API,
+    copy,
+    getLogOther,
+    getTodayStartTimestamp,
+    isAdmin,
+    renderAudioModelPrice,
+    renderClaudeLogContent,
+    renderClaudeModelPrice,
+    renderLogContent,
+    renderModelPrice,
+    showError,
+    showSuccess,
+    timestamp2string
+} from '../../helpers';
 import { useTableCompactMode } from '../common/useTableCompactMode';
 
 export const useLogsData = () => {
@@ -98,7 +96,7 @@ export const useLogsData = () => {
       timestamp2string(getTodayStartTimestamp()),
       timestamp2string(now.getTime() / 1000 + 3600),
     ],
-    logType: '0',
+  // logType 由顶部 Tabs 控制
   };
 
   // Column visibility state
@@ -148,6 +146,7 @@ export const useLogsData = () => {
       [COLUMN_KEYS.TYPE]: true,
       [COLUMN_KEYS.MODEL]: true,
       [COLUMN_KEYS.USE_TIME]: true,
+      exportLogs,
       [COLUMN_KEYS.PROMPT]: true,
       [COLUMN_KEYS.COMPLETION]: true,
       [COLUMN_KEYS.COST]: true,
@@ -222,7 +221,7 @@ export const useLogsData = () => {
       end_timestamp,
       channel: formValues.channel || '',
       group: formValues.group || '',
-      logType: formValues.logType ? parseInt(formValues.logType) : 0,
+  logType: logType,
     };
   };
 
@@ -236,7 +235,7 @@ export const useLogsData = () => {
       group,
       logType: formLogType,
     } = getFormValues();
-    const currentLogType = formLogType !== undefined ? formLogType : logType;
+  const currentLogType = logType;
     let localStartTimestamp = Date.parse(start_timestamp) / 1000;
     let localEndTimestamp = Date.parse(end_timestamp) / 1000;
     let url = `/api/log/self/stat?type=${currentLogType}&token_name=${token_name}&model_name=${model_name}&start_timestamp=${localStartTimestamp}&end_timestamp=${localEndTimestamp}&group=${group}`;
@@ -261,7 +260,7 @@ export const useLogsData = () => {
       group,
       logType: formLogType,
     } = getFormValues();
-    const currentLogType = formLogType !== undefined ? formLogType : logType;
+  const currentLogType = logType;
     let localStartTimestamp = Date.parse(start_timestamp) / 1000;
     let localEndTimestamp = Date.parse(end_timestamp) / 1000;
     let url = `/api/log/stat?type=${currentLogType}&username=${username}&token_name=${token_name}&model_name=${model_name}&start_timestamp=${localStartTimestamp}&end_timestamp=${localEndTimestamp}&channel=${channel}&group=${group}`;
@@ -485,12 +484,7 @@ export const useLogsData = () => {
       logType: formLogType,
     } = getFormValues();
 
-    const currentLogType =
-      customLogType !== null
-        ? customLogType
-        : formLogType !== undefined
-          ? formLogType
-          : logType;
+    const currentLogType = customLogType !== null ? customLogType : logType;
 
     let localStartTimestamp = Date.parse(start_timestamp) / 1000;
     let localEndTimestamp = Date.parse(end_timestamp) / 1000;
@@ -537,6 +531,67 @@ export const useLogsData = () => {
     setActivePage(1);
     handleEyeClick();
     await loadLogs(1, pageSize);
+  };
+
+  // Export logs (client-side CSV for current filter, capped at 2000 records)
+  const exportLogs = async () => {
+    try {
+      const exportLimit = 2000;
+      const batchSize = 200;
+      let collected = [];
+      let page = 1;
+      while (collected.length < exportLimit) {
+        let url = '';
+        const { username, token_name, model_name, start_timestamp, end_timestamp, channel, group } = getFormValues();
+        const currentLogType = logType;
+        let localStartTimestamp = Date.parse(start_timestamp) / 1000;
+        let localEndTimestamp = Date.parse(end_timestamp) / 1000;
+        if (isAdminUser) {
+          url = `/api/log/?p=${page}&page_size=${batchSize}&type=${currentLogType}&username=${username}&token_name=${token_name}&model_name=${model_name}&start_timestamp=${localStartTimestamp}&end_timestamp=${localEndTimestamp}&channel=${channel}&group=${group}`;
+        } else {
+          url = `/api/log/self/?p=${page}&page_size=${batchSize}&type=${currentLogType}&token_name=${token_name}&model_name=${model_name}&start_timestamp=${localStartTimestamp}&end_timestamp=${localEndTimestamp}&group=${group}`;
+        }
+        url = encodeURI(url);
+        const res = await API.get(url);
+        const { success, data } = res.data;
+        if (!success) break;
+        collected = collected.concat(data.items || []);
+        if (data.items.length < batchSize) break; // last page
+        page++;
+      }
+      if (collected.length === 0) {
+        showError(t('暂无数据'));
+        return;
+      }
+      const headers = ['id','time','type','username','channel','model','quota','prompt_tokens','completion_tokens','ip','group','content'];
+      const typeMap = {0:'UNKNOWN',1:'TOPUP',2:'CONSUME',3:'MANAGE',4:'SYSTEM',5:'ERROR',6:'LOTTERY',7:'BONUS'};
+      const lines = [headers.join(',')];
+      collected.slice(0,exportLimit).forEach(l=>{
+        const row = [
+          l.id,
+          timestamp2string(l.created_at),
+          typeMap[l.type]||l.type,
+          l.username||'',
+          l.channel||'',
+            (l.model_name||'').replace(/,/g,';'),
+          l.quota,
+          l.prompt_tokens,
+          l.completion_tokens,
+          l.ip||'',
+          l.group||'',
+          (l.content||'').replace(/\n/g,' ').replace(/,/g,';')
+        ];
+        lines.push(row.join(','));
+      });
+      const blob = new Blob(["\uFEFF"+lines.join('\n')], {type:'text/csv;charset=utf-8;'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `logs_${Date.now()}.csv`;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      showSuccess(t('导出日志')+' OK');
+    } catch(e){
+      showError(e.message||'export failed');
+    }
   };
 
   // Copy text function

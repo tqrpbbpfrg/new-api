@@ -45,6 +45,8 @@ const (
 	LogTypeManage
 	LogTypeSystem
 	LogTypeError
+	LogTypeLottery
+	LogTypeBonusWindow
 )
 
 func formatUserLogs(logs []*Log) {

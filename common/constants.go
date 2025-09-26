@@ -88,9 +88,10 @@ var GitHubClientId = ""
 var GitHubClientSecret = ""
 var DiscordClientId = ""
 var DiscordClientSecret = ""
+
 // Prometheus metric placeholders (lazy init in router)
-var DiscordOAuthCounter *prometheus.CounterVec      // labels: action=login|bind result=success|failure
-var DiscordOAuthLatency *prometheus.HistogramVec    // labels: step=token|user action=login|bind result=success|failure
+var DiscordOAuthCounter *prometheus.CounterVec   // labels: action=login|bind result=success|failure
+var DiscordOAuthLatency *prometheus.HistogramVec // labels: step=token|user action=login|bind result=success|failure
 var LinuxDOClientId = ""
 var LinuxDOClientSecret = ""
 var LinuxDOMinimumTrustLevel = 0
@@ -161,6 +162,12 @@ var CheckinStreakBonus = map[int]int{7: 5, 15: 10, 30: 15}
 
 // 签到功能开关（可通过 Option 覆盖）
 var CheckinEnabled = true
+
+// 抽奖功能开关
+var LotteryEnabled = true
+
+// 单次抽奖消耗的抽奖券数量（可通过 Option: LotteryCostPerDraw 覆盖）
+var LotteryCostPerDraw = 1
 
 func IsValidateRole(role int) bool {
 	return role == RoleGuestUser || role == RoleCommonUser || role == RoleAdminUser || role == RoleRootUser

@@ -17,60 +17,61 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import i18next from 'i18next';
-import { Modal, Tag, Typography, Avatar } from '@douyinfe/semi-ui';
-import { copy, showSuccess } from './utils';
-import { MOBILE_BREAKPOINT } from '../hooks/common/useIsMobile';
-import { visit } from 'unist-util-visit';
+import { Avatar, Modal, Tag, Typography } from '@douyinfe/semi-ui';
 import * as LobeIcons from '@lobehub/icons';
 import {
-  OpenAI,
-  Claude,
-  Gemini,
-  Moonshot,
-  Zhipu,
-  Qwen,
-  DeepSeek,
-  Minimax,
-  Wenxin,
-  Spark,
-  Midjourney,
-  Hunyuan,
-  Cohere,
-  Cloudflare,
-  Ai360,
-  Yi,
-  Jina,
-  Mistral,
-  XAI,
-  Ollama,
-  Doubao,
-  Suno,
-  Xinference,
-  OpenRouter,
-  Dify,
-  Coze,
-  SiliconCloud,
-  FastGPT,
-  Kling,
-  Jimeng,
+    Ai360,
+    Claude,
+    Cloudflare,
+    Cohere,
+    Coze,
+    DeepSeek,
+    Dify,
+    Doubao,
+    FastGPT,
+    Gemini,
+    Hunyuan,
+    Jimeng,
+    Jina,
+    Kling,
+    Midjourney,
+    Minimax,
+    Mistral,
+    Moonshot,
+    Ollama,
+    OpenAI,
+    OpenRouter,
+    Qwen,
+    SiliconCloud,
+    Spark,
+    Suno,
+    Wenxin,
+    XAI,
+    Xinference,
+    Yi,
+    Zhipu,
 } from '@lobehub/icons';
+import i18next from 'i18next';
+import { visit } from 'unist-util-visit';
+import { MOBILE_BREAKPOINT } from '../hooks/common/useIsMobile';
+import { copy, showSuccess } from './utils';
 
 import {
-  LayoutDashboard,
-  TerminalSquare,
-  MessageSquare,
-  Key,
-  BarChart3,
-  Image as ImageIcon,
-  CheckSquare,
-  CreditCard,
-  Layers,
-  Gift,
-  User,
-  Settings,
-  CircleUser,
-  Package,
+    BarChart3,
+    CheckSquare,
+    CircleUser,
+    CreditCard,
+    Gamepad2,
+    Gift,
+    Image as ImageIcon,
+    Key,
+    Layers,
+    LayoutDashboard,
+    MessageSquare,
+    Package,
+    Settings,
+    TerminalSquare,
+    User,
 } from 'lucide-react';
 
 // 获取侧边栏Lucide图标组件
@@ -114,6 +115,8 @@ export function getLucideIcon(key, selected = false) {
       return <Package {...commonProps} color={iconColor} />;
     case 'setting':
       return <Settings {...commonProps} color={iconColor} />;
+    case 'entertainment':
+      return <Gamepad2 {...commonProps} color={iconColor} />;
     default:
       return <CircleUser {...commonProps} color={iconColor} />;
   }

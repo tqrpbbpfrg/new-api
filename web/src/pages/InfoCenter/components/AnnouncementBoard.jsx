@@ -18,7 +18,7 @@ For commercial licensing, please contact support@quantumnous.com
 */
 
 // IconPin 不存在于 @douyinfe/semi-icons，改用 IconStar 作为置顶标识
-import { IconBulb, IconCalendar, IconStar, IconRefresh, IconSearch } from '@douyinfe/semi-icons';
+import { IconBulb, IconCalendar, IconRefresh, IconSearch, IconStar } from '@douyinfe/semi-icons';
 import { Button, Card, Empty, Input, List, Space, Spin, Tag, Typography } from '@douyinfe/semi-ui';
 import dayjs from 'dayjs';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -27,6 +27,7 @@ import { useUnread } from '../../../context/Unread';
 import { isAdmin } from '../../../helpers';
 import { addAnnouncementsAsRead } from '../../../helpers/announcementRead';
 import { highlight, sanitizeHTML } from '../../../helpers/sanitize';
+import { secureFetch } from '../../../helpers/secureFetch';
 import { useAnnouncements } from '../../../hooks/message/useAnnouncements';
 
 const { Title, Text, Paragraph } = Typography;
@@ -54,7 +55,7 @@ export default function AnnouncementBoard({ announcementsProp, refreshProp }) {
     const fetchTopNotice = async () => {
       setTopLoading(true);
       try {
-        const res = await fetch('/api/notice');
+  const res = await secureFetch('/api/notice');
         const data = await res.json();
         if (data.success && data.data && data.data.trim() !== '') {
           setTopNotice({

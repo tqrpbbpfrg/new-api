@@ -25,6 +25,7 @@ import {
   useState,
 } from 'react';
 import { getAnnouncementReadKeys } from '../helpers/announcementRead';
+import { secureFetch } from '../helpers/secureFetch';
 
 const UnreadContext = createContext(null);
 export function UnreadProvider({ children }) {
@@ -55,9 +56,7 @@ export function UnreadProvider({ children }) {
       }
       if (needFetch) {
         try {
-          const r = await fetch('/api/announcements', {
-            credentials: 'include',
-          });
+          const r = await secureFetch('/api/announcements');
           const j = await r.json();
           if (j.success) anns = j.data.items || [];
         } catch {}
@@ -77,9 +76,7 @@ export function UnreadProvider({ children }) {
       // messages
       let msgUnread = 0;
       try {
-        const r = await fetch('/api/message/unread_count', {
-          credentials: 'include',
-        });
+        const r = await secureFetch('/api/message/unread_count');
         const j = await r.json();
         if (j.success) msgUnread = j.data.unread || 0;
       } catch {}

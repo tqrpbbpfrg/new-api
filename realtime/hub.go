@@ -185,6 +185,33 @@ func BroadcastUnread() {
 	}
 }
 
+// BroadcastRarePrize 向所有在线用户广播稀有奖品掉落事件（简要信息）。
+// rarity: prize rarity enum; prizeName: 名称；username: 获奖用户显示名或匿名（调用端决定）。
+func BroadcastRarePrize(rarity, prizeName, username string) {
+	payload := map[string]any{
+		"rarity":     rarity,
+		"prize_name": prizeName,
+		"user":       username,
+		"ts":         time.Now().Unix(),
+	}
+	// Redis 互通
+	if common.RedisEnabled && common.RDB != nil {
+		env := map[string]any{"type": "lottery_rare", "data": payload}
+		b, _ := json.Marshal(env)
+		common.RDB.Publish(context.Background(), "sse_broadcast", string(b))
+	}
+	// 本地在线用户广播
+	mu.RLock()
+	users := make([]int, 0, len(clients))
+	for uid := range clients {
+		users = append(users, uid)
+	}
+	mu.RUnlock()
+	for _, u := range users {
+		pushEvent(u, "lottery_rare", payload)
+	}
+}
+
 // InvalidateUnread invalidates cache for one user (exported for controllers)
 func InvalidateUnread(uid int) {
 	unreadCache.Lock()
@@ -246,6 +273,18 @@ func ServeSSE(w http.ResponseWriter, r *http.Request, uid int) {
 						for _, u := range users {
 							InvalidateUnread(u)
 							pushUnread(u)
+						}
+					case "lottery_rare":
+						if data, ok := envelope["data"].(map[string]any); ok {
+							mu.RLock()
+							users := make([]int, 0, len(clients))
+							for uid := range clients {
+								users = append(users, uid)
+							}
+							mu.RUnlock()
+							for _, u := range users {
+								pushEvent(u, "lottery_rare", data)
+							}
 						}
 					}
 				}

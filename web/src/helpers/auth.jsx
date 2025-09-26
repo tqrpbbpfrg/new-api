@@ -20,13 +20,21 @@ For commercial licensing, please contact support@quantumnous.com
 import { Navigate } from 'react-router-dom';
 import { history } from './history';
 
-export function authHeader() {
-  // return authorization header with jwt token
-  let user = JSON.parse(localStorage.getItem('user'));
+// 统一使用的用户 ID 头字段名称（后端读取 New-Api-User）
+export const USER_ID_HEADER_KEY = 'New-Api-User';
 
-  if (user && user.token) {
-    return { Authorization: 'Bearer ' + user.token };
-  } else {
+export function authHeader() {
+  // 构造包含 Authorization 与 New-Api-User 的请求头
+  try {
+    const raw = localStorage.getItem('user');
+    if (!raw) return {};
+    const user = JSON.parse(raw);
+    if (!user || !user.token || typeof user.id === 'undefined' || user.id === null) return {};
+    return {
+      Authorization: 'Bearer ' + user.token,
+      [USER_ID_HEADER_KEY]: String(user.id),
+    };
+  } catch (_) {
     return {};
   }
 }
@@ -75,3 +83,4 @@ export function AdminRoute({ children }) {
 }
 
 export { PrivateRoute };
+

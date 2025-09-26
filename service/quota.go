@@ -488,20 +488,32 @@ func PreConsumeTokenQuota(relayInfo *relaycommon.RelayInfo, quota int) error {
 }
 
 func PostConsumeQuota(relayInfo *relaycommon.RelayInfo, quota int, preConsumedQuota int, sendEmail bool) (err error) {
-
+	// Adjust quota based on user bonus windows
+	if quota > 0 {
+		// Fetch user windows (minimal query for two columns)
+		var user model.User
+		if e := model.DB.Select("id, free_quota_until, double_cost_until").Where("id = ?", relayInfo.UserId).First(&user).Error; e == nil {
+			now := time.Now().Unix()
+			if user.FreeQuotaUntil > now { // free window: don't decrease user quota
+				quota = 0
+			} else if user.DoubleCostUntil > now { // double cost window: double the cost
+				quota = quota * 2
+			}
+		}
+	}
 	if quota > 0 {
 		err = model.DecreaseUserQuota(relayInfo.UserId, quota)
-	} else {
+	} else if quota < 0 { // negative means refund
 		err = model.IncreaseUserQuota(relayInfo.UserId, -quota, false)
 	}
 	if err != nil {
 		return err
 	}
 
-	if !relayInfo.IsPlayground {
+	if !relayInfo.IsPlayground && quota != 0 { // 0 表示对用户免费期不扣用户额度，同时不扣 token 配额
 		if quota > 0 {
 			err = model.DecreaseTokenQuota(relayInfo.TokenId, relayInfo.TokenKey, quota)
-		} else {
+		} else if quota < 0 {
 			err = model.IncreaseTokenQuota(relayInfo.TokenId, relayInfo.TokenKey, -quota)
 		}
 		if err != nil {

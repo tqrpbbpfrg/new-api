@@ -158,6 +158,9 @@ func InitOptionMap() {
 	}
 	common.OptionMap["CheckinStreakBonus"] = strings.Join(streakParts, ",")
 	common.OptionMap["CheckinEnabled"] = strconv.FormatBool(common.CheckinEnabled)
+	// 抽奖功能开关
+	common.OptionMap["LotteryEnabled"] = "true"
+	common.OptionMap["LotteryCostPerDraw"] = "1"
 
 	// 自动添加所有注册的模型配置
 	modelConfigs := config.GlobalConfig.ExportAllConfigs()
@@ -508,6 +511,12 @@ func updateOptionMap(key string, value string) (err error) {
 		}
 	case "CheckinEnabled":
 		common.CheckinEnabled = value == "true"
+	case "LotteryEnabled":
+		common.LotteryEnabled = value == "true"
+	case "LotteryCostPerDraw":
+		if v, e := strconv.Atoi(value); e == nil && v > 0 {
+			common.LotteryCostPerDraw = v
+		}
 	}
 	return err
 }

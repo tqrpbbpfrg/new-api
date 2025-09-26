@@ -17,11 +17,10 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React from 'react';
-import { Tag, Space, Skeleton } from '@douyinfe/semi-ui';
+import { Button, Skeleton, Space, Tag } from '@douyinfe/semi-ui';
 import { renderQuota } from '../../../helpers';
-import CompactModeToggle from '../../common/ui/CompactModeToggle';
 import { useMinimumLoadingTime } from '../../../hooks/common/useMinimumLoadingTime';
+import CompactModeToggle from '../../common/ui/CompactModeToggle';
 
 const LogsActions = ({
   stat,
@@ -30,6 +29,8 @@ const LogsActions = ({
   compactMode,
   setCompactMode,
   t,
+  onExport,
+  exporting,
 }) => {
   const showSkeleton = useMinimumLoadingTime(loadingStat);
   const needSkeleton = !showStat || showSkeleton;
@@ -83,11 +84,21 @@ const LogsActions = ({
         </Space>
       </Skeleton>
 
-      <CompactModeToggle
-        compactMode={compactMode}
-        setCompactMode={setCompactMode}
-        t={t}
-      />
+      <Space>
+        <Button
+          theme='solid'
+          type='primary'
+          loading={exporting}
+          onClick={onExport}
+        >
+          {t('导出日志')}
+        </Button>
+        <CompactModeToggle
+          compactMode={compactMode}
+          setCompactMode={setCompactMode}
+          t={t}
+        />
+      </Space>
     </div>
   );
 };

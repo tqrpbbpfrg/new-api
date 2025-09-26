@@ -21,6 +21,7 @@ import { IconActivity, IconBulb, IconMail } from '@douyinfe/semi-icons';
 import { Badge, Card, Space, Tabs, Typography } from '@douyinfe/semi-ui';
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import GlassThemeControls from '../../components/GlassThemeControls';
 import { useUnread } from '../../context/Unread';
 import { isAdmin } from '../../helpers';
 import { useAnnouncements } from '../../hooks/message/useAnnouncements';
@@ -37,6 +38,7 @@ export default function InfoCenter(){
   const { t } = useTranslation();
   const admin = isAdmin();
   const [activeMessage, setActiveMessage] = useState(null);
+  const [replyTarget, setReplyTarget] = useState(null);
   const [activeTab, setActiveTab] = useState('announcements');
   
   const announcementsHook = useAnnouncements();
@@ -63,27 +65,28 @@ export default function InfoCenter(){
   useMessageRealtime({ onMessage: handleIncoming });
 
   return (
-    <div className='p-4' style={{ background: '#f6f7f9', minHeight: '100vh' }}>
-      <div className='mb-4'>
-        <Title heading={3} style={{ marginBottom: 8 }}>
-          <IconBulb style={{ marginRight: 8 }} />
-          {t('信息处')}
-        </Title>
-        <Typography.Text type="tertiary">{t('系统公告与消息中心')}</Typography.Text>
+    <div className='info-center-layout'>
+      <GlassThemeControls />
+      <div className='info-center-header'>
+        <div className='info-center-title'>
+          <IconBulb className='icon' />
+          <Title heading={3}>{t('信息中心')}</Title>
+        </div>
+        <Typography.Text type="tertiary" className='subtitle'>{t('系统公告与消息中心')}</Typography.Text>
       </div>
 
-      <Card style={{ minHeight: 'calc(100vh - 180px)' }}>
-        <Tabs 
-          activeKey={activeTab} 
-          onChange={(key) => { 
-            setActiveTab(key); 
-            setActiveMessage(null); 
-          }} 
+      <Card className='info-center-card' bodyStyle={{padding:'18px 20px 26px'}}>
+        <Tabs
+          activeKey={activeTab}
+          onChange={(key) => {
+            setActiveTab(key);
+            setActiveMessage(null);
+          }}
           type='line'
-          size="large"
+          size='large'
         >
           {/* 公告板 */}
-          <Tabs.TabPane 
+          <Tabs.TabPane
             tab={
               <Space>
                 <IconBulb />
@@ -101,7 +104,7 @@ export default function InfoCenter(){
           </Tabs.TabPane>
 
           {/* 邮箱 - 收件箱 */}
-          <Tabs.TabPane 
+          <Tabs.TabPane
             tab={
               <Space>
                 <IconMail />
@@ -115,23 +118,25 @@ export default function InfoCenter(){
             } 
             itemKey='inbox'
           >
-            <div className='grid gap-4' style={{ gridTemplateColumns: '320px 1fr', height: 'calc(100vh - 280px)' }}>
-              <div className='space-y-4'>
-                <InboxList onSelect={(m) => setActiveMessage(m)} />
-                <SendPanel 
-                  replyTo={activeMessage && !activeMessage.is_broadcast ? activeMessage.id : null} 
-                  onSent={() => {}} 
-                />
+            <div className='message-pane-grid'>
+              <div className='message-left'>
+                <InboxList onSelect={(m) => { setActiveMessage(m); setReplyTarget(null); }} />
+                <div className='send-panel-wrapper'>
+                  <SendPanel
+                    replyTo={replyTarget && !replyTarget.is_broadcast ? replyTarget.id : (activeMessage && !activeMessage.is_broadcast ? activeMessage.id : null)}
+                    onSent={() => { setReplyTarget(null); }}
+                  />
+                </div>
               </div>
-              <div className='border rounded-md overflow-hidden'>
-                <MessageThread messageId={activeMessage?.id} />
+              <div className='message-thread-wrapper'>
+                <MessageThread messageId={activeMessage?.id} onReply={(m)=> setReplyTarget(m)} />
               </div>
             </div>
           </Tabs.TabPane>
 
           {/* 管理员专用 - 已发送 */}
           {admin && (
-            <Tabs.TabPane 
+            <Tabs.TabPane
               tab={
                 <Space>
                   <IconMail />
@@ -140,12 +145,12 @@ export default function InfoCenter(){
               } 
               itemKey='sent'
             >
-              <div className='grid gap-4' style={{ gridTemplateColumns: '320px 1fr', height: 'calc(100vh - 280px)' }}>
-                <div className='space-y-4'>
-                  <SentList onSelect={(m) => setActiveMessage(m)} />
+              <div className='message-pane-grid'>
+                <div className='message-left'>
+                  <SentList onSelect={(m) => { setActiveMessage(m); setReplyTarget(null); }} />
                 </div>
-                <div className='border rounded-md overflow-hidden'>
-                  <MessageThread messageId={activeMessage?.id} />
+                <div className='message-thread-wrapper'>
+                  <MessageThread messageId={activeMessage?.id} onReply={(m)=> setReplyTarget(m)} />
                 </div>
               </div>
             </Tabs.TabPane>
@@ -153,7 +158,7 @@ export default function InfoCenter(){
 
           {/* 管理员专用 - 统计 */}
           {admin && (
-            <Tabs.TabPane 
+            <Tabs.TabPane
               tab={
                 <Space>
                   <IconActivity />
@@ -162,7 +167,9 @@ export default function InfoCenter(){
               } 
               itemKey='analytics'
             >
-              <AdminAnalytics />
+              <div className='analytics-wrapper'>
+                <AdminAnalytics />
+              </div>
             </Tabs.TabPane>
           )}
         </Tabs>

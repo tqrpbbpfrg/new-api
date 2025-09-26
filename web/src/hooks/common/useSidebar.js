@@ -17,7 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import { useState, useEffect, useMemo, useContext } from 'react';
+import { useContext, useEffect, useMemo, useState } from 'react';
 import { StatusContext } from '../../context/Status';
 import { API } from '../../helpers';
 
@@ -32,14 +32,16 @@ export const useSidebar = () => {
 
   // 默认配置
   const defaultAdminConfig = {
+    // chat 区域不再显示（兼容保留结构，enabled=false）
     chat: {
-      enabled: true,
-      playground: true,
+      enabled: false,
       chat: true,
+      playground: true, // 兼容旧数据迁移用（最终转移到 console）
     },
     console: {
       enabled: true,
       detail: true,
+      playground: true, // 新增：操练场移动至控制台
       token: true,
       log: true,
       midjourney: true,
@@ -49,6 +51,7 @@ export const useSidebar = () => {
       enabled: true,
       topup: true,
       personal: true,
+      info: true, // 信息中心条目
     },
     admin: {
       enabled: true,
@@ -65,6 +68,13 @@ export const useSidebar = () => {
     if (statusState?.status?.SidebarModulesAdmin) {
       try {
         const config = JSON.parse(statusState.status.SidebarModulesAdmin);
+        // 兼容迁移：若 console.playground 缺失而 chat.playground 存在 => 迁移
+        if (!config.console) config.console = { enabled: true };
+        if (config.chat?.playground && !config.console.playground) {
+          config.console.playground = config.chat.playground;
+        }
+        // 强制 chat.enabled=false（需求：不再单独显示聊天分组）
+        if (config.chat) config.chat.enabled = false;
         return config;
       } catch (error) {
         return defaultAdminConfig;
@@ -86,6 +96,12 @@ export const useSidebar = () => {
         } else {
           config = res.data.data.sidebar_modules;
         }
+        // 用户配置兼容迁移
+        if (!config.console) config.console = { enabled: true };
+        if (config.chat?.playground && !config.console.playground) {
+          config.console.playground = config.chat.playground;
+        }
+        if (config.chat) config.chat.enabled = false; // 隐藏旧 chat 区域
         setUserConfig(config);
       } else {
         // 当用户没有配置时，生成一个基于管理员配置的默认用户配置
@@ -105,6 +121,15 @@ export const useSidebar = () => {
             });
           }
         });
+        // 兼容：user 默认也确保 console.playground 存在
+        if (
+          defaultUserConfig.chat?.playground &&
+          !defaultUserConfig.console.playground
+        ) {
+          defaultUserConfig.console.playground =
+            defaultUserConfig.chat.playground;
+        }
+        if (defaultUserConfig.chat) defaultUserConfig.chat.enabled = false;
         setUserConfig(defaultUserConfig);
       }
     } catch (error) {
@@ -120,6 +145,14 @@ export const useSidebar = () => {
           });
         }
       });
+      if (
+        defaultUserConfig.chat?.playground &&
+        !defaultUserConfig.console.playground
+      ) {
+        defaultUserConfig.console.playground =
+          defaultUserConfig.chat.playground;
+      }
+      if (defaultUserConfig.chat) defaultUserConfig.chat.enabled = false;
       setUserConfig(defaultUserConfig);
     } finally {
       setLoading(false);
@@ -128,7 +161,7 @@ export const useSidebar = () => {
 
   // 刷新用户配置的方法（供外部调用）
   const refreshUserConfig = async () => {
-     if (Object.keys(adminConfig).length > 0) {
+    if (Object.keys(adminConfig).length > 0) {
       await loadUserConfig();
     }
 
@@ -155,7 +188,10 @@ export const useSidebar = () => {
     sidebarEventTarget.addEventListener(SIDEBAR_REFRESH_EVENT, handleRefresh);
 
     return () => {
-      sidebarEventTarget.removeEventListener(SIDEBAR_REFRESH_EVENT, handleRefresh);
+      sidebarEventTarget.removeEventListener(
+        SIDEBAR_REFRESH_EVENT,
+        handleRefresh,
+      );
     };
   }, [adminConfig]);
 

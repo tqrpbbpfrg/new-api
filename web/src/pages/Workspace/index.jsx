@@ -18,7 +18,7 @@ For commercial licensing, please contact support@quantumnous.com
 */
 
 import { IconActivity, IconCalendar, IconClock, IconGift, IconUser } from '@douyinfe/semi-icons';
-import { Avatar, Button, Card, Col, Descriptions, Divider, Progress, Row, Space, Typography, Toast } from '@douyinfe/semi-ui';
+import { Avatar, Button, Card, Col, Descriptions, Divider, Progress, Row, Space, Toast, Typography } from '@douyinfe/semi-ui';
 import dayjs from 'dayjs';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -183,7 +183,7 @@ export default function Workspace(){
   const loadCheckinStatus = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/checkin/status');
+  const res = await secureFetch('/api/checkin/status');
       const data = await res.json();
       if (data.success) setCheckinStatus(data.data); else Toast.error(t('加载签到状态失败'));
     } catch (e) {
@@ -215,7 +215,7 @@ export default function Workspace(){
   const doCheckin = async () => {
     setSigning(true);
     try {
-      const res = await fetch('/api/checkin/', {method: 'POST'});
+  const res = await secureFetch('/api/checkin/', {method: 'POST'});
       const data = await res.json();
       if (data.success) { 
         await loadCheckinStatus();

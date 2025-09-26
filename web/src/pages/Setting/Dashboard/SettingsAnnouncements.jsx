@@ -17,34 +17,34 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useEffect, useState, useRef } from 'react';
 import {
-  Button,
-  Space,
-  Table,
-  Form,
-  Typography,
-  Empty,
-  Divider,
-  Modal,
-  Tag,
-  Switch,
-  TextArea,
-  Tooltip,
-} from '@douyinfe/semi-ui';
-import {
-  IllustrationNoResult,
-  IllustrationNoResultDark,
+    IllustrationNoResult,
+    IllustrationNoResultDark,
 } from '@douyinfe/semi-illustrations';
-import { Plus, Edit, Trash2, Save, Bell, Maximize2 } from 'lucide-react';
 import {
-  API,
-  showError,
-  showSuccess,
-  getRelativeTime,
-  formatDateTimeString,
-} from '../../../helpers';
+    Button,
+    Divider,
+    Empty,
+    Form,
+    Modal,
+    Space,
+    Switch,
+    Table,
+    Tag,
+    TextArea,
+    Tooltip,
+    Typography,
+} from '@douyinfe/semi-ui';
+import { Bell, Edit, Maximize2, Plus, Save, Trash2 } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import {
+    API,
+    formatDateTimeString,
+    getRelativeTime,
+    showError,
+    showSuccess,
+} from '../../../helpers';
 
 const { Text } = Typography;
 
@@ -475,7 +475,7 @@ const SettingsAnnouncements = ({ options, refresh }) => {
   };
 
   return (
-    <>
+    <div className='announcement-center'>
       <Form.Section text={renderHeader()}>
         <Table
           columns={columns}
@@ -627,7 +627,7 @@ const SettingsAnnouncements = ({ options, refresh }) => {
           }
         />
       </Modal>
-    </>
+    </div>
   );
 };
 
