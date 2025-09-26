@@ -148,7 +148,6 @@ func Redeem(key string, userId int) (quota int, err error) {
 		keyCol = `"key"`
 	}
 	common.RandomSleep()
-	errorContext := fmt.Sprintf("redeem key=%s user=%d", key, userId)
 	err = DB.Transaction(func(tx *gorm.DB) error {
 		// 使用标准锁语法（兼容不同驱动）
 		if e := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where(keyCol+" = ?", key).First(redemption).Error; e != nil {
