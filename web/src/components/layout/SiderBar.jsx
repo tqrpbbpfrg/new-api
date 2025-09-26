@@ -21,6 +21,7 @@ import { ChevronLeft } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from 'react-router-dom';
+import { useUnread } from '../../context/Unread';
 import { isAdmin, isRoot, showError } from '../../helpers';
 import { getLucideIcon } from '../../helpers/render';
 import { useMinimumLoadingTime } from '../../hooks/common/useMinimumLoadingTime';
@@ -29,7 +30,7 @@ import { useSidebarCollapsed } from '../../hooks/common/useSidebarCollapsed';
 import { useBlurGlass } from '../../hooks/ui/useBlurGlass';
 import SkeletonWrapper from './components/SkeletonWrapper';
 
-import { Button, Divider, Nav } from '@douyinfe/semi-ui';
+import { Badge, Button, Divider, Nav } from '@douyinfe/semi-ui';
 
 const routerMap = {
   home: '/',
@@ -98,10 +99,18 @@ const SiderBar = ({ onNavigate = () => {} }) => {
     return filteredItems;
   }, [t, isModuleVisible]);
 
+  const { total:infoUnread } = useUnread() || { total:0 };
+
   const financeItems = useMemo(() => {
     const items = [
       {
-        text: t('信息处'),
+        text: (
+          <span className='flex items-center gap-1'>
+            {t('信息处')}
+            {infoUnread>0 && <Badge count={infoUnread} overflowCount={99} type='danger' style={{ transform:'scale(0.75)' }} />}
+          </span>
+        ),
+        rawText: t('信息处'),
         itemKey: 'info',
         to: '/console/info',
       },
@@ -117,14 +126,12 @@ const SiderBar = ({ onNavigate = () => {} }) => {
       },
     ];
 
-    // 根据配置过滤项目
     const filteredItems = items.filter((item) => {
       const configVisible = isModuleVisible('personal', item.itemKey);
       return configVisible;
     });
-
     return filteredItems;
-  }, [t, isModuleVisible]);
+  }, [t, isModuleVisible, infoUnread]);
 
   const adminItems = useMemo(() => {
     const items = [

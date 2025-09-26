@@ -17,9 +17,9 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useRef } from 'react';
-import { Form, Button } from '@douyinfe/semi-ui';
 import { IconSearch } from '@douyinfe/semi-icons';
+import { Button, Form, Select } from '@douyinfe/semi-ui';
+import { useRef } from 'react';
 
 const RedemptionsFilters = ({
   formInitValues,
@@ -66,7 +66,14 @@ const RedemptionsFilters = ({
             size='small'
           />
         </div>
-        <div className='flex gap-2 w-full md:w-auto'>
+        <div className='flex flex-col md:flex-row gap-2 w-full md:w-auto'>
+          <div className='w-full md:w-40'>
+            <Form.Select field='type' placeholder={t('全部类型')} size='small' showClear>
+              <Select.Option value='code'>{t('普通兑换码')}</Select.Option>
+              <Select.Option value='gift'>{t('礼品码')}</Select.Option>
+            </Form.Select>
+          </div>
+          <div className='flex gap-2 w-full md:w-auto'>
           <Button
             type='tertiary'
             htmlType='submit'
@@ -84,6 +91,7 @@ const RedemptionsFilters = ({
           >
             {t('重置')}
           </Button>
+          </div>
         </div>
       </div>
     </Form>

@@ -13,7 +13,8 @@ import (
 
 func GetAllRedemptions(c *gin.Context) {
 	pageInfo := common.GetPageQuery(c)
-	redemptions, total, err := model.GetAllRedemptions(pageInfo.GetStartIdx(), pageInfo.GetPageSize())
+	codeType := c.Query("type")
+	redemptions, total, err := model.GetAllRedemptions(pageInfo.GetStartIdx(), pageInfo.GetPageSize(), codeType)
 	if err != nil {
 		common.ApiError(c, err)
 		return
@@ -21,13 +22,13 @@ func GetAllRedemptions(c *gin.Context) {
 	pageInfo.SetTotal(int(total))
 	pageInfo.SetItems(redemptions)
 	common.ApiSuccess(c, pageInfo)
-	return
 }
 
 func SearchRedemptions(c *gin.Context) {
 	keyword := c.Query("keyword")
+	codeType := c.Query("type")
 	pageInfo := common.GetPageQuery(c)
-	redemptions, total, err := model.SearchRedemptions(keyword, pageInfo.GetStartIdx(), pageInfo.GetPageSize())
+	redemptions, total, err := model.SearchRedemptions(keyword, pageInfo.GetStartIdx(), pageInfo.GetPageSize(), codeType)
 	if err != nil {
 		common.ApiError(c, err)
 		return
@@ -35,7 +36,6 @@ func SearchRedemptions(c *gin.Context) {
 	pageInfo.SetTotal(int(total))
 	pageInfo.SetItems(redemptions)
 	common.ApiSuccess(c, pageInfo)
-	return
 }
 
 func GetRedemption(c *gin.Context) {
@@ -54,7 +54,6 @@ func GetRedemption(c *gin.Context) {
 		"message": "",
 		"data":    redemption,
 	})
-	return
 }
 
 func AddRedemption(c *gin.Context) {
@@ -78,6 +77,22 @@ func AddRedemption(c *gin.Context) {
 		})
 		return
 	}
+	// 校验礼品码多次使用次数（仅 gift 有效）
+	if redemption.Type == "gift" {
+		// -1 表示不限人数
+		if redemption.MaxUse == -1 {
+			// accept unlimited
+		} else {
+			if redemption.MaxUse <= 1 {
+				c.JSON(http.StatusOK, gin.H{"success": false, "message": "礼品码最大使用次数必须大于1，或填 -1 表示不限"})
+				return
+			}
+			if redemption.MaxUse > 10000 { // 防滥用上限
+				c.JSON(http.StatusOK, gin.H{"success": false, "message": "礼品码最大使用次数不能超过10000"})
+				return
+			}
+		}
+	}
 	if redemption.Count > 100 {
 		c.JSON(http.StatusOK, gin.H{
 			"success": false,
@@ -95,6 +110,8 @@ func AddRedemption(c *gin.Context) {
 		cleanRedemption := model.Redemption{
 			UserId:      c.GetInt("id"),
 			Name:        redemption.Name,
+			Type:        redemption.Type,
+			MaxUse:      redemption.MaxUse,
 			Key:         key,
 			CreatedTime: common.GetTimestamp(),
 			Quota:       redemption.Quota,
@@ -116,7 +133,6 @@ func AddRedemption(c *gin.Context) {
 		"message": "",
 		"data":    keys,
 	})
-	return
 }
 
 func DeleteRedemption(c *gin.Context) {
@@ -130,7 +146,6 @@ func DeleteRedemption(c *gin.Context) {
 		"success": true,
 		"message": "",
 	})
-	return
 }
 
 func UpdateRedemption(c *gin.Context) {
@@ -155,6 +170,15 @@ func UpdateRedemption(c *gin.Context) {
 		cleanRedemption.Name = redemption.Name
 		cleanRedemption.Quota = redemption.Quota
 		cleanRedemption.ExpiredTime = redemption.ExpiredTime
+		if redemption.Type != "" {
+			cleanRedemption.Type = redemption.Type
+		}
+		if redemption.Type == "gift" {
+			// 允许 -1 或 >1
+			if redemption.MaxUse == -1 || redemption.MaxUse > 1 {
+				cleanRedemption.MaxUse = redemption.MaxUse
+			}
+		}
 	}
 	if statusOnly != "" {
 		cleanRedemption.Status = redemption.Status
@@ -169,7 +193,6 @@ func UpdateRedemption(c *gin.Context) {
 		"message": "",
 		"data":    cleanRedemption,
 	})
-	return
 }
 
 func DeleteInvalidRedemption(c *gin.Context) {
@@ -183,7 +206,26 @@ func DeleteInvalidRedemption(c *gin.Context) {
 		"message": "",
 		"data":    rows,
 	})
-	return
+}
+
+// RedemptionNameBatch 用于批量按名称删除
+type RedemptionNameBatch struct {
+	Names []string `json:"names"`
+}
+
+// BatchDeleteRedemptionByNames 按名称批量删除一组兑换码
+func BatchDeleteRedemptionByNames(c *gin.Context) {
+	payload := RedemptionNameBatch{}
+	if err := c.ShouldBindJSON(&payload); err != nil || len(payload.Names) == 0 {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "参数错误"})
+		return
+	}
+	rows, err := model.BatchDeleteRedemptionsByNames(payload.Names)
+	if err != nil {
+		common.ApiError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": "", "data": rows})
 }
 
 func validateExpiredTime(expired int64) error {

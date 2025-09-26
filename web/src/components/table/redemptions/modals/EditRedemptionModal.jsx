@@ -17,37 +17,38 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useEffect, useState, useRef } from 'react';
+import {
+  IconClose,
+  IconCreditCard,
+  IconGift,
+  IconSave,
+} from '@douyinfe/semi-icons';
+import {
+  Avatar,
+  Button,
+  Card,
+  Checkbox,
+  Col,
+  Form,
+  Modal,
+  Row,
+  SideSheet,
+  Space,
+  Spin,
+  Tag,
+  Typography,
+} from '@douyinfe/semi-ui';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   API,
   downloadTextAsFile,
-  showError,
-  showSuccess,
   renderQuota,
   renderQuotaWithPrompt,
+  showError,
+  showSuccess,
 } from '../../../../helpers';
 import { useIsMobile } from '../../../../hooks/common/useIsMobile';
-import {
-  Button,
-  Modal,
-  SideSheet,
-  Space,
-  Spin,
-  Typography,
-  Card,
-  Tag,
-  Form,
-  Avatar,
-  Row,
-  Col,
-} from '@douyinfe/semi-ui';
-import {
-  IconCreditCard,
-  IconSave,
-  IconClose,
-  IconGift,
-} from '@douyinfe/semi-icons';
 
 const { Text, Title } = Typography;
 
@@ -63,6 +64,9 @@ const EditRedemptionModal = (props) => {
     quota: 100000,
     count: 1,
     expired_time: null,
+    type: 'code',
+  max_use: 10,
+  unlimited: false,
   });
 
   const handleCancel = () => {
@@ -79,7 +83,8 @@ const EditRedemptionModal = (props) => {
       } else {
         data.expired_time = new Date(data.expired_time * 1000);
       }
-      formApiRef.current?.setValues({ ...getInitValues(), ...data });
+  const extra = { unlimited: data.max_use === -1 };
+  formApiRef.current?.setValues({ ...getInitValues(), ...data, ...extra });
     } else {
       showError(message);
     }
@@ -103,6 +108,9 @@ const EditRedemptionModal = (props) => {
     }
     setLoading(true);
     let localInputs = { ...values };
+    if (localInputs.unlimited) {
+      localInputs.max_use = -1;
+    }
     localInputs.count = parseInt(localInputs.count) || 0;
     localInputs.quota = parseInt(localInputs.quota) || 0;
     localInputs.name = name;
@@ -113,7 +121,7 @@ const EditRedemptionModal = (props) => {
         localInputs.expired_time.getTime() / 1000,
       );
     }
-    let res;
+  let res;
     if (isEdit) {
       res = await API.put(`/api/redemption/`, {
         ...localInputs,
@@ -261,6 +269,23 @@ const EditRedemptionModal = (props) => {
                         showClear
                       />
                     </Col>
+                    <Col span={24}>
+                      <Form.RadioGroup
+                        field='type'
+                        label={t('兑换码类型')}
+                        type='button'
+                        buttonSize='small'
+                        style={{ width:'100%' }}
+                        rules={[{ required:true, message:t('请选择类型') }]}
+                        optionList={[
+                          { label: t('普通兑换码'), value: 'code' },
+                          { label: t('礼品码'), value: 'gift' },
+                        ]}
+                      />
+                      <div className='text-xs text-gray-500 mt-1'>
+                        {values.type === 'gift' ? t('礼品码可被多次使用，适用于发放场景') : t('普通兑换码单人单次使用, 兑换后立即失效')}
+                      </div>
+                    </Col>
                   </Row>
                 </Card>
 
@@ -317,6 +342,49 @@ const EditRedemptionModal = (props) => {
                         showClear
                       />
                     </Col>
+                    {values.type === 'gift' && (
+                      <Col span={12}>
+                        <div>
+                          <div className='flex items-center justify-between'>
+                            {!values.unlimited && (
+                              <Form.InputNumber
+                                field='max_use'
+                                label={t('最大使用次数')}
+                                min={2}
+                                rules={[
+                                  { required: !values.unlimited, message: t('请输入生成数量') },
+                                  {
+                                    validator: (rule, v) => {
+                                      if (values.unlimited) return Promise.resolve();
+                                      const num = parseInt(v, 10);
+                                      return num > 1
+                                        ? Promise.resolve()
+                                        : Promise.reject(t('礼品码最大使用次数必须大于1，或填 -1 表示不限'));
+                                    },
+                                  },
+                                ]}
+                                style={{ width: '100%' }}
+                                showClear
+                              />
+                            )}
+                          </div>
+                          <Checkbox
+                            field='unlimited'
+                            checked={values.unlimited}
+                            onChange={(v) => {
+                              formApiRef.current?.setValue('unlimited', v.target.checked);
+                              if (v.target.checked) {
+                                formApiRef.current?.setValue('max_use', -1);
+                              } else if (formApiRef.current?.getValue('max_use') === -1) {
+                                formApiRef.current?.setValue('max_use', 10);
+                              }
+                            }}
+                          >
+                            {t('无限次数')}
+                          </Checkbox>
+                        </div>
+                      </Col>
+                    )}
                     {!isEdit && (
                       <Col span={12}>
                         <Form.InputNumber

@@ -17,51 +17,50 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useContext, useEffect, useState } from 'react';
 import {
-  Button,
-  Typography,
-  Input,
-  ScrollList,
-  ScrollItem,
+    IconCopy,
+    IconFile,
+    IconGithubLogo,
+    IconPlay,
+} from '@douyinfe/semi-icons';
+import {
+    Button,
+    Input,
+    ScrollItem,
+    ScrollList,
+    Typography,
 } from '@douyinfe/semi-ui';
-import { API, showError, copy, showSuccess } from '../../helpers';
-import { useIsMobile } from '../../hooks/common/useIsMobile';
+import {
+    AzureAI,
+    Claude,
+    Cohere,
+    DeepSeek,
+    Gemini,
+    Grok,
+    Hunyuan,
+    Midjourney,
+    Minimax,
+    Moonshot,
+    OpenAI,
+    Qingyan,
+    Qwen,
+    Spark,
+    Suno,
+    Volcengine,
+    Wenxin,
+    XAI,
+    Xinference,
+    Zhipu,
+} from '@lobehub/icons';
+import { marked } from 'marked';
+import { useContext, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 import { API_ENDPOINTS } from '../../constants/common.constant';
 import { StatusContext } from '../../context/Status';
 import { useActualTheme } from '../../context/Theme';
-import { marked } from 'marked';
-import { useTranslation } from 'react-i18next';
-import {
-  IconGithubLogo,
-  IconPlay,
-  IconFile,
-  IconCopy,
-} from '@douyinfe/semi-icons';
-import { Link } from 'react-router-dom';
-import NoticeModal from '../../components/layout/NoticeModal';
-import {
-  Moonshot,
-  OpenAI,
-  XAI,
-  Zhipu,
-  Volcengine,
-  Cohere,
-  Claude,
-  Gemini,
-  Suno,
-  Minimax,
-  Wenxin,
-  Spark,
-  Qingyan,
-  DeepSeek,
-  Qwen,
-  Midjourney,
-  Grok,
-  AzureAI,
-  Hunyuan,
-  Xinference,
-} from '@lobehub/icons';
+import { API, copy, showError, showSuccess } from '../../helpers';
+import { useIsMobile } from '../../hooks/common/useIsMobile';
 
 const { Text } = Typography;
 
@@ -71,7 +70,9 @@ const Home = () => {
   const actualTheme = useActualTheme();
   const [homePageContentLoaded, setHomePageContentLoaded] = useState(false);
   const [homePageContent, setHomePageContent] = useState('');
-  const [noticeVisible, setNoticeVisible] = useState(false);
+  // 轻提示公告 Banner 内容（来自 /api/notice），不再使用弹窗
+  const [noticeBanner, setNoticeBanner] = useState('');
+  const [showBanner, setShowBanner] = useState(false);
   const isMobile = useIsMobile();
   const isDemoSiteMode = statusState?.status?.demo_site_enabled || false;
   const docsLink = statusState?.status?.docs_link || '';
@@ -118,23 +119,23 @@ const Home = () => {
   };
 
   useEffect(() => {
-    const checkNoticeAndShow = async () => {
+    // 轻提示公告逻辑：仅在当天未关闭过时请求一次
+    const initBanner = async () => {
       const lastCloseDate = localStorage.getItem('notice_close_date');
       const today = new Date().toDateString();
-      if (lastCloseDate !== today) {
-        try {
-          const res = await API.get('/api/notice');
-          const { success, data } = res.data;
-          if (success && data && data.trim() !== '') {
-            setNoticeVisible(true);
-          }
-        } catch (error) {
-          console.error('获取公告失败:', error);
+      if (lastCloseDate === today) return; // 当天已关闭
+      try {
+        const res = await API.get('/api/notice');
+        const { success, data } = res.data;
+        if (success && data && data.trim() !== '') {
+          setNoticeBanner(data);
+          setShowBanner(true);
         }
+      } catch (e) {
+        // 忽略错误
       }
     };
-
-    checkNoticeAndShow();
+    initBanner();
   }, []);
 
   useEffect(() => {
@@ -150,11 +151,24 @@ const Home = () => {
 
   return (
     <div className='w-full overflow-x-hidden'>
-      <NoticeModal
-        visible={noticeVisible}
-        onClose={() => setNoticeVisible(false)}
-        isMobile={isMobile}
-      />
+      {showBanner && noticeBanner && (
+        <div className='w-full bg-amber-50 dark:bg-zinc-800 border-b border-amber-200 dark:border-zinc-700 px-3 py-2 text-sm flex items-start gap-3'>
+          <div className='flex-1 min-w-0'>
+            <div className='prose prose-sm max-w-none dark:prose-invert' dangerouslySetInnerHTML={{ __html: marked.parse(noticeBanner) }} />
+            <div className='mt-1 flex gap-3 flex-wrap'>
+              <Button size='small' theme='borderless' type='primary' onClick={()=>{ window.location.href='/console/info'; }}>
+                {t('查看详情')}
+              </Button>
+              <Button size='small' theme='borderless' type='tertiary' onClick={()=>{ localStorage.setItem('notice_close_date', new Date().toDateString()); setShowBanner(false); }}>
+                {t('今日不再提示')}
+              </Button>
+            </div>
+          </div>
+          <Button size='small' theme='borderless' onClick={()=>{ localStorage.setItem('notice_close_date', new Date().toDateString()); setShowBanner(false); }}>
+            {t('关闭')}
+          </Button>
+        </div>
+      )}
       {homePageContentLoaded && homePageContent === '' ? (
         <div className='w-full overflow-x-hidden'>
           {/* Banner 部分 */}

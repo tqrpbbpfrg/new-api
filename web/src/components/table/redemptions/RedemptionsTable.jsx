@@ -17,15 +17,16 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useMemo, useState } from 'react';
-import { Empty } from '@douyinfe/semi-ui';
-import CardTable from '../../common/ui/CardTable';
 import {
-  IllustrationNoResult,
-  IllustrationNoResultDark,
+    IllustrationNoResult,
+    IllustrationNoResultDark,
 } from '@douyinfe/semi-illustrations';
-import { getRedemptionsColumns, isExpired } from './RedemptionsColumnDefs';
+import { Button, Empty, Space, Tag } from '@douyinfe/semi-ui';
+import { useMemo, useState } from 'react';
+import { buildRedemptionGrouping } from '../../../utils/redemptionsGrouping';
+import CardTable from '../../common/ui/CardTable';
 import DeleteRedemptionModal from './modals/DeleteRedemptionModal';
+import { getRedemptionsColumns } from './RedemptionsColumnDefs';
 
 const RedemptionsTable = (redemptionsData) => {
   const {
@@ -68,6 +69,11 @@ const RedemptionsTable = (redemptionsData) => {
       redemptions,
       activePage,
       showDeleteRedemptionModal,
+      groupSelection: redemptionsData.groupSelection,
+      setGroupSelection: redemptionsData.setGroupSelection,
+      setSelectedKeys: redemptionsData.setSelectedKeys,
+      expandedGroups: redemptionsData.expandedGroups,
+      setExpandedGroups: redemptionsData.setExpandedGroups,
     });
   }, [
     t,
@@ -79,6 +85,8 @@ const RedemptionsTable = (redemptionsData) => {
     redemptions,
     activePage,
     showDeleteRedemptionModal,
+    redemptionsData.groupSelection,
+    redemptionsData.expandedGroups,
   ]);
 
   // Handle compact mode by removing fixed positioning
@@ -94,11 +102,87 @@ const RedemptionsTable = (redemptionsData) => {
       : columns;
   }, [compactMode, columns]);
 
+  // Compute global analytics from grouped summaries
+  const globalSummary = useMemo(() => {
+    const map = {};
+    let totalGroups = 0;
+    let unlimitedGroups = 0;
+    let totalGiftUsed = 0;
+    let totalGiftMax = 0;
+    redemptionsData.groupedRows?.forEach((r) => {
+      if (!r.__groupSummary) return;
+      totalGroups += 1;
+      if (r.aggregated_max_use === -1) {
+        unlimitedGroups += 1;
+      } else {
+        totalGiftUsed += r.aggregated_used_count || 0;
+        totalGiftMax += r.aggregated_max_use || 0;
+      }
+    });
+    const usageRate = totalGiftMax > 0 ? (totalGiftUsed / totalGiftMax) * 100 : null;
+    return { totalGroups, unlimitedGroups, totalGiftUsed, totalGiftMax, usageRate };
+  }, [redemptionsData.groupedRows]);
+
+  const exportCSV = () => {
+    const headers = ['Group','Count','GiftUsed','GiftMax','Unlimited','UsageRate(%)','TotalQuota'];
+    const lines = [headers.join(',')];
+    (redemptionsData.groupedRows || []).forEach(r => {
+      if (!r.__groupSummary) return;
+      const rate = r.aggregated_max_use > 0 ? (r.aggregated_used_count / r.aggregated_max_use * 100).toFixed(2) : '';
+      lines.push([
+        r.name,
+        r.group_count,
+        r.aggregated_used_count,
+        r.aggregated_max_use === -1 ? '' : r.aggregated_max_use,
+        r.aggregated_max_use === -1 ? 'Y' : 'N',
+        rate,
+        r.total_quota || 0,
+      ].join(','));
+    });
+    if (globalSummary) {
+      lines.push(['TOTAL','','','','','', '']);
+      lines.push([
+        'ALL_GROUPS',
+        globalSummary.totalGroups,
+        globalSummary.totalGiftUsed,
+        globalSummary.totalGiftMax,
+        globalSummary.unlimitedGroups,
+        globalSummary.usageRate ? globalSummary.usageRate.toFixed(2) : '',
+        '',
+      ].join(','));
+    }
+    const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'redemptions_groups.csv';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+
   return (
     <>
+      <div className='flex flex-wrap items-center gap-2 mb-2'>
+        <Space spacing={8}>
+          <Button size='small' type='tertiary' onClick={exportCSV}>{t('导出')}</Button>
+          <Tag color='blue' shape='circle'>{t('分组数')}: {globalSummary.totalGroups}</Tag>
+          <Tag color='purple' shape='circle'>{t('无限分组')}: {globalSummary.unlimitedGroups}</Tag>
+          {globalSummary.usageRate !== null && (
+            <Tag color={globalSummary.usageRate >= 80 ? 'red' : 'green'} shape='circle'>
+              {t('总体使用率')}: {globalSummary.usageRate.toFixed(1)}%
+            </Tag>
+          )}
+        </Space>
+      </div>
       <CardTable
         columns={tableColumns}
-        dataSource={redemptions}
+        dataSource={useMemo(() => {
+          const { rows } = buildRedemptionGrouping({
+            redemptions,
+            showGroupedOnly: redemptionsData.showGroupedOnly,
+            expandedGroups: redemptionsData.expandedGroups,
+          });
+          return rows;
+        }, [redemptions, redemptionsData.showGroupedOnly, redemptionsData.expandedGroups])}
         scroll={compactMode ? undefined : { x: 'max-content' }}
         pagination={{
           currentPage: activePage,

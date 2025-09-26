@@ -17,17 +17,17 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import { useGlobalUnread } from '../../../hooks/message/useGlobalUnread';
+import { IconMail } from '@douyinfe/semi-icons';
+import { Badge, Button, Tooltip } from '@douyinfe/semi-ui';
+import { useUnread } from '../../../context/Unread';
 import LanguageSelector from './LanguageSelector';
 import NewYearButton from './NewYearButton';
-import NotificationButton from './NotificationButton';
 import ThemeToggle from './ThemeToggle';
 import UserArea from './UserArea';
 
 const ActionButtons = ({
   isNewYear,
   unreadCount,
-  onNoticeOpen,
   theme,
   onThemeToggle,
   currentLang,
@@ -41,16 +41,19 @@ const ActionButtons = ({
   t,
 }) => {
   // Hook must be called at the top level - ErrorBoundary will catch any issues
-  const inboxUnread = useGlobalUnread();
+  // 通知按钮已移除；若未来需要，可重新引入 useUnifiedUnread()
   
+  const unread = useUnread();
+  const goInfo = () => navigate('/console/info');
   return (
     <div className='flex items-center gap-2 md:gap-3'>
       <NewYearButton isNewYear={isNewYear} />
-
-      <NotificationButton unreadCount={(unreadCount||0) + (inboxUnread||0)} onNoticeOpen={()=>{ onNoticeOpen(); }} t={t} />
-
+      <Tooltip content={t('信息处')} position='bottom'>
+        <Badge count={unread?.total||0} overflowCount={99} type='danger' style={{ transform:'scale(.85)' }}>
+          <Button size='small' theme='borderless' icon={<IconMail />} onClick={goInfo} aria-label='info-center' />
+        </Badge>
+      </Tooltip>
       <ThemeToggle theme={theme} onThemeToggle={onThemeToggle} t={t} />
-
       <LanguageSelector
         currentLang={currentLang}
         onLanguageChange={onLanguageChange}

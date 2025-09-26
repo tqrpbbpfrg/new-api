@@ -1,3 +1,14 @@
+### 数据库变更 (0.4.1)
+
+新增礼品码多次使用特性：
+
+1. `redemptions` 表新增列：
+  - `max_use` INT NOT NULL DEFAULT 1
+  - `used_count` INT NOT NULL DEFAULT 0
+2. 新增表 `redemption_usages` 记录礼品码被哪个用户使用（`redemption_id`, `user_id`, `created_time`）。
+
+使用内置 AutoMigrate 会自动添加字段/创建表；生产环境请务必在变更前做好备份，并在需要时自行编写显式迁移脚本（例如添加索引、锁策略）。
+
 <p align="right">
    <strong>中文</strong> | <a href="./README.en.md">English</a>
 </p>

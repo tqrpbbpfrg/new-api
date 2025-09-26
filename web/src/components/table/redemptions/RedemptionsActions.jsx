@@ -17,7 +17,6 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React from 'react';
 import { Button } from '@douyinfe/semi-ui';
 
 const RedemptionsActions = ({
@@ -26,6 +25,10 @@ const RedemptionsActions = ({
   setShowEdit,
   batchCopyRedemptions,
   batchDeleteRedemptions,
+  batchDeleteSelectedGroups,
+  groupSelection,
+  showGroupedOnly,
+  setShowGroupedOnly,
   t,
 }) => {
   // Add new redemption code
@@ -63,6 +66,25 @@ const RedemptionsActions = ({
         size='small'
       >
         {t('清除失效兑换码')}
+      </Button>
+
+      <Button
+        type='danger'
+        theme='borderless'
+        className='w-full md:w-auto'
+        onClick={batchDeleteSelectedGroups}
+        size='small'
+      >
+        {t('删除所选分组')}
+      </Button>
+
+      <Button
+        type='tertiary'
+        className='w-full md:w-auto'
+        onClick={() => setShowGroupedOnly(!showGroupedOnly)}
+        size='small'
+      >
+        {showGroupedOnly ? t('展开组内条目') : t('仅显示分组汇总')}
       </Button>
     </div>
   );

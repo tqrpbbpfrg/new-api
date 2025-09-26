@@ -17,15 +17,14 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React from 'react';
-import { Button, Badge } from '@douyinfe/semi-ui';
+import { Badge, Button } from '@douyinfe/semi-ui';
 import { Bell } from 'lucide-react';
 
-const NotificationButton = ({ unreadCount, onNoticeOpen, t }) => {
+const NotificationButton = ({ unreadCount, onClick, t }) => {
   const buttonProps = {
     icon: <Bell size={18} />,
-    'aria-label': t('系统公告'),
-    onClick: onNoticeOpen,
+  'aria-label': t('信息处'),
+  onClick,
     theme: 'borderless',
     type: 'tertiary',
     className:

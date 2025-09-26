@@ -17,10 +17,11 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import { Tabs, Card, Typography, Space } from '@douyinfe/semi-ui';
-import { IconBulb, IconMail, IconActivity } from '@douyinfe/semi-icons';
+import { IconActivity, IconBulb, IconMail } from '@douyinfe/semi-icons';
+import { Badge, Card, Space, Tabs, Typography } from '@douyinfe/semi-ui';
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useUnread } from '../../context/Unread';
 import { isAdmin } from '../../helpers';
 import { useAnnouncements } from '../../hooks/message/useAnnouncements';
 import { useMessageRealtime } from '../../hooks/message/useRealtime';
@@ -38,6 +39,9 @@ export default function InfoCenter(){
   const [activeMessage, setActiveMessage] = useState(null);
   const [activeTab, setActiveTab] = useState('announcements');
   
+  const announcementsHook = useAnnouncements();
+  const { messages:inboxUnread, announcements:announcementUnread } = useUnread() || { messages:0, announcements:0 };
+
   const handleIncoming = useCallback((msg) => {
     if (activeTab === 'inbox' && msg) {
       window.dispatchEvent(new CustomEvent('inbox-incremental', { 
@@ -84,11 +88,16 @@ export default function InfoCenter(){
               <Space>
                 <IconBulb />
                 {t('公告板')}
+                {announcementUnread>0 && (
+                  <Badge count={announcementUnread} type='danger' style={{ transform:'scale(0.85)', marginLeft:4 }}>
+                    <span />
+                  </Badge>
+                )}
               </Space>
             } 
             itemKey='announcements'
           >
-            <AnnouncementBoard />
+            <AnnouncementBoard announcementsProp={announcementsHook.items} refreshProp={announcementsHook.refresh} />
           </Tabs.TabPane>
 
           {/* 邮箱 - 收件箱 */}
@@ -97,6 +106,11 @@ export default function InfoCenter(){
               <Space>
                 <IconMail />
                 {t('收件箱')}
+                {inboxUnread>0 && (
+                  <Badge count={inboxUnread} type='danger' style={{ transform:'scale(0.85)', marginLeft:4 }}>
+                    <span />
+                  </Badge>
+                )}
               </Space>
             } 
             itemKey='inbox'

@@ -17,15 +17,16 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import { useState, useEffect } from 'react';
-import { API, showError, showSuccess, copy } from '../../helpers';
+import { Modal } from '@douyinfe/semi-ui';
+import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ITEMS_PER_PAGE } from '../../constants';
 import {
-  REDEMPTION_ACTIONS,
-  REDEMPTION_STATUS,
+    REDEMPTION_ACTIONS,
+    REDEMPTION_STATUS,
 } from '../../constants/redemption.constants';
-import { Modal } from '@douyinfe/semi-ui';
-import { useTranslation } from 'react-i18next';
+import { API, copy, showError, showSuccess } from '../../helpers';
+import { buildRedemptionGrouping } from '../../utils/redemptionsGrouping';
 import { useTableCompactMode } from '../common/useTableCompactMode';
 
 export const useRedemptionsData = () => {
@@ -39,6 +40,9 @@ export const useRedemptionsData = () => {
   const [pageSize, setPageSize] = useState(ITEMS_PER_PAGE);
   const [tokenCount, setTokenCount] = useState(0);
   const [selectedKeys, setSelectedKeys] = useState([]);
+  const [groupSelection, setGroupSelection] = useState({}); // name -> {selected:boolean, items:[]}
+  const [showGroupedOnly, setShowGroupedOnly] = useState(false);
+  const [expandedGroups, setExpandedGroups] = useState({}); // name -> true
 
   // Edit state
   const [editingRedemption, setEditingRedemption] = useState({
@@ -55,6 +59,7 @@ export const useRedemptionsData = () => {
   // Form state
   const formInitValues = {
     searchKeyword: '',
+    type: '',
   };
 
   // Get form values
@@ -62,20 +67,40 @@ export const useRedemptionsData = () => {
     const formValues = formApi ? formApi.getValues() : {};
     return {
       searchKeyword: formValues.searchKeyword || '',
+      type: formValues.type || '',
     };
   };
 
   // Set redemption data format
-  const setRedemptionFormat = (redemptions) => {
-    setRedemptions(redemptions);
+  const setRedemptionFormat = (list) => {
+    setRedemptions(list);
+    // Rebuild groups selection skeleton (preserve previous selected flags if possible)
+    const prev = groupSelection;
+    const groups = {};
+    for (const r of list) {
+      if (!groups[r.name]) groups[r.name] = { items: [], selected: prev[r.name]?.selected || false };
+      groups[r.name].items.push(r);
+    }
+    setGroupSelection(groups);
   };
+
+  // Derived grouped rows (summary + children) for potential future consumers
+  const groupedRows = useMemo(() => {
+    return buildRedemptionGrouping({
+      redemptions,
+      showGroupedOnly,
+      expandedGroups,
+    }).rows;
+  }, [redemptions, showGroupedOnly, expandedGroups]);
 
   // Load redemption list
   const loadRedemptions = async (page = 1, pageSize) => {
     setLoading(true);
     try {
+      const { type } = getFormValues();
+      const typeParam = type ? `&type=${type}` : '';
       const res = await API.get(
-        `/api/redemption/?p=${page}&page_size=${pageSize}`,
+        `/api/redemption/?p=${page}&page_size=${pageSize}${typeParam}`,
       );
       const { success, message, data } = res.data;
       if (success) {
@@ -94,7 +119,7 @@ export const useRedemptionsData = () => {
 
   // Search redemption codes
   const searchRedemptions = async () => {
-    const { searchKeyword } = getFormValues();
+    const { searchKeyword, type } = getFormValues();
     if (searchKeyword === '') {
       await loadRedemptions(1, pageSize);
       return;
@@ -102,8 +127,9 @@ export const useRedemptionsData = () => {
 
     setSearching(true);
     try {
+      const typeParam = type ? `&type=${type}` : '';
       const res = await API.get(
-        `/api/redemption/search?keyword=${searchKeyword}&p=1&page_size=${pageSize}`,
+        `/api/redemption/search?keyword=${searchKeyword}&p=1&page_size=${pageSize}${typeParam}`,
       );
       const { success, message, data } = res.data;
       if (success) {
@@ -272,6 +298,32 @@ export const useRedemptionsData = () => {
     });
   };
 
+  // Delete all selected group items (full deletion, not just invalid) - sequential for simplicity
+  const batchDeleteSelectedGroups = async () => {
+    const selectedGroupNames = Object.entries(groupSelection)
+      .filter(([_, v]) => v.selected)
+      .map(([k]) => k);
+    if (selectedGroupNames.length === 0) {
+      showError(t('请至少选择一个分组！'));
+      return;
+    }
+    Modal.confirm({
+      title: t('批量删除确认'),
+      content: t('将删除所选分组下全部兑换码，此操作不可撤销。'),
+      onOk: async () => {
+        setLoading(true);
+        try {
+          // 调用后端批量删除接口
+          await API.post('/api/redemption/batch/delete_by_names', { names: selectedGroupNames });
+          showSuccess(t('批量删除完成'));
+          await refresh();
+        } finally {
+          setLoading(false);
+        }
+      },
+    });
+  };
+
   // Close edit modal
   const closeEdit = () => {
     setShowEdit(false);
@@ -305,7 +357,8 @@ export const useRedemptionsData = () => {
 
   return {
     // Data state
-    redemptions,
+  redemptions,
+  groupedRows,
     loading,
     searching,
     activePage,
@@ -341,6 +394,12 @@ export const useRedemptionsData = () => {
     setShowEdit,
     setFormApi,
     setLoading,
+  setGroupSelection,
+  showGroupedOnly,
+  setShowGroupedOnly,
+  expandedGroups,
+  setExpandedGroups,
+  groupSelection,
 
     // Event handlers
     handlePageChange,
@@ -353,6 +412,8 @@ export const useRedemptionsData = () => {
     // Batch operations
     batchCopyRedemptions,
     batchDeleteRedemptions,
+  batchDeleteSelectedGroups,
+  groupedRows,
 
     // Translation function
     t,

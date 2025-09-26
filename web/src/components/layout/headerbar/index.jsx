@@ -19,11 +19,9 @@ For commercial licensing, please contact support@quantumnous.com
 
 import { useHeaderBar } from '../../../hooks/common/useHeaderBar';
 import { useNavigation } from '../../../hooks/common/useNavigation';
-import { useNotifications } from '../../../hooks/common/useNotifications';
 import { useBlurGlass } from '../../../hooks/ui/useBlurGlass';
 import ErrorBoundary from '../../common/ErrorBoundary';
 import SafeActionButtonsWrapper from '../../common/SafeActionButtonsWrapper';
-import NoticeModal from '../NoticeModal';
 import ActionButtons from './ActionButtons';
 import HeaderLogo from './HeaderLogo';
 import MobileMenuButton from './MobileMenuButton';
@@ -56,26 +54,15 @@ const HeaderBar = ({ onMobileMenuToggle, drawerOpen }) => {
     t,
   } = useHeaderBar({ onMobileMenuToggle, drawerOpen });
 
-  const {
-    noticeVisible,
-    unreadCount,
-    handleNoticeOpen,
-    handleNoticeClose,
-    getUnreadKeys,
-  } = useNotifications(statusState);
+  // notifications modal removed; InfoCenter (/console/info) now hosts announcements & messages
+  const unreadCount = 0; // placeholder; could integrate global unread counters if needed
 
   const { mainNavLinks } = useNavigation(t, docsLink, headerNavModules);
 
   const blurState = useBlurGlass();
   return (
   <header className={`text-semi-color-text-0 sticky top-0 z-50 transition-colors duration-200 border-b border-solid border-[rgba(0,0,0,0.06)] shadow-sm header-bar-root ${(blurState.enabled && (blurState.area==='both'||blurState.area==='header'))? 'bg-white/70 dark:bg-zinc-900/60':'bg-white dark:bg-zinc-900'}`} style={(blurState.enabled && (blurState.area==='both'||blurState.area==='header'))?{backdropFilter:`blur(${blurState.strength}px)`}:{}}>
-      <NoticeModal
-        visible={noticeVisible}
-        onClose={handleNoticeClose}
-        isMobile={isMobile}
-        defaultTab={unreadCount > 0 ? 'system' : 'inApp'}
-        unreadKeys={getUnreadKeys()}
-      />
+      {/* NoticeModal removed: announcements/messages moved to 信息处 (InfoCenter) */}
 
       <div className='w-full px-2 md:px-4'>
         <div className='flex items-center justify-between h-14 md:h-[56px]'>
@@ -114,8 +101,6 @@ const HeaderBar = ({ onMobileMenuToggle, drawerOpen }) => {
             <SafeActionButtonsWrapper>
               <ActionButtons
                 isNewYear={isNewYear}
-                unreadCount={unreadCount}
-                onNoticeOpen={handleNoticeOpen}
                 theme={theme}
                 onThemeToggle={handleThemeToggle}
                 currentLang={currentLang}

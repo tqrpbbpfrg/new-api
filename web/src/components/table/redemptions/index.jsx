@@ -17,16 +17,15 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React from 'react';
-import CardPro from '../../common/ui/CardPro';
-import RedemptionsTable from './RedemptionsTable';
-import RedemptionsActions from './RedemptionsActions';
-import RedemptionsFilters from './RedemptionsFilters';
-import RedemptionsDescription from './RedemptionsDescription';
-import EditRedemptionModal from './modals/EditRedemptionModal';
-import { useRedemptionsData } from '../../../hooks/redemptions/useRedemptionsData';
-import { useIsMobile } from '../../../hooks/common/useIsMobile';
 import { createCardProPagination } from '../../../helpers/utils';
+import { useIsMobile } from '../../../hooks/common/useIsMobile';
+import { useRedemptionsData } from '../../../hooks/redemptions/useRedemptionsData';
+import CardPro from '../../common/ui/CardPro';
+import RedemptionsActions from './RedemptionsActions';
+import RedemptionsDescription from './RedemptionsDescription';
+import RedemptionsFilters from './RedemptionsFilters';
+import RedemptionsTable from './RedemptionsTable';
+import EditRedemptionModal from './modals/EditRedemptionModal';
 
 const RedemptionsPage = () => {
   const redemptionsData = useRedemptionsData();
@@ -45,6 +44,11 @@ const RedemptionsPage = () => {
     setShowEdit,
     batchCopyRedemptions,
     batchDeleteRedemptions,
+  batchDeleteSelectedGroups,
+  groupSelection,
+  groupedRedemptions,
+  showGroupedOnly,
+  setShowGroupedOnly,
 
     // Filters state
     formInitValues,
@@ -87,6 +91,10 @@ const RedemptionsPage = () => {
               setShowEdit={setShowEdit}
               batchCopyRedemptions={batchCopyRedemptions}
               batchDeleteRedemptions={batchDeleteRedemptions}
+              batchDeleteSelectedGroups={batchDeleteSelectedGroups}
+              groupSelection={groupSelection}
+              showGroupedOnly={showGroupedOnly}
+              setShowGroupedOnly={setShowGroupedOnly}
               t={t}
             />
 

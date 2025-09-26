@@ -30,6 +30,7 @@ import PageLayout from './components/layout/PageLayout';
 import { StatusProvider } from './context/Status';
 import { ThemeProvider } from './context/Theme';
 import { UIOptionsProvider } from './context/UIOptions';
+import { UnreadProvider } from './context/Unread';
 import { UserProvider } from './context/User';
 import './i18n/i18n';
 import './index.css';
@@ -69,7 +70,9 @@ root.render(
           <ThemeProvider>
             <UIOptionsProvider>
               <SemiLocaleWrapper>
-                <PageLayout />
+                <UnreadProvider>
+                  <PageLayout />
+                </UnreadProvider>
               </SemiLocaleWrapper>
             </UIOptionsProvider>
           </ThemeProvider>
