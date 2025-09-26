@@ -17,7 +17,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import { IconBulb, IconCalendar, IconPin, IconRefresh, IconSearch } from '@douyinfe/semi-icons';
+// IconPin 不存在于 @douyinfe/semi-icons，改用 IconStar 作为置顶标识
+import { IconBulb, IconCalendar, IconStar, IconRefresh, IconSearch } from '@douyinfe/semi-icons';
 import { Button, Card, Empty, Input, List, Space, Spin, Tag, Typography } from '@douyinfe/semi-ui';
 import dayjs from 'dayjs';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -163,7 +164,7 @@ export default function AnnouncementBoard({ announcementsProp, refreshProp }) {
               )}
               {announcement.pinned && (
                 <Tag color="orange" size="small" type="light">
-                  <IconPin size="small" />
+                  <IconStar size="small" />
                   {t('置顶')}
                 </Tag>
               )}
