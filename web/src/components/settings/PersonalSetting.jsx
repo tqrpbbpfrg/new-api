@@ -68,6 +68,19 @@ const PersonalSetting = () => {
     barkUrl: '',
     acceptUnsetModelRatioModel: false,
   });
+  // UI 偏好：是否移除全局阴影
+  const [noShadow, setNoShadow] = useState(() => {
+    return localStorage.getItem('pref_no_shadows') === '1';
+  });
+
+  // 应用 body 类
+  useEffect(() => {
+    if (noShadow) {
+      document.body.classList.add('no-shadows');
+    } else {
+      document.body.classList.remove('no-shadows');
+    }
+  }, [noShadow]);
 
   useEffect(() => {
     let status = localStorage.getItem('status');
@@ -299,8 +312,16 @@ const PersonalSetting = () => {
     }
   };
 
+  const toggleNoShadow = () => {
+    setNoShadow((prev) => {
+      const next = !prev;
+      localStorage.setItem('pref_no_shadows', next ? '1' : '0');
+      return next;
+    });
+  };
+
   return (
-    <div className='mt-[60px]'>
+  <div className='mt-header'>
       <div className='flex justify-center'>
         <div className='w-full max-w-7xl mx-auto px-2'>
           {/* 顶部用户信息区域 */}
@@ -321,6 +342,34 @@ const PersonalSetting = () => {
               setShowChangePasswordModal={setShowChangePasswordModal}
               setShowAccountDeleteModal={setShowAccountDeleteModal}
             />
+
+              {/* UI 偏好设置（扁平化外观） */}
+              <div className='mt-4 bg-white dark:bg-zinc-800 rounded-lg p-4 border border-semi-color-border shadow-none'>
+                <h3 className='text-base font-semibold mb-2'>{t('界面外观')}</h3>
+                <div className='flex items-center justify-between gap-4'>
+                  <div className='flex-1'>
+                    <div className='font-medium'>{t('移除界面阴影')}</div>
+                    <div className='text-xs text-semi-color-text-2 mt-1'>
+                      {t('启用后将移除卡片、浮层等的阴影，界面更加扁平。')}
+                    </div>
+                  </div>
+                  <label className='inline-flex items-center cursor-pointer select-none'>
+                    <input
+                      type='checkbox'
+                      className='hidden'
+                      checked={noShadow}
+                      onChange={toggleNoShadow}
+                    />
+                    <span
+                      className={`relative inline-block w-11 h-6 transition rounded-full ${noShadow ? 'bg-green-500' : 'bg-gray-300 dark:bg-zinc-600'}`}
+                    >
+                      <span
+                        className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transform transition ${noShadow ? 'translate-x-5' : ''}`}
+                      />
+                    </span>
+                  </label>
+                </div>
+              </div>
 
             {/* 右侧：其他设置 */}
             <NotificationSettings

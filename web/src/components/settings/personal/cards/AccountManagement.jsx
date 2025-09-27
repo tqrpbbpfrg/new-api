@@ -40,11 +40,12 @@ import { ShieldCheck, UserPlus } from 'lucide-react';
 import { SiLinux, SiTelegram, SiWechat } from 'react-icons/si';
 import TelegramLoginButton from 'react-telegram-login';
 import {
-    onDiscordOAuthClicked,
-    onGitHubOAuthClicked,
-    onLinuxDOOAuthClicked,
-    onOIDCClicked,
+  onDiscordOAuthClicked,
+  onGitHubOAuthClicked,
+  onLinuxDOOAuthClicked,
+  onOIDCClicked,
 } from '../../../../helpers';
+import { useOptions } from '../../../../context/Options';
 import DiscordIcon from '../../../common/logo/DiscordIcon';
 import TwoFASetting from '../components/TwoFASetting';
 
@@ -60,6 +61,7 @@ const AccountManagement = ({
   setShowChangePasswordModal,
   setShowAccountDeleteModal,
 }) => {
+  const { options: opt } = useOptions();
   const renderAccountInfo = (accountId, label) => {
     if (!accountId || accountId === '') {
       return <span className='text-gray-500'>{t('未绑定')}</span>;
@@ -177,12 +179,12 @@ const AccountManagement = ({
                       type='primary'
                       theme='outline'
                       size='small'
-                      disabled={!status.wechat_login}
+                      disabled={!opt?.WeChatAuthEnabled}
                       onClick={() => setShowWeChatBindModal(true)}
                     >
                       {userState.user && userState.user.wechat_id !== ''
                         ? t('修改绑定')
-                        : status.wechat_login
+                        : opt?.WeChatAuthEnabled
                           ? t('绑定')
                           : t('未启用')}
                     </Button>
@@ -217,15 +219,13 @@ const AccountManagement = ({
                       type='primary'
                       theme='outline'
                       size='small'
-                      onClick={() =>
-                        onGitHubOAuthClicked(status.github_client_id)
-                      }
+                      onClick={() => onGitHubOAuthClicked(opt.GitHubClientId)}
                       disabled={
                         (userState.user && userState.user.github_id !== '') ||
-                        !status.github_oauth
+                        !(opt?.GitHubOAuthEnabled && opt?.GitHubClientId)
                       }
                     >
-                      {status.github_oauth ? t('绑定') : t('未启用')}
+                      {opt?.GitHubOAuthEnabled ? t('绑定') : t('未启用')}
                     </Button>
                   </div>
                 </div>
@@ -250,10 +250,10 @@ const AccountManagement = ({
                       type='primary'
                       theme='outline'
                       size='small'
-                      onClick={() => onDiscordOAuthClicked(status.discord_client_id, status.discord_scopes)}
-                      disabled={(userState.user && userState.user.discord_id !== '') || !status.discord_oauth}
+                      onClick={() => onDiscordOAuthClicked(opt.DiscordClientId, opt.DiscordOAuthScopes)}
+                      disabled={(userState.user && userState.user.discord_id !== '') || !(opt?.DiscordOAuthEnabled && opt?.DiscordClientId)}
                     >
-                      {status.discord_oauth ? t('绑定') : t('未启用')}
+                      {opt?.DiscordOAuthEnabled ? t('绑定') : t('未启用')}
                     </Button>
                   </div>
                 </div>

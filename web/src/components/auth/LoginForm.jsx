@@ -20,7 +20,7 @@ For commercial licensing, please contact support@quantumnous.com
 import { Button, Card, Divider, Form, Icon, Modal } from '@douyinfe/semi-ui';
 import Text from '@douyinfe/semi-ui/lib/es/typography/text';
 import Title from '@douyinfe/semi-ui/lib/es/typography/title';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useState, useMemo } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import TelegramLoginButton from 'react-telegram-login';
 import Turnstile from 'react-turnstile';
@@ -42,6 +42,7 @@ import {
 
 import { IconGithubLogo, IconLock, IconMail } from '@douyinfe/semi-icons';
 import { useTranslation } from 'react-i18next';
+import { useOptions } from '../../context/Options';
 import DiscordIcon from '../common/logo/DiscordIcon';
 import LinuxDoIcon from '../common/logo/LinuxDoIcon';
 import OIDCIcon from '../common/logo/OIDCIcon';
@@ -67,6 +68,7 @@ const LoginForm = () => {
   const [showEmailLogin, setShowEmailLogin] = useState(false);
   const [wechatLoading, setWechatLoading] = useState(false);
   const [githubLoading, setGithubLoading] = useState(false);
+  const [discordLoading, setDiscordLoading] = useState(false);
   const [oidcLoading, setOidcLoading] = useState(false);
   const [linuxdoLoading, setLinuxdoLoading] = useState(false);
   const [emailLoginLoading, setEmailLoginLoading] = useState(false);
@@ -86,17 +88,18 @@ const LoginForm = () => {
     localStorage.setItem('aff', affCode);
   }
 
-  const [status] = useState(() => {
-    const savedStatus = localStorage.getItem('status');
-    return savedStatus ? JSON.parse(savedStatus) : {};
-  });
+  const { options: opt } = useOptions();
 
+  // Turnstile 初始化
   useEffect(() => {
-    if (status.turnstile_check) {
+    if (opt?.TurnstileCheckEnabled && opt.TurnstileSiteKey) {
       setTurnstileEnabled(true);
-      setTurnstileSiteKey(status.turnstile_site_key);
+      setTurnstileSiteKey(opt.TurnstileSiteKey);
+    } else {
+      setTurnstileEnabled(false);
+      setTurnstileSiteKey('');
     }
-  }, [status]);
+  }, [opt]);
 
   useEffect(() => {
     if (searchParams.get('expired')) {
@@ -233,7 +236,7 @@ const LoginForm = () => {
   const handleGitHubClick = () => {
     setGithubLoading(true);
     try {
-      onGitHubOAuthClicked(status.github_client_id);
+      onGitHubOAuthClicked(opt.GitHubClientId);
     } finally {
       // 由于重定向，这里不会执行到，但为了完整性添加
       setTimeout(() => setGithubLoading(false), 3000);
@@ -242,11 +245,11 @@ const LoginForm = () => {
 
   // 包装的Discord登录点击处理
   const handleDiscordClick = () => {
-    setGithubLoading(true);
+    setDiscordLoading(true);
     try {
-      onDiscordOAuthClicked(status.discord_client_id, status.discord_scopes);
+      onDiscordOAuthClicked(opt.DiscordClientId, opt.DiscordOAuthScopes);
     } finally {
-      setTimeout(() => setGithubLoading(false), 3000);
+      setTimeout(() => setDiscordLoading(false), 3000);
     }
   };
 
@@ -254,7 +257,7 @@ const LoginForm = () => {
   const handleOIDCClick = () => {
     setOidcLoading(true);
     try {
-      onOIDCClicked(status.oidc_authorization_endpoint, status.oidc_client_id);
+      onOIDCClicked(opt.OIDCAuthorizationEndpoint, opt.OIDCClientId);
     } finally {
       // 由于重定向，这里不会执行到，但为了完整性添加
       setTimeout(() => setOidcLoading(false), 3000);
@@ -265,7 +268,7 @@ const LoginForm = () => {
   const handleLinuxDOClick = () => {
     setLinuxdoLoading(true);
     try {
-      onLinuxDOOAuthClicked(status.linuxdo_client_id);
+      onLinuxDOOAuthClicked(opt.LinuxDOClientId);
     } finally {
       // 由于重定向，这里不会执行到，但为了完整性添加
       setTimeout(() => setLinuxdoLoading(false), 3000);
@@ -308,6 +311,18 @@ const LoginForm = () => {
     setInputs({ username: '', password: '', wechat_verification_code: '' });
   };
 
+  const hasAnyOAuth = useMemo(() => {
+    if (!opt) return false;
+    return (
+      (opt.GitHubOAuthEnabled && opt.GitHubClientId) ||
+      (opt.DiscordOAuthEnabled && opt.DiscordClientId) ||
+      (opt.OIDCEnabled && opt.OIDCAuthorizationEndpoint && opt.OIDCClientId) ||
+      opt.WeChatAuthEnabled ||
+      (opt.LinuxDOOAuthEnabled && opt.LinuxDOClientId) ||
+      opt.TelegramOAuthEnabled
+    );
+  }, [opt]);
+
   const renderOAuthOptions = () => {
     return (
       <div className='flex flex-col items-center'>
@@ -327,7 +342,7 @@ const LoginForm = () => {
             </div>
             <div className='px-2 py-8'>
               <div className='space-y-3'>
-                {status.wechat_login && (
+                {opt?.WeChatAuthEnabled && (
                   <Button
                     theme='outline'
                     className='w-full h-12 flex items-center justify-center !rounded-full border border-gray-200 hover:bg-gray-50 transition-colors'
@@ -342,7 +357,7 @@ const LoginForm = () => {
                   </Button>
                 )}
 
-                {status.github_oauth && (
+                {opt?.GitHubOAuthEnabled && opt.GitHubClientId && (
                   <Button
                     theme='outline'
                     className='w-full h-12 flex items-center justify-center !rounded-full border border-gray-200 hover:bg-gray-50 transition-colors'
@@ -355,7 +370,7 @@ const LoginForm = () => {
                   </Button>
                 )}
 
-                {status.discord_oauth && (
+                {opt?.DiscordOAuthEnabled && opt.DiscordClientId && (
                   <Button
                     theme='outline'
                     className='w-full h-12 flex items-center justify-center !rounded-full border border-gray-200 hover:bg-gray-50 transition-colors'
@@ -368,13 +383,13 @@ const LoginForm = () => {
                       )
                     }
                     onClick={handleDiscordClick}
-                    loading={githubLoading}
+                    loading={discordLoading}
                   >
                     <span className='ml-3'>{t('使用 Discord 继续')}</span>
                   </Button>
                 )}
 
-                {status.oidc_enabled && (
+                {opt?.OIDCEnabled && opt.OIDCAuthorizationEndpoint && opt.OIDCClientId && (
                   <Button
                     theme='outline'
                     className='w-full h-12 flex items-center justify-center !rounded-full border border-gray-200 hover:bg-gray-50 transition-colors'
@@ -387,7 +402,7 @@ const LoginForm = () => {
                   </Button>
                 )}
 
-                {status.linuxdo_oauth && (
+                {opt?.LinuxDOOAuthEnabled && opt.LinuxDOClientId && (
                   <Button
                     theme='outline'
                     className='w-full h-12 flex items-center justify-center !rounded-full border border-gray-200 hover:bg-gray-50 transition-colors'
@@ -408,11 +423,11 @@ const LoginForm = () => {
                   </Button>
                 )}
 
-                {status.telegram_oauth && (
+                {opt?.TelegramOAuthEnabled && (
                   <div className='flex justify-center my-2'>
                     <TelegramLoginButton
                       dataOnauth={onTelegramLoginClicked}
-                      botName={status.telegram_bot_name}
+                      botName={opt.TelegramBotName}
                     />
                   </div>
                 )}
@@ -433,7 +448,7 @@ const LoginForm = () => {
                 </Button>
               </div>
 
-              {!status.self_use_mode_enabled && (
+              {!opt?.SelfUseModeEnabled && (
                 <div className='mt-6 text-center text-sm'>
                   <Text>
                     {t('没有账户？')}{' '}
@@ -513,12 +528,7 @@ const LoginForm = () => {
                 </div>
               </Form>
 
-              {(status.github_oauth ||
-                status.discord_oauth ||
-                status.oidc_enabled ||
-                status.wechat_login ||
-                status.linuxdo_oauth ||
-                status.telegram_oauth) && (
+              {hasAnyOAuth && (
                 <>
                   <Divider margin='12px' align='center'>
                     {t('或')}
@@ -538,7 +548,7 @@ const LoginForm = () => {
                 </>
               )}
 
-              {!status.self_use_mode_enabled && (
+              {!opt?.SelfUseModeEnabled && (
                 <div className='mt-6 text-center text-sm'>
                   <Text>
                     {t('没有账户？')}{' '}
@@ -574,7 +584,7 @@ const LoginForm = () => {
         }}
       >
         <div className='flex flex-col items-center'>
-          <img src={status.wechat_qrcode} alt='微信二维码' className='mb-4' />
+          <img src={opt?.WeChatAccountQRCodeImageURL} alt='微信二维码' className='mb-4' />
         </div>
 
         <div className='text-center mb-4'>
@@ -646,18 +656,8 @@ const LoginForm = () => {
         className='blur-ball blur-ball-teal'
         style={{ top: '50%', left: '-120px' }}
       />
-      <div className='w-full max-w-sm mt-[60px]'>
-        {showEmailLogin ||
-        !(
-          status.github_oauth ||
-          status.discord_oauth ||
-          status.oidc_enabled ||
-          status.wechat_login ||
-          status.linuxdo_oauth ||
-          status.telegram_oauth
-        )
-          ? renderEmailLoginForm()
-          : renderOAuthOptions()}
+  <div className='w-full max-w-sm mt-header'>
+        {showEmailLogin || !hasAnyOAuth ? renderEmailLoginForm() : renderOAuthOptions()}
         {renderWeChatLoginModal()}
         {render2FAModal()}
 

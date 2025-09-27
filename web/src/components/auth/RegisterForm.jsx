@@ -27,11 +27,12 @@ import {
 import { Button, Card, Divider, Form, Icon, Modal } from '@douyinfe/semi-ui';
 import Text from '@douyinfe/semi-ui/lib/es/typography/text';
 import Title from '@douyinfe/semi-ui/lib/es/typography/title';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import TelegramLoginButton from 'react-telegram-login/src';
 import Turnstile from 'react-turnstile';
+import { useOptions } from '../../context/Options';
 import { UserContext } from '../../context/User';
 import {
     API,
@@ -72,6 +73,7 @@ const RegisterForm = () => {
   const [showEmailRegister, setShowEmailRegister] = useState(false);
   const [wechatLoading, setWechatLoading] = useState(false);
   const [githubLoading, setGithubLoading] = useState(false);
+  const [discordLoading, setDiscordLoading] = useState(false);
   const [oidcLoading, setOidcLoading] = useState(false);
   const [linuxdoLoading, setLinuxdoLoading] = useState(false);
   const [emailRegisterLoading, setEmailRegisterLoading] = useState(false);
@@ -91,22 +93,22 @@ const RegisterForm = () => {
     localStorage.setItem('aff', affCode);
   }
 
-  const [status] = useState(() => {
-    const savedStatus = localStorage.getItem('status');
-    return savedStatus ? JSON.parse(savedStatus) : {};
-  });
+  const { options: opt } = useOptions();
 
-  const [showEmailVerification, setShowEmailVerification] = useState(() => {
-    return status.email_verification ?? false;
-  });
+  const [showEmailVerification, setShowEmailVerification] = useState(false);
+  useEffect(() => {
+    setShowEmailVerification(!!opt?.EmailVerificationEnabled);
+  }, [opt]);
 
   useEffect(() => {
-    setShowEmailVerification(status.email_verification);
-    if (status.turnstile_check) {
+    if (opt?.TurnstileCheckEnabled && opt.TurnstileSiteKey) {
       setTurnstileEnabled(true);
-      setTurnstileSiteKey(status.turnstile_site_key);
+      setTurnstileSiteKey(opt.TurnstileSiteKey);
+    } else {
+      setTurnstileEnabled(false);
+      setTurnstileSiteKey('');
     }
-  }, [status]);
+  }, [opt]);
 
   useEffect(() => {
     let countdownInterval = null;
@@ -227,7 +229,7 @@ const RegisterForm = () => {
   const handleGitHubClick = () => {
     setGithubLoading(true);
     try {
-      onGitHubOAuthClicked(status.github_client_id);
+      onGitHubOAuthClicked(opt.GitHubClientId);
     } finally {
       setTimeout(() => setGithubLoading(false), 3000);
     }
@@ -236,7 +238,7 @@ const RegisterForm = () => {
   const handleOIDCClick = () => {
     setOidcLoading(true);
     try {
-      onOIDCClicked(status.oidc_authorization_endpoint, status.oidc_client_id);
+      onOIDCClicked(opt.OIDCAuthorizationEndpoint, opt.OIDCClientId);
     } finally {
       setTimeout(() => setOidcLoading(false), 3000);
     }
@@ -245,7 +247,7 @@ const RegisterForm = () => {
   const handleLinuxDOClick = () => {
     setLinuxdoLoading(true);
     try {
-      onLinuxDOOAuthClicked(status.linuxdo_client_id);
+      onLinuxDOOAuthClicked(opt.LinuxDOClientId);
     } finally {
       setTimeout(() => setLinuxdoLoading(false), 3000);
     }
@@ -298,6 +300,18 @@ const RegisterForm = () => {
     }
   };
 
+  const hasAnyOAuth = useMemo(() => {
+    if (!opt) return false;
+    return (
+      (opt.GitHubOAuthEnabled && opt.GitHubClientId) ||
+      (opt.DiscordOAuthEnabled && opt.DiscordClientId) ||
+      (opt.OIDCEnabled && opt.OIDCAuthorizationEndpoint && opt.OIDCClientId) ||
+      opt.WeChatAuthEnabled ||
+      (opt.LinuxDOOAuthEnabled && opt.LinuxDOClientId) ||
+      opt.TelegramOAuthEnabled
+    );
+  }, [opt]);
+
   const renderOAuthOptions = () => {
     return (
       <div className='flex flex-col items-center'>
@@ -317,7 +331,7 @@ const RegisterForm = () => {
             </div>
             <div className='px-2 py-8'>
               <div className='space-y-3'>
-                {status.wechat_login && (
+                {opt?.WeChatAuthEnabled && (
                   <Button
                     theme='outline'
                     className='w-full h-12 flex items-center justify-center !rounded-full border border-gray-200 hover:bg-gray-50 transition-colors'
@@ -332,7 +346,7 @@ const RegisterForm = () => {
                   </Button>
                 )}
 
-                {status.github_oauth && (
+                {opt?.GitHubOAuthEnabled && opt.GitHubClientId && (
                   <Button
                     theme='outline'
                     className='w-full h-12 flex items-center justify-center !rounded-full border border-gray-200 hover:bg-gray-50 transition-colors'
@@ -345,20 +359,27 @@ const RegisterForm = () => {
                   </Button>
                 )}
                 
-                {status.discord_oauth && (
+                {opt?.DiscordOAuthEnabled && opt.DiscordClientId && (
                   <Button
                     theme='outline'
                     className='w-full h-12 flex items-center justify-center !rounded-full border border-gray-200 hover:bg-gray-50 transition-colors'
                     type='tertiary'
                     icon={<DiscordIcon size={20} style={{ color: '#5865F2' }} />}
-                    onClick={() => onDiscordOAuthClicked(status.discord_client_id, status.discord_scopes)}
-                    loading={githubLoading}
+                    onClick={() => {
+                      setDiscordLoading(true);
+                      try {
+                        onDiscordOAuthClicked(opt.DiscordClientId, opt.DiscordOAuthScopes);
+                      } finally {
+                        setTimeout(() => setDiscordLoading(false), 3000);
+                      }
+                    }}
+                    loading={discordLoading}
                   >
                     <span className='ml-3'>{t('使用 Discord 继续')}</span>
                   </Button>
                 )}
 
-                {status.oidc_enabled && (
+                {opt?.OIDCEnabled && opt.OIDCAuthorizationEndpoint && opt.OIDCClientId && (
                   <Button
                     theme='outline'
                     className='w-full h-12 flex items-center justify-center !rounded-full border border-gray-200 hover:bg-gray-50 transition-colors'
@@ -371,7 +392,7 @@ const RegisterForm = () => {
                   </Button>
                 )}
 
-                {status.linuxdo_oauth && (
+                {opt?.LinuxDOOAuthEnabled && opt.LinuxDOClientId && (
                   <Button
                     theme='outline'
                     className='w-full h-12 flex items-center justify-center !rounded-full border border-gray-200 hover:bg-gray-50 transition-colors'
@@ -392,11 +413,11 @@ const RegisterForm = () => {
                   </Button>
                 )}
 
-                {status.telegram_oauth && (
+                {opt?.TelegramOAuthEnabled && (
                   <div className='flex justify-center my-2'>
                     <TelegramLoginButton
                       dataOnauth={onTelegramLoginClicked}
-                      botName={status.telegram_bot_name}
+                      botName={opt.TelegramBotName}
                     />
                   </div>
                 )}
@@ -532,11 +553,7 @@ const RegisterForm = () => {
                 </div>
               </Form>
 
-              {(status.github_oauth ||
-                status.oidc_enabled ||
-                status.wechat_login ||
-                status.linuxdo_oauth ||
-                status.telegram_oauth) && (
+              {hasAnyOAuth && (
                 <>
                   <Divider margin='12px' align='center'>
                     {t('或')}
@@ -589,7 +606,7 @@ const RegisterForm = () => {
         }}
       >
         <div className='flex flex-col items-center'>
-          <img src={status.wechat_qrcode} alt='微信二维码' className='mb-4' />
+          <img src={opt?.WeChatAccountQRCodeImageURL} alt='微信二维码' className='mb-4' />
         </div>
 
         <div className='text-center mb-4'>
@@ -624,17 +641,8 @@ const RegisterForm = () => {
         className='blur-ball blur-ball-teal'
         style={{ top: '50%', left: '-120px' }}
       />
-      <div className='w-full max-w-sm mt-[60px]'>
-        {showEmailRegister ||
-        !(
-          status.github_oauth ||
-          status.oidc_enabled ||
-          status.wechat_login ||
-          status.linuxdo_oauth ||
-          status.telegram_oauth
-        )
-          ? renderEmailRegisterForm()
-          : renderOAuthOptions()}
+  <div className='w-full max-w-sm mt-header'>
+        {showEmailRegister || !hasAnyOAuth ? renderEmailRegisterForm() : renderOAuthOptions()}
         {renderWeChatLoginModal()}
 
         {turnstileEnabled && (

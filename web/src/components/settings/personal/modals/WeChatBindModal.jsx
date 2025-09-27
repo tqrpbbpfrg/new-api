@@ -18,6 +18,7 @@ For commercial licensing, please contact support@quantumnous.com
 */
 
 import React from 'react';
+import { useOptions } from '../../../../context/Options';
 import { Button, Input, Modal, Image } from '@douyinfe/semi-ui';
 import { IconKey } from '@douyinfe/semi-icons';
 import { SiWechat } from 'react-icons/si';
@@ -31,6 +32,7 @@ const WeChatBindModal = ({
   bindWeChat,
   status,
 }) => {
+  const { options: opt } = useOptions();
   return (
     <Modal
       title={
@@ -47,7 +49,7 @@ const WeChatBindModal = ({
       className='modern-modal'
     >
       <div className='space-y-4 py-4 text-center'>
-        <Image src={status.wechat_qrcode} className='mx-auto' />
+  <Image src={opt?.WeChatAccountQRCodeImageURL} className='mx-auto' />
         <div className='text-gray-600'>
           <p>
             {t('微信扫码关注公众号，输入「验证码」获取验证码（三分钟内有效）')}

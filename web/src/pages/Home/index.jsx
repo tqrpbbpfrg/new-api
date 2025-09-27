@@ -176,10 +176,10 @@ const Home = () => {
             {/* 背景模糊晕染球 */}
             <div className='blur-ball blur-ball-indigo' />
             <div className='blur-ball blur-ball-teal' />
-            <div className='flex items-center justify-center h-full px-4 py-20 md:py-24 lg:py-32 mt-10'>
+            <div className='flex items-center justify-center h-full px-4 py-16 md:py-20 lg:py-24'>
               {/* 居中内容区 */}
               <div className='flex flex-col items-center justify-center text-center max-w-4xl mx-auto'>
-                <div className='flex flex-col items-center justify-center mb-6 md:mb-8'>
+                <div className='flex flex-col items-center justify-center mb-4 md:mb-6'>
                   <h1
                     className={`text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-semi-color-text-0 leading-tight ${isChinese ? 'tracking-wide md:tracking-wider' : ''}`}
                   >
@@ -365,7 +365,8 @@ const Home = () => {
             />
           ) : (
             <div
-              className='mt-[60px]'
+              // 动态顶距，匹配实际 Header 高度
+              style={{ marginTop: 'var(--app-header-height)' }}
               dangerouslySetInnerHTML={{ __html: homePageContent }}
             />
           )}

@@ -49,6 +49,7 @@
     "lint:fix": "prettier . --write",
     "eslint": "bunx eslint \"**/*.{js,jsx}\" --cache",
     "eslint:fix": "bunx eslint \"**/*.{js,jsx}\" --fix --cache",
+    "scan:layout": "node ./scripts/scan-layout.js",
     "preview": "vite preview"
   },
   "eslintConfig": {

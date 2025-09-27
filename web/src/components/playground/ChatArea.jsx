@@ -52,7 +52,8 @@ const ChatArea = ({
       bordered={false}
       bodyStyle={{
         padding: 0,
-        height: 'calc(100vh - 66px)',
+        // 使用动态头部高度变量，避免 66px 硬编码
+        height: 'calc(100vh - var(--app-header-height))',
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',

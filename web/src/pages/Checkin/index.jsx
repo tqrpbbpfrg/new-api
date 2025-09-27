@@ -128,7 +128,7 @@ const CheckinPage = () => {
   const monthCheckedDays = status?.month_checked_days || 0;
 
   if(disabled){
-    return <div className='mt-[60px] px-4'>
+  return <div className='mt-header px-4'>
       <Card title={t('每日签到')}>
         <Banner type='warning' description={error || t('签到功能未开启')} closeIcon={null} />
       </Card>
@@ -136,7 +136,7 @@ const CheckinPage = () => {
   }
 
   if(!isLoggedIn()){
-    return <div className='mt-[60px] px-4'>
+  return <div className='mt-header px-4'>
       <Card title={t('每日签到')}>
         <Banner type='warning' description={t('请先登录后查看签到信息')} closeIcon={null} />
       </Card>
@@ -144,7 +144,7 @@ const CheckinPage = () => {
   }
 
   return (
-    <div className='mt-[60px] px-4 checkin-wrapper'>
+  <div className='mt-header px-4 checkin-wrapper'>
       <Card title={t('每日签到')}>
         {loading ? <Spin /> : (
           <div className='flex flex-col gap-4'>

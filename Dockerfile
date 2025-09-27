@@ -4,7 +4,7 @@
 #############################################
 
 ARG BUN_VERSION=1.1.21
-ARG GO_VERSION=1.22-alpine
+ARG GO_VERSION=1.23.4-alpine
 
 #############################################
 # Frontend deps layer (cacheable)

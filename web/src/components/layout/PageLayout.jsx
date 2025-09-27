@@ -24,6 +24,7 @@ import { useLocation } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import App from '../../App';
 import { StatusContext } from '../../context/Status';
+import { useOptions } from '../../context/Options';
 import { UserContext } from '../../context/User';
 import {
     API,
@@ -42,6 +43,7 @@ const { Sider, Content, Header } = Layout;
 const PageLayout = () => {
   const [, userDispatch] = useContext(UserContext);
   const [, statusDispatch] = useContext(StatusContext);
+  const { options: opt } = useOptions();
   const isMobile = useIsMobile();
   const [collapsed, , setCollapsed] = useSidebarCollapsed();
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -81,6 +83,16 @@ const PageLayout = () => {
       if (success) {
         statusDispatch({ type: 'set', payload: data });
         setStatusData(data);
+        // 同步仅当 options 未提供时的名称/Logo（向后兼容旧 localStorage 获取逻辑）
+        if (!localStorage.getItem('system_name') && data.system_name) {
+          localStorage.setItem('system_name', data.system_name);
+        }
+        if (!localStorage.getItem('logo') && data.logo) {
+          localStorage.setItem('logo', data.logo);
+        }
+        if (data.footer_html) {
+          localStorage.setItem('footer_html', data.footer_html);
+        }
       } else {
         // 若后端返回特定失败但非 401，提示；否则静默
         if(res.status !== 401) showError('Unable to connect to server');
@@ -94,22 +106,34 @@ const PageLayout = () => {
   useEffect(() => {
     loadUser();
     loadStatus().catch(console.error);
-    let systemName = getSystemName();
-    if (systemName) {
-      document.title = systemName;
-    }
-    let logo = getLogo();
-    if (logo) {
+    // 初次渲染使用本地缓存（或旧逻辑），稍后由 options 覆盖
+    const cachedName = getSystemName();
+    if (cachedName) document.title = cachedName;
+    const cachedLogo = getLogo();
+    if (cachedLogo) {
       let linkElement = document.querySelector("link[rel~='icon']");
-      if (linkElement) {
-        linkElement.href = logo;
-      }
+      if (linkElement) linkElement.href = cachedLogo;
     }
     const savedLang = localStorage.getItem('i18nextLng');
     if (savedLang) {
       i18n.changeLanguage(savedLang);
     }
   }, [i18n]);
+
+  // 如果 options 中提供系统名或 Logo，使用其覆盖（新来源）
+  useEffect(() => {
+    if (opt) {
+      if (opt.SystemName) {
+        document.title = opt.SystemName;
+        localStorage.setItem('system_name', opt.SystemName);
+      }
+      if (opt.Logo) {
+        let linkElement = document.querySelector("link[rel~='icon']");
+        if (linkElement) linkElement.href = opt.Logo;
+        localStorage.setItem('logo', opt.Logo);
+      }
+    }
+  }, [opt]);
 
   // 动态测量 Header 实际高度，避免硬编码 paddingTop 造成大面积留白
   const headerWrapRef = useRef(null);
@@ -129,6 +153,7 @@ const PageLayout = () => {
   return (
     <Layout
       style={{
+        '--app-header-height': headerHeight + 'px',
         height: '100vh',
         display: 'flex',
         flexDirection: 'column',
@@ -163,11 +188,11 @@ const PageLayout = () => {
             style={{
               position: 'fixed',
               left: 0,
-              top: '64px',
+              top: 'var(--app-header-height)',
               zIndex: 99,
               border: 'none',
               paddingRight: '0',
-              height: 'calc(100vh - 64px)',
+              height: 'calc(100vh - var(--app-header-height))',
               width: 'var(--sidebar-current-width)',
             }}
           >
@@ -191,13 +216,14 @@ const PageLayout = () => {
           }}
         >
           <Content
+            className={isConsoleRoute ? 'console-layout' : ''}
             style={{
               flex: '1 0 auto',
               overflowY: isMobile ? 'visible' : 'hidden',
               WebkitOverflowScrolling: 'touch',
               // 让内部 padding 与 header 高度叠加，不再额外留一大片空白
               padding: shouldInnerPadding ? (isMobile ? '5px' : '24px') : '0',
-              paddingTop: headerHeight + (shouldInnerPadding ? (isMobile ? 5 : 16) : 0),
+              paddingTop: headerHeight + (shouldInnerPadding ? (isMobile ? 4 : 12) : 0),
               position: 'relative',
               boxSizing: 'border-box',
               transition: 'padding-top .15s ease'

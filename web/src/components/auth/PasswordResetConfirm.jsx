@@ -114,7 +114,7 @@ const PasswordResetConfirm = () => {
         className='blur-ball blur-ball-teal'
         style={{ top: '50%', left: '-120px' }}
       />
-      <div className='w-full max-w-sm mt-[60px]'>
+  <div className='w-full max-w-sm mt-header'>
         <div className='flex flex-col items-center'>
           <div className='w-full max-w-md'>
             <div className='flex items-center justify-center mb-6 gap-2'>
