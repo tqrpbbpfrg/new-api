@@ -18,10 +18,20 @@ For commercial licensing, please contact support@quantumnous.com
 */
 
 import UsageLogsTable from '../../components/table/usage-logs';
+import ConsoleSection from '../../components/layout/ConsoleSection';
 
 const Token = () => (
   <div className='px-2'>
-    <UsageLogsTable />
+    <ConsoleSection
+      title='使用日志'
+      description='追踪调用记录、用量、错误与耗时，支持筛选与导出。'
+    >
+      <div className='card-grid'>
+        <div className='col-span-full'>
+          <UsageLogsTable />
+        </div>
+      </div>
+    </ConsoleSection>
   </div>
 );
 

@@ -18,13 +18,21 @@ For commercial licensing, please contact support@quantumnous.com
 */
 
 import RedemptionsTable from '../../components/table/redemptions';
+import ConsoleSection from '../../components/layout/ConsoleSection';
 
-const Redemption = () => {
-  return (
+const Redemption = () => (
   <div className='px-2'>
-      <RedemptionsTable />
-    </div>
-  );
-};
+    <ConsoleSection
+      title='兑换码管理'
+      description='管理充值 / 促销 / 活动兑换码，监控使用情况。'
+    >
+      <div className='card-grid'>
+        <div className='col-span-full'>
+          <RedemptionsTable />
+        </div>
+      </div>
+    </ConsoleSection>
+  </div>
+);
 
 export default Redemption;

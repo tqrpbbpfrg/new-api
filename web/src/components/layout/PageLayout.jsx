@@ -138,12 +138,13 @@ const PageLayout = () => {
 
   // 动态测量 Header 实际高度，避免硬编码 paddingTop 造成大面积留白
   const headerWrapRef = useRef(null);
-  const [headerHeight, setHeaderHeight] = useState(60);
+  const [headerHeight, setHeaderHeight] = useState(52); // 初始与精简后 desktop 高度一致
   useLayoutEffect(() => {
     const measure = () => {
       if (headerWrapRef.current) {
-        const h = headerWrapRef.current.getBoundingClientRect().height;
-        if (h && Math.abs(h - headerHeight) > 2) setHeaderHeight(h);
+  const h = headerWrapRef.current.getBoundingClientRect().height;
+  // 阈值缩小避免频繁布局抖动
+  if (h && Math.abs(h - headerHeight) > 1) setHeaderHeight(h);
       }
     };
     measure();

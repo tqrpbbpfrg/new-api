@@ -18,10 +18,20 @@ For commercial licensing, please contact support@quantumnous.com
 */
 
 import MjLogsTable from '../../components/table/mj-logs';
+import ConsoleSection from '../../components/layout/ConsoleSection';
 
 const Midjourney = () => (
   <div className='px-2'>
-    <MjLogsTable />
+    <ConsoleSection
+      title='Midjourney 日志'
+      description='查看绘图任务记录、参数与状态。'
+    >
+      <div className='card-grid'>
+        <div className='col-span-full'>
+          <MjLogsTable />
+        </div>
+      </div>
+    </ConsoleSection>
   </div>
 );
 

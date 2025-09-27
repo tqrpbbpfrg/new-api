@@ -61,11 +61,12 @@ const HeaderBar = ({ onMobileMenuToggle, drawerOpen }) => {
 
   const blurState = useBlurGlass();
   return (
-  <div className={`text-semi-color-text-0 transition-colors duration-200 border-b border-solid border-[rgba(0,0,0,0.06)] shadow-sm header-bar-root ${(blurState.enabled && (blurState.area==='both'||blurState.area==='header'))? 'bg-white/70 dark:bg-zinc-900/60':'bg-white dark:bg-zinc-900'}`} style={(blurState.enabled && (blurState.area==='both'||blurState.area==='header'))?{backdropFilter:`blur(${blurState.strength}px)`}:{}}>
+  <div className={`text-semi-color-text-0 transition-colors duration-200 border-b border-solid border-[rgba(0,0,0,0.06)] shadow-sm header-bar-root glass-lite ${(blurState.enabled && (blurState.area==='both'||blurState.area==='header'))? '':'bg-white dark:bg-zinc-900'}`} style={(blurState.enabled && (blurState.area==='both'||blurState.area==='header'))?{backdropFilter:`blur(${Math.min(8,Math.max(2,blurState.strength))}px)`}:{}}>
       {/* NoticeModal removed: announcements/messages moved to 信息处 (InfoCenter) */}
 
       <div className='w-full px-2 md:px-4'>
-        <div className='flex items-center justify-between h-14 md:h-[56px]'>
+        {/* 压缩高度: mobile 48px, desktop 52px */}
+        <div className='flex items-center justify-between h-12 md:h-[52px]'>
           <div className='flex items-center'>
             <MobileMenuButton
               isConsoleRoute={isConsoleRoute}

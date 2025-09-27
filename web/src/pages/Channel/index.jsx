@@ -18,13 +18,21 @@ For commercial licensing, please contact support@quantumnous.com
 */
 
 import ChannelsTable from '../../components/table/channels';
+import ConsoleSection from '../../components/layout/ConsoleSection';
 
-const File = () => {
-  return (
+const File = () => (
   <div className='px-2'>
-      <ChannelsTable />
-    </div>
-  );
-};
+    <ConsoleSection
+      title='渠道管理'
+      description='配置与监控上游模型渠道、负载及可用性。'
+    >
+      <div className='card-grid'>
+        <div className='col-span-full'>
+          <ChannelsTable />
+        </div>
+      </div>
+    </ConsoleSection>
+  </div>
+);
 
 export default File;

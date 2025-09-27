@@ -18,10 +18,16 @@ For commercial licensing, please contact support@quantumnous.com
 */
 
 import Dashboard from '../../components/dashboard';
+import ConsoleSection from '../../components/layout/ConsoleSection';
 
 const Detail = () => (
   <div className='px-2'>
-    <Dashboard />
+    <ConsoleSection
+      title='仪表盘'
+      description='系统运行关键指标与业务概览。'
+    >
+      <Dashboard />
+    </ConsoleSection>
   </div>
 );
 

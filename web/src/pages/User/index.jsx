@@ -18,13 +18,21 @@ For commercial licensing, please contact support@quantumnous.com
 */
 
 import UsersTable from '../../components/table/users';
+import ConsoleSection from '../../components/layout/ConsoleSection';
 
-const User = () => {
-  return (
+const User = () => (
   <div className='px-2'>
-      <UsersTable />
-    </div>
-  );
-};
+    <ConsoleSection
+      title='用户管理'
+      description='查看与管理系统中的用户账号、权限与状态。'
+    >
+      <div className='card-grid'>
+        <div className='col-span-full'>
+          <UsersTable />
+        </div>
+      </div>
+    </ConsoleSection>
+  </div>
+);
 
 export default User;

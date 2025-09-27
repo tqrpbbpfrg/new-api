@@ -18,10 +18,20 @@ For commercial licensing, please contact support@quantumnous.com
 */
 
 import TaskLogsTable from '../../components/table/task-logs';
+import ConsoleSection from '../../components/layout/ConsoleSection';
 
 const Task = () => (
   <div className='px-2'>
-    <TaskLogsTable />
+    <ConsoleSection
+      title='任务日志'
+      description='追踪异步任务、视频/图像/音频处理流水。'
+    >
+      <div className='card-grid'>
+        <div className='col-span-full'>
+          <TaskLogsTable />
+        </div>
+      </div>
+    </ConsoleSection>
   </div>
 );
 
