@@ -27,7 +27,7 @@ export default function AdminPrize(){
   const [loading,setLoading] = useState(false);
   const [visible,setVisible] = useState(false);
   const [editing,setEditing] = useState(null);
-  const [form] = Form.useForm();
+  const [formApi, setFormApi] = useState();
 
   const load = async()=>{ setLoading(true); try { const res = await API.get('/api/lottery/prize'); if(res.data.success) setList(res.data.data); } finally { setLoading(false);} };
   const rarityTag = (r)=>{
@@ -36,8 +36,8 @@ export default function AdminPrize(){
   };
   useEffect(()=>{ load(); },[]);
 
-  const openAdd = ()=>{ setEditing(null); form.resetFields(); setVisible(true); };
-  const openEdit = (r)=>{ setEditing(r); form.setValues(r); setVisible(true); };
+  const openAdd = ()=>{ setEditing(null); formApi && formApi.reset(); setVisible(true); };
+  const openEdit = (r)=>{ setEditing(r); formApi && formApi.setValues(r); setVisible(true); };
   const submit = async(values)=>{ 
     if(values.type==='quota_range'){
       if(values.range_min===undefined || values.range_max===undefined){ Toast.error(t('请输入区间')); return; }
@@ -64,8 +64,8 @@ export default function AdminPrize(){
         {title:t('操作'), render:(_,r)=> <Space><Button size='small' onClick={()=>openEdit(r)}>{t('编辑')}</Button><Popconfirm title={t('确定删除?')} onConfirm={()=>del(r.id)}><Button size='small' type='danger'>{t('删除')}</Button></Popconfirm></Space>}
       ]}/>
     </Card>
-    <Modal title={editing?t('编辑奖品'):t('新增奖品')} visible={visible} onCancel={()=>setVisible(false)} onOk={()=>form.submit()}>
-      <Form form={form} onSubmit={submit} labelPosition='inset'>
+    <Modal title={editing?t('编辑奖品'):t('新增奖品')} visible={visible} onCancel={()=>setVisible(false)} onOk={()=>formApi && formApi.submit()}>
+      <Form getFormApi={setFormApi} onSubmit={submit} labelPosition='inset'>
         <Form.Input field='name' label={t('名称')} rules={[{required:true,message:t('必填')}]}/>
   <Form.Select field='type' label={t('类型')} optionList={[
     {value:'quota', label:t('固定额度')},

@@ -22,7 +22,22 @@ import * as LobeIcons from '@lobehub/icons';
 import {
     Claude,
     Gemini,
+    Moonshot,
     OpenAI,
+    Zhipu,
+    Qwen,
+    DeepSeek,
+    Minimax,
+    Wenxin,
+    Spark,
+    Midjourney,
+    Hunyuan,
+    Cohere,
+    Cloudflare,
+    Ai360,
+    Yi,
+    Jina,
+    Mistral,
 } from '@lobehub/icons';
 import i18next from 'i18next';
 import { visit } from 'unist-util-visit';
@@ -90,6 +105,14 @@ export function getLucideIcon(key, selected = false) {
       return <Settings {...commonProps} color={iconColor} />;
     case 'entertainment':
       return <Gamepad2 {...commonProps} color={iconColor} />;
+    case 'lottery-prize':
+      return <Gift {...commonProps} color={iconColor} />;
+    case 'admin-mail':
+      return <MessageSquare {...commonProps} color={iconColor} />;
+    case 'control':
+      return <LayoutDashboard {...commonProps} color={iconColor} />;
+    case 'info':
+      return <MessageSquare {...commonProps} color={iconColor} />;
     default:
       return <CircleUser {...commonProps} color={iconColor} />;
   }

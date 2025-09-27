@@ -41,7 +41,7 @@ export default function Entertainment(){
   const [status,setStatus] = useState(null);
   const [loading,setLoading] = useState(false);
   const [drawing,setDrawing] = useState(false);
-  const [redeemForm] = Form.useForm();
+  const [redeemFormApi, setRedeemFormApi] = useState();
   const [multiLoading,setMultiLoading] = useState(false);
   const [showFire,setShowFire] = useState(false);
   const [multiResult,setMultiResult] = useState([]);
@@ -66,7 +66,7 @@ export default function Entertainment(){
   const doMulti = async(times=10)=>{
     setMultiLoading(true);
     try { const res = await API.post('/api/lottery/draw/multi',{times,cost:1}); if(res.data.success){ setMultiResult(res.data.data||[]); setShowFire(true); setTimeout(()=>setShowFire(false),2000); Toast.success(t('抽奖成功')); await loadStatus(); } else Toast.error(res.data.message||t('抽奖失败')); } finally { setMultiLoading(false);} };
-  const redeem = async(values)=>{ try { const res = await API.post('/api/lottery/redeem',values); if(res.data.success){ Toast.success(t('兑换成功')); redeemForm.resetFields(); await loadStatus(); } else Toast.error(res.data.message||t('兑换失败')); } catch(e){ Toast.error(t('兑换失败')); } };
+  const redeem = async(values)=>{ try { const res = await API.post('/api/lottery/redeem',values); if(res.data.success){ Toast.success(t('兑换成功')); redeemFormApi && redeemFormApi.reset(); await loadStatus(); } else Toast.error(res.data.message||t('兑换失败')); } catch(e){ Toast.error(t('兑换失败')); } };
   return (
     <div className='p-4' style={{ background:'#f6f7f9', minHeight:'100vh' }}>
       <Typography.Title heading={3}>{t('娱乐中心')}</Typography.Title>
@@ -83,7 +83,7 @@ export default function Entertainment(){
             <Space wrap>
               <Button type='primary' loading={drawing} onClick={doDraw} disabled={(status?.tickets||0)<1}>{t('抽一次')}</Button>
               <Button loading={multiLoading} onClick={()=>doMulti(10)} disabled={(status?.tickets||0)<10}>{t('十连抽')}</Button>
-              <Form layout='horizontal' form={redeemForm} onSubmit={redeem} style={{display:'flex',gap:8}}>
+              <Form layout='horizontal' getFormApi={setRedeemFormApi} onSubmit={redeem} style={{display:'flex',gap:8}}>
                 <Form.Input field='code' placeholder={t('输入兑换码')} style={{width:160}}/>
                 <Button htmlType='submit'>{t('兑换')}</Button>
               </Form>
