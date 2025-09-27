@@ -17,56 +17,44 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useEffect, useState, useRef } from 'react';
 import {
-  Button,
-  Form,
-  Row,
-  Col,
-  Typography,
-  Modal,
-  Banner,
-  TagInput,
-  Spin,
-  Card,
-  Radio,
-  Tabs,
-  Space,
-  Divider,
-} from '@douyinfe/semi-ui';
-import {
-  IconServer,
-  IconSafe,
-  IconMail,
-  IconUser,
-  IconBolt,
-  IconSetting,
-  IconCloud,
-  IconShield,
-  IconGlobe,
-  IconCode,
+    IconBolt,
+    IconCode,
+    IconGlobe,
+    IconMail,
+    IconServer,
+    IconShield,
+    IconUser
 } from '@douyinfe/semi-icons';
+import {
+    Card,
+    Form,
+    Modal,
+    Space,
+    Spin,
+    Tabs,
+    Typography
+} from '@douyinfe/semi-ui';
+import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import {
+    API,
+    showError,
+    showSuccess,
+    toBoolean
+} from '../../helpers';
+import ConsoleSection from '../layout/ConsoleSection';
 const { Text, Title } = Typography;
 const { TabPane } = Tabs;
-import {
-  API,
-  removeTrailingSlash,
-  showError,
-  showSuccess,
-  toBoolean,
-} from '../../helpers';
-import axios from 'axios';
-import { useTranslation } from 'react-i18next';
-import ConsoleSection from '../layout/ConsoleSection';
 
 // 子组件
-import GeneralSettings from './SystemSetting/GeneralSettings';
-import SecuritySettings from './SystemSetting/SecuritySettings';
+import AdvancedSettings from './SystemSetting/AdvancedSettings';
 import EmailSettings from './SystemSetting/EmailSettings';
+import GeneralSettings from './SystemSetting/GeneralSettings';
+import InterfaceSettings from './SystemSetting/InterfaceSettings';
 import OIDCSettings from './SystemSetting/OIDCSettings';
 import PaymentSettings from './SystemSetting/PaymentSettings';
-import InterfaceSettings from './SystemSetting/InterfaceSettings';
-import AdvancedSettings from './SystemSetting/AdvancedSettings';
+import SecuritySettings from './SystemSetting/SecuritySettings';
 
 const SystemSettingNew = () => {
   const { t } = useTranslation();

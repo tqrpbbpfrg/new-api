@@ -18,37 +18,36 @@ For commercial licensing, please contact support@quantumnous.com
 */
 
 import {
-  Avatar,
-  Button,
-  Card,
-  Divider,
-  Progress,
-  Space,
-  Tag,
-  Typography,
-  Row,
-  Col,
-  Badge,
-} from '@douyinfe/semi-ui';
-import {
-  IconCreditCard,
-  IconGift,
-  IconHistory,
-  IconSafe,
-  IconSetting,
-  IconUser,
-  IconMail,
-  IconBell,
-  IconMoon,
-  IconSun,
-  IconRefresh,
+    IconBell,
+    IconCreditCard,
+    IconGift,
+    IconHistory,
+    IconMail,
+    IconMoon,
+    IconRefresh,
+    IconSafe,
+    IconSun,
+    IconUser
 } from '@douyinfe/semi-icons';
-import { useState, useContext, useEffect } from 'react';
-import { UserContext } from '../../context/User';
+import {
+    Avatar,
+    Badge,
+    Button,
+    Card,
+    Col,
+    Divider,
+    Progress,
+    Row,
+    Space,
+    Tag,
+    Typography,
+} from '@douyinfe/semi-ui';
+import { useContext, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useTheme, useSetTheme } from '../../context/Theme';
-import ConsoleSection from '../layout/ConsoleSection';
+import { useSetTheme, useTheme } from '../../context/Theme';
+import { UserContext } from '../../context/User';
 import { API, showError, showSuccess } from '../../helpers';
+import ConsoleSection from '../layout/ConsoleSection';
 
 const { Title, Text } = Typography;
 

@@ -21,6 +21,10 @@ import { useMemo } from 'react';
 
 export const useNavigation = (t, docsLink, headerNavModules) => {
   const mainNavLinks = useMemo(() => {
+    // 添加调试信息
+    console.log('useNavigation - headerNavModules:', headerNavModules);
+    console.log('useNavigation - docsLink:', docsLink);
+
     // 默认配置，确保在没有传入配置或配置为空时也能正常显示
     const defaultModules = {
       home: true,
@@ -31,9 +35,12 @@ export const useNavigation = (t, docsLink, headerNavModules) => {
     };
 
     // 使用传入的配置或默认配置，确保不为null/undefined
-    const modules = headerNavModules && typeof headerNavModules === 'object' 
-      ? headerNavModules 
-      : defaultModules;
+    const modules =
+      headerNavModules && typeof headerNavModules === 'object'
+        ? headerNavModules
+        : defaultModules;
+
+    console.log('useNavigation - final modules:', modules);
 
     const allLinks = [
       {
@@ -69,18 +76,34 @@ export const useNavigation = (t, docsLink, headerNavModules) => {
     ];
 
     // 根据配置过滤导航链接
-    return allLinks.filter((link) => {
+    const filteredLinks = allLinks.filter((link) => {
       if (link.itemKey === 'docs') {
-        return docsLink && modules.docs;
+        const result = docsLink && modules.docs;
+        console.log(
+          `useNavigation - ${link.itemKey}: docsLink=${docsLink}, modules.docs=${modules.docs}, result=${result}`,
+        );
+        return result;
       }
       if (link.itemKey === 'pricing') {
         // 支持新的pricing配置格式
-        return typeof modules.pricing === 'object'
-          ? modules.pricing.enabled
-          : modules.pricing;
+        const result =
+          typeof modules.pricing === 'object'
+            ? modules.pricing.enabled
+            : modules.pricing;
+        console.log(
+          `useNavigation - ${link.itemKey}: modules.pricing=${JSON.stringify(modules.pricing)}, result=${result}`,
+        );
+        return result;
       }
-      return modules[link.itemKey] === true;
+      const result = modules[link.itemKey] === true;
+      console.log(
+        `useNavigation - ${link.itemKey}: modules[${link.itemKey}]=${modules[link.itemKey]}, result=${result}`,
+      );
+      return result;
     });
+
+    console.log('useNavigation - filteredLinks:', filteredLinks);
+    return filteredLinks;
   }, [t, docsLink, headerNavModules]);
 
   return {

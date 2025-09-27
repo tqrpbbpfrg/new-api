@@ -17,16 +17,16 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import { useState, useEffect, useContext, useCallback, useMemo } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { UserContext } from '../../context/User';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { StatusContext } from '../../context/Status';
-import { useSetTheme, useTheme, useActualTheme } from '../../context/Theme';
-import { getLogo, getSystemName, API, showSuccess } from '../../helpers';
+import { useActualTheme, useSetTheme, useTheme } from '../../context/Theme';
+import { UserContext } from '../../context/User';
+import { API, getLogo, getSystemName, showSuccess } from '../../helpers';
 import { useIsMobile } from './useIsMobile';
-import { useSidebarCollapsed } from './useSidebarCollapsed';
 import { useMinimumLoadingTime } from './useMinimumLoadingTime';
+import { useSidebarCollapsed } from './useSidebarCollapsed';
 
 export const useHeaderBar = ({ onMobileMenuToggle, drawerOpen }) => {
   const { t, i18n } = useTranslation();

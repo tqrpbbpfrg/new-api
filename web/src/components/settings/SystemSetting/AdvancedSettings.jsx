@@ -17,19 +17,17 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React from 'react';
+import { IconClock, IconCode, IconServer, IconSetting } from '@douyinfe/semi-icons';
 import {
-  Button,
-  Form,
-  Row,
-  Col,
-  Typography,
-  Card,
-  Space,
-  Banner,
-  InputNumber,
+    Banner,
+    Button,
+    Card,
+    Col,
+    Form,
+    Row,
+    Space,
+    Typography
 } from '@douyinfe/semi-ui';
-import { IconCode, IconSetting, IconServer, IconClock } from '@douyinfe/semi-icons';
 
 const { Text, Title } = Typography;
 

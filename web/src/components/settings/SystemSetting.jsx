@@ -17,21 +17,22 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useEffect, useState, useRef } from 'react';
 import {
-  Button,
-  Form,
-  Row,
-  Col,
-  Typography,
-  Modal,
   Banner,
-  TagInput,
-  Spin,
+  Button,
   Card,
+  Col,
+  Form,
+  Modal,
   Radio,
+  Row,
+  Spin,
+  TagInput,
+  Typography,
 } from '@douyinfe/semi-ui';
-const { Text } = Typography;
+import axios from 'axios';
+import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   API,
   removeTrailingSlash,
@@ -39,8 +40,7 @@ import {
   showSuccess,
   toBoolean,
 } from '../../helpers';
-import axios from 'axios';
-import { useTranslation } from 'react-i18next';
+const { Text } = Typography;
 
 const SystemSetting = () => {
   const { t } = useTranslation();

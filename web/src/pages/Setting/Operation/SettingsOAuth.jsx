@@ -19,25 +19,25 @@ For commercial licensing, please contact support@quantumnous.com
 
 import { IconGithubLogo, IconGlobe } from '@douyinfe/semi-icons';
 import {
-    Banner,
-    Button,
-    Card,
-    Col,
-    Divider,
-    Form,
-    Row,
-    Space,
-    Switch,
-    Typography
+  Banner,
+  Button,
+  Card,
+  Col,
+  Divider,
+  Form,
+  Row,
+  Space,
+  Switch,
+  Typography
 } from '@douyinfe/semi-ui';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-    API,
-    compareObjects,
-    showError,
-    showSuccess,
-    showWarning,
+  API,
+  compareObjects,
+  showError,
+  showSuccess,
+  showWarning,
 } from '../../../helpers';
 
 const { Title, Text } = Typography;

@@ -17,9 +17,9 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useState } from 'react';
-import { Button, Card, Toast, Typography, Space } from '@douyinfe/semi-ui';
 import { IconRefresh, IconTick } from '@douyinfe/semi-icons';
+import { Button, Card, Space, Toast, Typography } from '@douyinfe/semi-ui';
+import { useState } from 'react';
 import { API } from '../../helpers';
 
 const { Text, Title } = Typography;

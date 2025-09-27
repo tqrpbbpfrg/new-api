@@ -56,12 +56,12 @@ import { marked } from 'marked';
 import { useContext, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
+import HeaderNavFixer from '../../components/common/HeaderNavFixer';
 import { API_ENDPOINTS } from '../../constants/common.constant';
 import { StatusContext } from '../../context/Status';
 import { useActualTheme } from '../../context/Theme';
 import { API, copy, showError, showSuccess } from '../../helpers';
 import { useIsMobile } from '../../hooks/common/useIsMobile';
-import HeaderNavFixer from '../../components/common/HeaderNavFixer';
 
 const { Text } = Typography;
 
