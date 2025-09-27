@@ -39,8 +39,11 @@ FROM golang:${GO_VERSION} AS go_deps
 WORKDIR /src
 ENV GO111MODULE=on CGO_ENABLED=0 GOOS=linux
 COPY go.mod go.sum ./
+# 预下载依赖，确保 /go/pkg/mod 存在；某些情况下（空依赖或缓存未命中）目录可能未创建，显式 mkdir
 RUN --mount=type=cache,target=/go/pkg/mod \
-    go mod download
+    go mod download && \
+    mkdir -p /go/pkg/mod && \
+    echo "Go modules cached at: $(ls -1 /go/pkg/mod | wc -l) entries"
 
 #############################################
 # Go build layer
