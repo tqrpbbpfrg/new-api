@@ -1,37 +1,70 @@
-FROM oven/bun:1.1.21 AS frontend
-WORKDIR /build
-ENV CI=1 \
-    NODE_ENV=production \
-    VITE_REACT_APP_VERSION="unset"
+#############################################
+# syntax=docker/dockerfile:1.7
+# Optimized multi-stage build with deterministic caching
+#############################################
+
+ARG BUN_VERSION=1.1.21
+ARG GO_VERSION=1.22-alpine
+
+#############################################
+# Frontend deps layer (cacheable)
+#############################################
+FROM oven/bun:${BUN_VERSION} AS fe_deps
+WORKDIR /frontend
+ENV CI=1 NODE_ENV=production
 COPY web/package.json ./
-RUN bun install
-COPY ./web .
-COPY ./VERSION .
-RUN VITE_REACT_APP_VERSION=$(cat VERSION) bun run build
+# If later you add bun.lockb, COPY it here before install to improve cache hits
+RUN --mount=type=cache,target=/root/.cache/bun bun install --no-save
 
-FROM golang:alpine AS builder2
+#############################################
+# Frontend build layer
+#############################################
+FROM oven/bun:${BUN_VERSION} AS fe_build
+WORKDIR /frontend
+ENV CI=1 NODE_ENV=production
+ARG VERSION=unset
+ENV VITE_REACT_APP_VERSION=${VERSION}
+COPY --from=fe_deps /frontend/node_modules ./node_modules
+COPY web/ .
+# VERSION file (if present) can override passed build arg; keep backward compat
+COPY VERSION VERSION || true
+RUN --mount=type=cache,target=/root/.cache/bun \
+    if [ -f VERSION ]; then export VITE_REACT_APP_VERSION="$(cat VERSION)"; fi; \
+    bun run build
 
-ENV GO111MODULE=on \
-    CGO_ENABLED=0 \
-    GOOS=linux
+#############################################
+# Go modules (deps) layer
+#############################################
+FROM golang:${GO_VERSION} AS go_deps
+WORKDIR /src
+ENV GO111MODULE=on CGO_ENABLED=0 GOOS=linux
+COPY go.mod go.sum ./
+RUN --mount=type=cache,target=/go/pkg/mod \
+    go mod download
 
-WORKDIR /build
-
-ADD go.mod go.sum ./
-RUN go mod download
-
+#############################################
+# Go build layer
+#############################################
+FROM golang:${GO_VERSION} AS go_build
+WORKDIR /src
+ENV GO111MODULE=on CGO_ENABLED=0 GOOS=linux
+ARG VERSION=dev
+COPY --from=go_deps /go/pkg/mod /go/pkg/mod
 COPY . .
-COPY --from=frontend /build/dist ./web/dist
-RUN go build -ldflags "-s -w -X 'one-api/common.Version=$(cat VERSION)'" -o one-api
+COPY --from=fe_build /frontend/dist ./web/dist
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/go/pkg/mod \
+    go build -trimpath -ldflags "-s -w -X 'one-api/common.Version=${VERSION}'" -o /out/one-api
 
-FROM alpine
+#############################################
+# Final minimal runtime image
+#############################################
+FROM alpine:3.20
 ENV NODE_ENV=production
-
 RUN apk upgrade --no-cache \
     && apk add --no-cache ca-certificates tzdata ffmpeg \
     && update-ca-certificates
-
-COPY --from=builder2 /build/one-api /
+COPY --from=go_build /out/one-api /one-api
 EXPOSE 3000
 WORKDIR /data
 ENTRYPOINT ["/one-api"]
