@@ -61,6 +61,7 @@ import { StatusContext } from '../../context/Status';
 import { useActualTheme } from '../../context/Theme';
 import { API, copy, showError, showSuccess } from '../../helpers';
 import { useIsMobile } from '../../hooks/common/useIsMobile';
+import HeaderNavFixer from '../../components/common/HeaderNavFixer';
 
 const { Text } = Typography;
 
@@ -73,6 +74,7 @@ const Home = () => {
   // 轻提示公告 Banner 内容（来自 /api/notice），不再使用弹窗
   const [noticeBanner, setNoticeBanner] = useState('');
   const [showBanner, setShowBanner] = useState(false);
+  const [showHeaderNavFixer, setShowHeaderNavFixer] = useState(false);
   const isMobile = useIsMobile();
   const isDemoSiteMode = statusState?.status?.demo_site_enabled || false;
   const docsLink = statusState?.status?.docs_link || '';
@@ -150,6 +152,40 @@ const Home = () => {
     }, 3000);
     return () => clearInterval(timer);
   }, [endpointItems.length]);
+
+  // 检测顶栏导航配置是否有问题
+  useEffect(() => {
+    const checkHeaderNavConfig = () => {
+      try {
+        const headerNavModulesConfig = statusState?.status?.HeaderNavModules;
+        
+        if (!headerNavModulesConfig || 
+            headerNavModulesConfig === '' ||
+            headerNavModulesConfig === '{}' ||
+            headerNavModulesConfig === 'null') {
+          setShowHeaderNavFixer(true);
+          return;
+        }
+
+        const parsed = JSON.parse(headerNavModulesConfig);
+        if (!parsed || typeof parsed !== 'object' || Object.keys(parsed).length === 0) {
+          setShowHeaderNavFixer(true);
+          return;
+        }
+
+        // 配置正常
+        setShowHeaderNavFixer(false);
+      } catch (error) {
+        // 解析失败，需要修复
+        setShowHeaderNavFixer(true);
+      }
+    };
+
+    // 只在statusState加载完成后检查
+    if (statusState?.status) {
+      checkHeaderNavConfig();
+    }
+  }, [statusState]);
 
   return (
     <div className='w-full overflow-x-hidden'>
@@ -275,6 +311,13 @@ const Home = () => {
                     )
                   )}
                 </div>
+
+                {/* 顶栏导航修复工具 - 只在需要时显示 */}
+                {showHeaderNavFixer && (
+                  <div className='mt-8 w-full max-w-md'>
+                    <HeaderNavFixer />
+                  </div>
+                )}
 
                 {/* 框架兼容性图标 */}
                 <div className='mt-12 md:mt-16 lg:mt-20 w-full'>
