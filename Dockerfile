@@ -26,10 +26,10 @@ ARG VERSION=unset
 ENV VITE_REACT_APP_VERSION=${VERSION}
 COPY --from=fe_deps /frontend/node_modules ./node_modules
 COPY web/ .
-# VERSION file (if present) can override passed build arg; keep backward compat
-COPY VERSION VERSION || true
+# If VERSION not provided in build context, create one from ARG VERSION
+RUN if [ ! -f VERSION ]; then echo "${VERSION}" > VERSION; fi
 RUN --mount=type=cache,target=/root/.cache/bun \
-    if [ -f VERSION ]; then export VITE_REACT_APP_VERSION="$(cat VERSION)"; fi; \
+    export VITE_REACT_APP_VERSION="$(cat VERSION)"; \
     bun run build
 
 #############################################
