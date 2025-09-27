@@ -132,6 +132,46 @@ export default function OAuthSettings(props) {
         showSuccess(t('保存成功'));
         setInputsRow(structuredClone(inputs));
         props.refresh();
+        
+        // 同步OAuth认证开关到本地存储
+        const oauthSwitches = [
+          'GitHubOAuthEnabled',
+          'DiscordOAuthEnabled',
+          'TelegramOAuthEnabled',
+          'LinuxDOOAuthEnabled',
+          'WeChatAuthEnabled',
+          'PasswordLoginEnabled',
+          'PasswordRegisterEnabled',
+          'EmailVerificationEnabled',
+          'TurnstileCheckEnabled',
+          'RegisterEnabled'
+        ];
+        
+        const hasOAuthUpdates = updateArray.some(i => oauthSwitches.includes(i.key));
+        if(hasOAuthUpdates){
+          try { 
+            // 获取当前缓存
+            const cache = localStorage.getItem('options_cache');
+            let options = {};
+            if(cache) {
+              options = JSON.parse(cache);
+            }
+            
+            // 更新所有变更的OAuth开关
+            oauthSwitches.forEach(key => {
+              if(key in inputs) {
+                localStorage.setItem(key, String(inputs[key]));
+                options[key] = inputs[key];
+              }
+            });
+            
+            // 更新options_cache
+            localStorage.setItem('options_cache', JSON.stringify(options));
+            
+          } catch(e){
+            console.warn('Failed to sync OAuth switches to localStorage:', e);
+          }
+        }
       })
       .catch((e) => {
         showError(t('保存失败：') + (e?.message || ''));

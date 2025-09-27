@@ -17,16 +17,16 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useEffect, useState, useRef } from 'react';
-import { Button, Col, Form, Row, Spin, Tag } from '@douyinfe/semi-ui';
-import {
-  compareObjects,
-  API,
-  showError,
-  showSuccess,
-  showWarning,
-} from '../../../helpers';
+import { Button, Col, Form, Row, Spin } from '@douyinfe/semi-ui';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import {
+    API,
+    compareObjects,
+    showError,
+    showSuccess,
+    showWarning,
+} from '../../../helpers';
 
 export default function SettingsSensitiveWords(props) {
   const { t } = useTranslation();
@@ -65,6 +65,39 @@ export default function SettingsSensitiveWords(props) {
         }
         showSuccess(t('保存成功'));
         props.refresh();
+        
+        // 同步敏感词过滤开关到本地存储
+        const sensitiveSwitches = [
+          'CheckSensitiveEnabled',
+          'CheckSensitiveOnPromptEnabled',
+          'StopOnSensitiveEnabled'
+        ];
+        
+        const hasSensitiveUpdates = updateArray.some(i => sensitiveSwitches.includes(i.key));
+        if(hasSensitiveUpdates){
+          try { 
+            // 获取当前缓存
+            const cache = localStorage.getItem('options_cache');
+            let options = {};
+            if(cache) {
+              options = JSON.parse(cache);
+            }
+            
+            // 更新所有变更的敏感词过滤开关
+            sensitiveSwitches.forEach(key => {
+              if(key in inputs) {
+                localStorage.setItem(key, String(inputs[key]));
+                options[key] = inputs[key];
+              }
+            });
+            
+            // 更新options_cache
+            localStorage.setItem('options_cache', JSON.stringify(options));
+            
+          } catch(e){
+            console.warn('Failed to sync sensitive switches to localStorage:', e);
+          }
+        }
       })
       .catch(() => {
         showError(t('保存失败，请重试'));

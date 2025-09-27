@@ -17,17 +17,17 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useEffect, useState, useRef } from 'react';
 import { Button, Col, Form, Row, Spin } from '@douyinfe/semi-ui';
-import {
-  compareObjects,
-  API,
-  showError,
-  showSuccess,
-  showWarning,
-  verifyJSON,
-} from '../../../helpers';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import {
+    API,
+    compareObjects,
+    showError,
+    showSuccess,
+    showWarning,
+    verifyJSON,
+} from '../../../helpers';
 
 export default function GroupRatioSettings(props) {
   const { t } = useTranslation();
@@ -78,6 +78,42 @@ export default function GroupRatioSettings(props) {
 
               showSuccess(t('保存成功'));
               props.refresh();
+              
+              // 同步分组倍率设置开关到本地存储
+              const groupRatioSwitches = [
+                'DefaultUseAutoGroup'
+              ];
+              
+              const hasGroupRatioUpdates = updateArray.some(i => groupRatioSwitches.includes(i.key));
+              if(hasGroupRatioUpdates){
+                try { 
+                  // 获取当前缓存
+                  const cache = localStorage.getItem('options_cache');
+                  let options = {};
+                  if(cache) {
+                    options = JSON.parse(cache);
+                  }
+                  
+                  // 更新所有变更的分组倍率设置开关
+                  groupRatioSwitches.forEach(key => {
+                    if(key in inputs) {
+                      localStorage.setItem(key, String(inputs[key]));
+                      options[key] = inputs[key];
+                    }
+                  });
+                  
+                  // 特殊处理：DefaultUseAutoGroup 需要存储到 default_use_auto_group 键
+                  if('DefaultUseAutoGroup' in inputs) {
+                    localStorage.setItem('default_use_auto_group', String(inputs.DefaultUseAutoGroup));
+                  }
+                  
+                  // 更新options_cache
+                  localStorage.setItem('options_cache', JSON.stringify(options));
+                  
+                } catch(e){
+                  console.warn('Failed to sync group ratio switches to localStorage:', e);
+                }
+              }
             })
             .catch((error) => {
               console.error('Unexpected error:', error);

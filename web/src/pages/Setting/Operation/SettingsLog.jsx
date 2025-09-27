@@ -17,16 +17,16 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useEffect, useState, useRef } from 'react';
-import { Button, Col, Form, Row, Spin, DatePicker } from '@douyinfe/semi-ui';
+import { Button, Col, Form, Row, Spin } from '@douyinfe/semi-ui';
 import dayjs from 'dayjs';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  compareObjects,
-  API,
-  showError,
-  showSuccess,
-  showWarning,
+    API,
+    compareObjects,
+    showError,
+    showSuccess,
+    showWarning,
 } from '../../../helpers';
 
 export default function SettingsLog(props) {
@@ -69,6 +69,37 @@ export default function SettingsLog(props) {
         }
         showSuccess(t('保存成功'));
         props.refresh();
+        
+        // 同步日志设置开关到本地存储
+        const logSwitches = [
+          'LogConsumeEnabled'
+        ];
+        
+        const hasLogUpdates = updateArray.some(i => logSwitches.includes(i.key));
+        if(hasLogUpdates){
+          try { 
+            // 获取当前缓存
+            const cache = localStorage.getItem('options_cache');
+            let options = {};
+            if(cache) {
+              options = JSON.parse(cache);
+            }
+            
+            // 更新所有变更的日志开关
+            logSwitches.forEach(key => {
+              if(key in inputs) {
+                localStorage.setItem(key, String(inputs[key]));
+                options[key] = inputs[key];
+              }
+            });
+            
+            // 更新options_cache
+            localStorage.setItem('options_cache', JSON.stringify(options));
+            
+          } catch(e){
+            console.warn('Failed to sync log switches to localStorage:', e);
+          }
+        }
       })
       .catch(() => {
         showError(t('保存失败，请重试'));

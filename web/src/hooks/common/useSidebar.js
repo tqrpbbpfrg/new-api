@@ -40,34 +40,52 @@ export const useSidebar = () => {
     },
     console: {
       enabled: true,
-      detail: true,
-      playground: true, // 新增：操练场移动至控制台
-      token: true,
-      log: true,
+      control: true, // 工作台
+      playground: true, // 操练场移动至控制台
+      token: true, // 令牌管理
+      log: true, // 使用日志
       midjourney: true,
       task: true,
     },
     personal: {
       enabled: true,
-      topup: true,
-      personal: true,
-      info: true, // 信息中心条目
+      info: true, // 信息中心
+      entertainment: true, // 娱乐中心
+      topup: true, // 钱包管理
+      personal: true, // 个人设置
     },
     admin: {
       enabled: true,
-      channel: true,
-      models: true,
-      redemption: true,
-      user: true,
-      setting: true,
+      channel: true, // 渠道管理
+      models: true, // 模型管理
+      redemption: true, // 兑换码
+      'lottery-prize': true, // 抽奖设置
+      user: true, // 用户管理
+      'admin-mail': true, // 邮件中心
+      setting: true, // 系统管理
     },
   };
 
   // 获取管理员配置
   const adminConfig = useMemo(() => {
+    let config = { ...defaultAdminConfig }; // 从默认配置开始
+
     if (statusState?.status?.SidebarModulesAdmin) {
       try {
-        const config = JSON.parse(statusState.status.SidebarModulesAdmin);
+        const backendConfig = JSON.parse(
+          statusState.status.SidebarModulesAdmin,
+        );
+
+        // 合并后端配置到默认配置，确保新模块不会丢失
+        Object.keys(config).forEach((sectionKey) => {
+          if (backendConfig[sectionKey]) {
+            config[sectionKey] = {
+              ...config[sectionKey], // 保留默认配置
+              ...backendConfig[sectionKey], // 用后端配置覆盖
+            };
+          }
+        });
+
         // 兼容迁移：若 console.playground 缺失而 chat.playground 存在 => 迁移
         if (!config.console) config.console = { enabled: true };
         if (config.chat?.playground && !config.console.playground) {
@@ -75,12 +93,12 @@ export const useSidebar = () => {
         }
         // 强制 chat.enabled=false（需求：不再单独显示聊天分组）
         if (config.chat) config.chat.enabled = false;
-        return config;
       } catch (error) {
-        return defaultAdminConfig;
+        console.error('解析SidebarModulesAdmin配置失败:', error);
       }
     }
-    return defaultAdminConfig;
+
+    return config;
   }, [statusState?.status?.SidebarModulesAdmin]);
 
   // 加载用户配置的通用方法
@@ -246,7 +264,12 @@ export const useSidebar = () => {
   // 检查特定功能是否应该显示
   const isModuleVisible = (sectionKey, moduleKey = null) => {
     if (moduleKey) {
-      return finalConfig[sectionKey]?.[moduleKey] === true;
+      const sectionConfig = finalConfig[sectionKey];
+      if (!sectionConfig) return undefined; // 区域不存在，返回undefined
+      if (moduleKey in sectionConfig) {
+        return sectionConfig[moduleKey] === true;
+      }
+      return undefined; // 模块不存在于配置中，返回undefined
     } else {
       return finalConfig[sectionKey]?.enabled === true;
     }

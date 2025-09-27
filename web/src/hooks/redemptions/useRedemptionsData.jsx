@@ -413,7 +413,6 @@ export const useRedemptionsData = () => {
     batchCopyRedemptions,
     batchDeleteRedemptions,
   batchDeleteSelectedGroups,
-  groupedRows,
 
     // Translation function
     t,

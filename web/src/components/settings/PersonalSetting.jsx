@@ -23,7 +23,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../../context/User';
 import { API, copy, showError, showInfo, showSuccess } from '../../helpers';
-import { ConsoleSection } from '../layout/ConsoleSection';
+import ConsoleSection from '../layout/ConsoleSection';
 
 // 导入子组件
 import AccountManagement from './personal/cards/AccountManagement';

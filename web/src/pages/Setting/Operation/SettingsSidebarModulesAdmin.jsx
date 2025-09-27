@@ -17,19 +17,19 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useState, useEffect, useContext } from 'react';
-import { useTranslation } from 'react-i18next';
 import {
-  Card,
-  Form,
-  Button,
-  Switch,
-  Row,
-  Col,
-  Typography,
+    Button,
+    Card,
+    Col,
+    Form,
+    Row,
+    Switch,
+    Typography,
 } from '@douyinfe/semi-ui';
-import { API, showSuccess, showError } from '../../../helpers';
+import { useContext, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { StatusContext } from '../../../context/Status';
+import { API, showError, showSuccess } from '../../../helpers';
 
 const { Text } = Typography;
 
@@ -172,26 +172,30 @@ export default function SettingsSidebarModulesAdmin(props) {
       } catch (error) {
         // 使用默认配置
         const defaultModules = {
-          chat: { enabled: true, playground: true, chat: true },
+          chat: { enabled: false, playground: true, chat: true },
           console: {
             enabled: true,
-            control: true,
-            token: true,
-            log: true,
+            control: true, // 工作台
+            playground: true, // 操练场
+            token: true, // 令牌管理
+            log: true, // 使用日志
           },
           personal: { 
             enabled: true, 
-            info: true,
-            topup: true, 
-            personal: true 
+            info: true, // 信息中心
+            entertainment: true, // 娱乐中心
+            topup: true, // 钱包管理
+            personal: true // 个人设置
           },
           admin: {
             enabled: true,
-            channel: true,
-            models: true,
-            redemption: true,
-            user: true,
-            setting: true,
+            channel: true, // 渠道管理
+            models: true, // 模型管理
+            redemption: true, // 兑换码
+            'lottery-prize': true, // 抽奖设置
+            user: true, // 用户管理
+            'admin-mail': true, // 邮件中心
+            setting: true, // 系统管理
           },
         };
         setSidebarModulesAdmin(defaultModules);
@@ -202,24 +206,12 @@ export default function SettingsSidebarModulesAdmin(props) {
   // 区域配置数据
   const sectionConfigs = [
     {
-      key: 'chat',
-      title: t('聊天区域'),
-      description: t('操练场和聊天功能'),
-      modules: [
-        {
-          key: 'playground',
-          title: t('操练场'),
-          description: t('AI模型测试环境'),
-        },
-        { key: 'chat', title: t('聊天'), description: t('聊天会话管理') },
-      ],
-    },
-    {
       key: 'console',
       title: t('控制台区域'),
-      description: t('数据管理和日志查看'),
+      description: t('工作台、操练场、令牌管理、使用日志'),
       modules: [
-        { key: 'detail', title: t('数据看板'), description: t('系统数据统计') },
+        { key: 'control', title: t('工作台'), description: t('系统数据统计') },
+        { key: 'playground', title: t('操练场'), description: t('AI模型测试环境') },
         { key: 'token', title: t('令牌管理'), description: t('API令牌管理') },
         { key: 'log', title: t('使用日志'), description: t('API使用记录') },
         {
@@ -233,8 +225,10 @@ export default function SettingsSidebarModulesAdmin(props) {
     {
       key: 'personal',
       title: t('个人中心区域'),
-      description: t('用户个人功能'),
+      description: t('信息中心、娱乐中心、钱包管理、个人设置'),
       modules: [
+        { key: 'info', title: t('信息中心'), description: t('系统消息与通知') },
+        { key: 'entertainment', title: t('娱乐中心'), description: t('签到与娱乐功能') },
         { key: 'topup', title: t('钱包管理'), description: t('余额充值管理') },
         {
           key: 'personal',
@@ -245,20 +239,30 @@ export default function SettingsSidebarModulesAdmin(props) {
     },
     {
       key: 'admin',
-      title: t('管理员区域'),
-      description: t('系统管理功能'),
+      title: t('管理中心区域'),
+      description: t('渠道管理、模型管理、兑换码、抽奖设置、用户管理、邮件中心、系统管理'),
       modules: [
         { key: 'channel', title: t('渠道管理'), description: t('API渠道配置') },
         { key: 'models', title: t('模型管理'), description: t('AI模型配置') },
         {
           key: 'redemption',
-          title: t('兑换码管理'),
-          description: t('兑换码生成管理'),
+          title: t('兑换码'),
+          description: t('兑换码和礼品码管理'),
+        },
+        {
+          key: 'lottery-prize',
+          title: t('抽奖设置'),
+          description: t('抽奖奖品和抽奖券配置'),
         },
         { key: 'user', title: t('用户管理'), description: t('用户账户管理') },
         {
+          key: 'admin-mail',
+          title: t('邮件中心'),
+          description: t('邮件发送管理'),
+        },
+        {
           key: 'setting',
-          title: t('系统设置'),
+          title: t('系统管理'),
           description: t('系统参数配置'),
         },
       ],

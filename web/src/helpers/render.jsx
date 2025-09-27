@@ -20,36 +20,9 @@ For commercial licensing, please contact support@quantumnous.com
 import { Avatar, Modal, Tag, Typography } from '@douyinfe/semi-ui';
 import * as LobeIcons from '@lobehub/icons';
 import {
-    Ai360,
     Claude,
-    Cloudflare,
-    Cohere,
-    Coze,
-    DeepSeek,
-    Dify,
-    Doubao,
-    FastGPT,
     Gemini,
-    Hunyuan,
-    Jimeng,
-    Jina,
-    Kling,
-    Midjourney,
-    Minimax,
-    Mistral,
-    Moonshot,
-    Ollama,
     OpenAI,
-    OpenRouter,
-    Qwen,
-    SiliconCloud,
-    Spark,
-    Suno,
-    Wenxin,
-    XAI,
-    Xinference,
-    Yi,
-    Zhipu,
 } from '@lobehub/icons';
 import i18next from 'i18next';
 import { visit } from 'unist-util-visit';
@@ -272,81 +245,87 @@ export const getModelCategories = (() => {
  */
 export function getChannelIcon(channelType) {
   const iconSize = 14;
+  
+  // 通用图标生成函数
+  const createGenericIcon = (text, color = '#666') => {
+    return <Avatar size={iconSize} style={{backgroundColor: color, color: 'white', fontSize: '12px', width: iconSize, height: iconSize}}>{text}</Avatar>;
+  };
 
   switch (channelType) {
     case 1: // OpenAI
     case 3: // Azure OpenAI
       return <OpenAI size={iconSize} />;
-    case 2: // Midjourney Proxy
-    case 5: // Midjourney Proxy Plus
-      return <Midjourney size={iconSize} />;
-    case 36: // Suno API
-      return <Suno size={iconSize} />;
-    case 4: // Ollama
-      return <Ollama size={iconSize} />;
     case 14: // Anthropic Claude
     case 33: // AWS Claude
       return <Claude.Color size={iconSize} />;
-    case 41: // Vertex AI
-      return <Gemini.Color size={iconSize} />;
-    case 34: // Cohere
-      return <Cohere.Color size={iconSize} />;
-    case 39: // Cloudflare
-      return <Cloudflare.Color size={iconSize} />;
-    case 43: // DeepSeek
-      return <DeepSeek.Color size={iconSize} />;
-    case 15: // 百度文心千帆
-    case 46: // 百度文心千帆V2
-      return <Wenxin.Color size={iconSize} />;
-    case 17: // 阿里通义千问
-      return <Qwen.Color size={iconSize} />;
-    case 18: // 讯飞星火认知
-      return <Spark.Color size={iconSize} />;
-    case 16: // 智谱 ChatGLM
-    case 26: // 智谱 GLM-4V
-      return <Zhipu.Color size={iconSize} />;
     case 24: // Google Gemini
     case 11: // Google PaLM2
+    case 41: // Vertex AI
       return <Gemini.Color size={iconSize} />;
+    case 2: // Midjourney Proxy
+    case 5: // Midjourney Proxy Plus
+      return createGenericIcon('MJ', '#FF6B6B');
+    case 36: // Suno API
+      return createGenericIcon('S', '#9C88FF');
+    case 4: // Ollama
+      return createGenericIcon('O', '#000000');
+    case 34: // Cohere
+      return createGenericIcon('C', '#39A0ED');
+    case 39: // Cloudflare
+      return createGenericIcon('CF', '#F48120');
+    case 43: // DeepSeek
+      return createGenericIcon('DS', '#1890FF');
+    case 15: // 百度文心千帆
+    case 46: // 百度文心千帆V2
+      return createGenericIcon('文', '#3370FF');
+    case 17: // 阿里通义千问
+      return createGenericIcon('通', '#FF7A00');
+    case 18: // 讯飞星火认知
+      return createGenericIcon('星', '#00D4AA');
+    case 16: // 智谱 ChatGLM
+    case 26: // 智谱 GLM-4V
+      return createGenericIcon('智', '#722ED1');
     case 47: // Xinference
-      return <Xinference.Color size={iconSize} />;
+      return createGenericIcon('X', '#722ED1');
     case 25: // Moonshot
-      return <Moonshot size={iconSize} />;
+      return createGenericIcon('月', '#1677FF');
     case 20: // OpenRouter
-      return <OpenRouter size={iconSize} />;
+      return createGenericIcon('OR', '#00BCD4');
     case 19: // 360 智脑
-      return <Ai360.Color size={iconSize} />;
+      return createGenericIcon('360', '#F5222D');
     case 23: // 腾讯混元
-      return <Hunyuan.Color size={iconSize} />;
+      return createGenericIcon('混', '#1890FF');
     case 31: // 零一万物
-      return <Yi.Color size={iconSize} />;
+      return createGenericIcon('零', '#52C41A');
     case 35: // MiniMax
-      return <Minimax.Color size={iconSize} />;
+      return createGenericIcon('M', '#FA541C');
     case 37: // Dify
-      return <Dify.Color size={iconSize} />;
+      return createGenericIcon('D', '#1890FF');
     case 38: // Jina
-      return <Jina size={iconSize} />;
+      return createGenericIcon('J', '#722ED1');
     case 40: // SiliconCloud
-      return <SiliconCloud.Color size={iconSize} />;
+      return createGenericIcon('SC', '#13C2C2');
     case 42: // Mistral AI
-      return <Mistral.Color size={iconSize} />;
+      return createGenericIcon('Mi', '#FA8C16');
     case 45: // 字节火山方舟、豆包通用
-      return <Doubao.Color size={iconSize} />;
+      return createGenericIcon('豆', '#1890FF');
     case 48: // xAI
-      return <XAI size={iconSize} />;
+      return createGenericIcon('xAI', '#000000');
     case 49: // Coze
-      return <Coze size={iconSize} />;
+      return createGenericIcon('Co', '#1890FF');
     case 50: // 可灵 Kling
-      return <Kling.Color size={iconSize} />;
+      return createGenericIcon('灵', '#722ED1');
     case 51: // 即梦 Jimeng
-      return <Jimeng.Color size={iconSize} />;
+      return createGenericIcon('即', '#FF6B6B');
     case 8: // 自定义渠道
     case 22: // 知识库：FastGPT
-      return <FastGPT.Color size={iconSize} />;
+      return createGenericIcon('F', '#1890FF');
     case 21: // 知识库：AI Proxy
+      return createGenericIcon('AI', '#52C41A');
     case 44: // 嵌入模型：MokaAI M3E
+      return createGenericIcon('M3E', '#FA541C');
     default:
-      return null; // 未知类型或自定义渠道不显示图标
+      return createGenericIcon('?', '#666'); // 默认未知图标
   }
 }
 

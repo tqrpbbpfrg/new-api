@@ -282,9 +282,9 @@ export default function SettingsSidebarModulesUser() {
     {
       key: 'console',
       title: t('控制台区域'),
-      description: t('数据与任务、操练场等功能'),
+      description: t('工作台、操练场、令牌管理、使用日志'),
       modules: [
-        { key: 'detail', title: t('数据看板'), description: t('系统数据统计') },
+        { key: 'control', title: t('工作台'), description: t('系统数据统计') },
         { key: 'playground', title: t('操练场'), description: t('AI模型测试环境') },
         { key: 'token', title: t('令牌管理'), description: t('API令牌管理') },
         { key: 'log', title: t('使用日志'), description: t('API使用记录') },
@@ -295,23 +295,26 @@ export default function SettingsSidebarModulesUser() {
     {
       key: 'personal',
       title: t('个人中心区域'),
-      description: t('信息中心与个人偏好'),
+      description: t('信息中心、娱乐中心、钱包管理、个人设置'),
       modules: [
         { key: 'info', title: t('信息中心'), description: t('系统消息与通知') },
+        { key: 'entertainment', title: t('娱乐中心'), description: t('签到与娱乐功能') },
         { key: 'topup', title: t('钱包管理'), description: t('余额充值管理') },
         { key: 'personal', title: t('个人设置'), description: t('个人信息设置') },
       ],
     },
     {
       key: 'admin',
-      title: t('管理员区域'),
-      description: t('系统管理功能'),
+      title: t('管理中心区域'),
+      description: t('渠道管理、模型管理、兑换码、抽奖设置、用户管理、邮件中心、系统管理'),
       modules: [
         { key: 'channel', title: t('渠道管理'), description: t('API渠道配置') },
         { key: 'models', title: t('模型管理'), description: t('AI模型配置') },
-        { key: 'redemption', title: t('兑换码管理'), description: t('兑换码生成管理') },
+        { key: 'redemption', title: t('兑换码'), description: t('兑换码和礼品码管理') },
+        { key: 'lottery-prize', title: t('抽奖设置'), description: t('抽奖奖品和抽奖券配置') },
         { key: 'user', title: t('用户管理'), description: t('用户账户管理') },
-        { key: 'setting', title: t('系统设置'), description: t('系统参数配置') },
+        { key: 'admin-mail', title: t('邮件中心'), description: t('邮件发送管理') },
+        { key: 'setting', title: t('系统管理'), description: t('系统参数配置') },
       ],
     },
   ]

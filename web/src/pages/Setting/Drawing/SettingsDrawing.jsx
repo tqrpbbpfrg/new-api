@@ -17,16 +17,16 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useEffect, useState, useRef } from 'react';
 import { Button, Col, Form, Row, Spin, Tag } from '@douyinfe/semi-ui';
+import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
-  compareObjects,
   API,
+  compareObjects,
   showError,
   showSuccess,
   showWarning,
 } from '../../../helpers';
-import { useTranslation } from 'react-i18next';
 
 export default function SettingsDrawing(props) {
   const { t } = useTranslation();
@@ -68,6 +68,52 @@ export default function SettingsDrawing(props) {
         }
         showSuccess(t('保存成功'));
         props.refresh();
+        
+        // 同步绘图相关开关到本地存储
+        const drawingSwitches = [
+          'DrawingEnabled',
+          'MjNotifyEnabled',
+          'MjAccountFilterEnabled',
+          'MjModeClearEnabled',
+          'MjForwardUrlEnabled',
+          'MjActionCheckSuccessEnabled'
+        ];
+        
+        const hasDrawingUpdates = updateArray.some(i => drawingSwitches.includes(i.key));
+        if(hasDrawingUpdates){
+          try { 
+            // 获取当前缓存
+            const cache = localStorage.getItem('options_cache');
+            let options = {};
+            if(cache) {
+              options = JSON.parse(cache);
+            }
+            
+            // 更新所有变更的绘图开关
+            drawingSwitches.forEach(key => {
+              if(key in inputs) {
+                localStorage.setItem(key, String(inputs[key]));
+                options[key] = inputs[key];
+              }
+            });
+            
+            // 特殊处理：MjNotifyEnabled 还需要存储到 mj_notify_enabled 键
+            if('MjNotifyEnabled' in inputs) {
+              localStorage.setItem('mj_notify_enabled', String(inputs.MjNotifyEnabled));
+            }
+            
+            // 特殊处理：DrawingEnabled 还需要存储到 enable_drawing 键
+            if('DrawingEnabled' in inputs) {
+              localStorage.setItem('enable_drawing', String(inputs.DrawingEnabled));
+            }
+            
+            // 更新options_cache
+            localStorage.setItem('options_cache', JSON.stringify(options));
+            
+          } catch(e){
+            console.warn('Failed to sync drawing switches to localStorage:', e);
+          }
+        }
       })
       .catch(() => {
         showError(t('保存失败，请重试'));
@@ -87,7 +133,6 @@ export default function SettingsDrawing(props) {
     setInputs(currentInputs);
     setInputsRow(structuredClone(currentInputs));
     refForm.current.setValues(currentInputs);
-    localStorage.setItem('mj_notify_enabled', String(inputs.MjNotifyEnabled));
   }, [props.options]);
 
   return (

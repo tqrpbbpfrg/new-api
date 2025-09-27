@@ -163,19 +163,27 @@ const SiderBar = ({ onNavigate = () => {} }) => {
     );
   };
 
-  const workspaceItems = useMemo(() => {
+  const consoleItems = useMemo(() => {
     const items = [
       { text: t('工作台'), itemKey: 'control', to: '/control' },
       { text: t('操练场'), itemKey: 'playground', to: '/console/playground' },
       { text: t('令牌管理'), itemKey: 'token', to: '/console/token' },
       { text: t('使用日志'), itemKey: 'log', to: '/console/log' },
     ];
-    return items.filter((item) => isModuleVisible('console', item.itemKey));
+    return items.filter((item) => {
+      const configVisible = isModuleVisible('console', item.itemKey);
+      // 为工作台提供回退逻辑，确保即使配置中没有也能显示
+      const isControlItem = item.itemKey === 'control';
+      if (isControlItem && configVisible === undefined) {
+        return true;
+      }
+      return configVisible;
+    });
   }, [t, isModuleVisible]);
 
   const { total:infoUnread } = useUnread() || { total:0 };
 
-  const financeItems = useMemo(() => {
+  const personalItems = useMemo(() => {
     const items = [
       {
         text: (
@@ -207,29 +215,23 @@ const SiderBar = ({ onNavigate = () => {} }) => {
 
     const filteredItems = items.filter((item) => {
       const configVisible = isModuleVisible('personal', item.itemKey);
+      // 为新添加的娱乐中心提供回退逻辑
+      const isNewItem = ['entertainment'].includes(item.itemKey);
+      if (isNewItem && configVisible === undefined) {
+        return true;
+      }
       return configVisible;
     });
     return filteredItems;
   }, [t, isModuleVisible, infoUnread]);
 
   const adminItems = useMemo(() => {
-    const items = [
+    // 定义必须显示的核心管理员菜单项
+    const coreItems = [
       {
         text: t('渠道管理'),
         itemKey: 'channel',
         to: '/console/channel',
-        className: isAdmin() ? '' : 'tableHiddle',
-      },
-      {
-        text: t('抽奖奖品'),
-        itemKey: 'lottery-prize',
-        to: '/console/entertainment/admin',
-        className: isAdmin() ? '' : 'tableHiddle',
-      },
-      {
-        text: t('抽奖券兑换码'),
-        itemKey: 'lottery-codes',
-        to: '/console/entertainment/admin/codes',
         className: isAdmin() ? '' : 'tableHiddle',
       },
       {
@@ -239,7 +241,7 @@ const SiderBar = ({ onNavigate = () => {} }) => {
         className: isAdmin() ? '' : 'tableHiddle',
       },
       {
-        text: t('兑换码管理'),
+        text: t('兑换码'),
         itemKey: 'redemption',
         to: '/console/redemption',
         className: isAdmin() ? '' : 'tableHiddle',
@@ -251,22 +253,40 @@ const SiderBar = ({ onNavigate = () => {} }) => {
         className: isAdmin() ? '' : 'tableHiddle',
       },
       {
-        text: t('邮件'),
-        itemKey: 'admin-mail',
-        to: '/console/admin/mail',
-        className: isAdmin() ? '' : 'tableHiddle',
-      },
-      {
-        text: t('系统设置'),
+        text: t('系统管理'),
         itemKey: 'setting',
         to: '/console/setting',
         className: isRoot() ? '' : 'tableHiddle',
       },
     ];
+    
+    // 新增的管理员菜单项（确保显示）
+    const newItems = [
+      {
+        text: t('抽奖设置'),
+        itemKey: 'lottery-prize',
+        to: '/console/entertainment/admin',
+        className: isAdmin() ? '' : 'tableHiddle',
+      },
+      {
+        text: t('邮件中心'),
+        itemKey: 'admin-mail',
+        to: '/console/admin/mail',
+        className: isAdmin() ? '' : 'tableHiddle',
+      },
+    ];
+    
+    const items = [...coreItems, ...newItems];
 
-    // 根据配置过滤项目
+    // 根据配置过滤项目，但确保新的菜单项有回退机制
     const filteredItems = items.filter((item) => {
       const configVisible = isModuleVisible('admin', item.itemKey);
+      // 为新添加的菜单项提供回退逻辑，确保它们能显示
+      const isNewItem = ['lottery-prize', 'admin-mail'].includes(item.itemKey);
+      // 如果是新项目且配置中没有明确禁用，则显示
+      if (isNewItem && configVisible === undefined) {
+        return true;
+      }
       return configVisible;
     });
 
@@ -528,7 +548,7 @@ const SiderBar = ({ onNavigate = () => {} }) => {
                 {!collapsed && (
                   <div className='sidebar-group-label'>{t('控制台')}</div>
                 )}
-                {workspaceItems.map((item) => renderNavItem(item))}
+                {consoleItems.map((item) => renderNavItem(item))}
                 {renderWindows()}
               </div>
             </>
@@ -542,7 +562,7 @@ const SiderBar = ({ onNavigate = () => {} }) => {
                 {!collapsed && (
                   <div className='sidebar-group-label'>{t('个人中心')}</div>
                 )}
-                {financeItems.map((item) => renderNavItem(item))}
+                {personalItems.map((item) => renderNavItem(item))}
               </div>
             </>
           )}
@@ -553,7 +573,7 @@ const SiderBar = ({ onNavigate = () => {} }) => {
               <Divider className='sidebar-divider' />
               <div>
                 {!collapsed && (
-                  <div className='sidebar-group-label'>{t('管理员')}</div>
+                  <div className='sidebar-group-label'>{t('管理中心')}</div>
                 )}
                 {adminItems.map((item) => renderNavItem(item))}
               </div>

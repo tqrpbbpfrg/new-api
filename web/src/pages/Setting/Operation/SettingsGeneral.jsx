@@ -97,8 +97,46 @@ export default function GeneralSettings(props) {
             window.dispatchEvent(new Event('ui-option-update'));
           } catch{}
         }
-        if(updateArray.some(i=>i.key==='CheckinEnabled')){
-          try { localStorage.setItem('CheckinEnabled', String(inputs.CheckinEnabled)); } catch{}
+        // 需要立即同步到本地存储的关键开关
+        const criticalSwitches = [
+          'CheckinEnabled',
+          'DisplayInCurrencyEnabled', 
+          'DisplayTokenStatEnabled',
+          'DefaultCollapseSidebar',
+          'DemoSiteEnabled',
+          'SelfUseModeEnabled'
+        ];
+        
+        // 检查是否有关键开关更新
+        const hasCriticalUpdates = updateArray.some(i => criticalSwitches.includes(i.key));
+        if(hasCriticalUpdates){
+          try { 
+            // 获取当前缓存
+            const cache = localStorage.getItem('options_cache');
+            let options = {};
+            if(cache) {
+              options = JSON.parse(cache);
+            }
+            
+            // 更新所有变更的关键开关
+            criticalSwitches.forEach(key => {
+              if(key in inputs) {
+                localStorage.setItem(key, String(inputs[key]));
+                options[key] = inputs[key];
+              }
+            });
+            
+            // 更新options_cache
+            localStorage.setItem('options_cache', JSON.stringify(options));
+            
+            // 特殊处理：DefaultCollapseSidebar 需要更新到 default_collapse_sidebar 键
+            if('DefaultCollapseSidebar' in inputs) {
+              localStorage.setItem('default_collapse_sidebar', String(inputs.DefaultCollapseSidebar));
+            }
+            
+          } catch(e){
+            console.warn('Failed to sync critical switches to localStorage:', e);
+          }
         }
       })
       .catch(() => {
