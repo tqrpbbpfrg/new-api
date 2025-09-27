@@ -125,16 +125,16 @@ const PageLayout = () => {
           padding: 0,
           height: 'auto',
           lineHeight: 'normal',
-          position: 'fixed',
           width: '100%',
-          top: 0,
           zIndex: 100,
         }}
       >
-        <HeaderBar
-          onMobileMenuToggle={() => setDrawerOpen((prev) => !prev)}
-          drawerOpen={drawerOpen}
-        />
+        <div style={{position:'fixed',top:0,left:0,right:0,zIndex:100}}>
+          <HeaderBar
+            onMobileMenuToggle={() => setDrawerOpen((prev) => !prev)}
+            drawerOpen={drawerOpen}
+          />
+        </div>
       </Header>
       <Layout
         style={{
@@ -180,8 +180,10 @@ const PageLayout = () => {
               flex: '1 0 auto',
               overflowY: isMobile ? 'visible' : 'hidden',
               WebkitOverflowScrolling: 'touch',
-              padding: shouldInnerPadding ? (isMobile ? '5px' : '24px') : '0',
+              padding: `${shouldInnerPadding ? (isMobile ? '5px' : '24px') : '0'}`,
+              paddingTop: '72px',
               position: 'relative',
+              boxSizing: 'border-box',
             }}
           >
             <App />
