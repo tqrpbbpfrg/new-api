@@ -497,11 +497,10 @@ code {
 
 /* ============== Header Responsive Tweaks ============== */
 .header-bar-root {
-  backdrop-filter: blur(var(--glass-blur-md));
-  background: var(--glass-bg);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--elevation-md);
-  border: 1px solid var(--glass-border-color);
+  /* 移除可能影响布局的样式 */
+  position: sticky;
+  top: 0;
+  z-index: 1000;
   transition: all var(--motion-duration-base) var(--motion-ease-standard);
 }
 @media (prefers-color-scheme: dark) {

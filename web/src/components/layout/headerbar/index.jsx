@@ -71,7 +71,7 @@ const HeaderBar = ({ onMobileMenuToggle, drawerOpen }) => {
       }
     >
       <div className='w-full px-2 md:px-4'>
-        <div className='flex items-center h-14 md:h-[56px] gap-3'>
+        <div className='flex items-center h-16 gap-3'>
           {/* 左侧：菜单按钮 + Logo */}
           <div className='flex items-center gap-2 flex-shrink-0'>
             <MobileMenuButton
@@ -96,6 +96,7 @@ const HeaderBar = ({ onMobileMenuToggle, drawerOpen }) => {
           </div>
 
           {/* 中间：主导航 */}
+          <div className='flex-1 flex justify-center'>
             <Navigation
               mainNavLinks={mainNavLinks}
               isMobile={isMobile}
@@ -103,6 +104,7 @@ const HeaderBar = ({ onMobileMenuToggle, drawerOpen }) => {
               userState={userState}
               pricingRequireAuth={pricingRequireAuth}
             />
+          </div>
 
           {/* 右侧：功能按钮组 */}
           <div className='ml-auto flex items-center'>
