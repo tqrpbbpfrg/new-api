@@ -223,7 +223,8 @@ const PageLayout = () => {
               WebkitOverflowScrolling: 'touch',
               // 让内部 padding 与 header 高度叠加，不再额外留一大片空白
               padding: shouldInnerPadding ? (isMobile ? '5px' : '24px') : '0',
-              paddingTop: headerHeight + (shouldInnerPadding ? (isMobile ? 4 : 12) : 0),
+              // 仅非 console 路由在 Content 层做顶内边距；console 下的各页面已经使用 .mt-header 语义类（或被覆盖）避免双倍空白
+              paddingTop: !isConsoleRoute ? headerHeight + (shouldInnerPadding ? (isMobile ? 4 : 12) : 0) : 0,
               position: 'relative',
               boxSizing: 'border-box',
               transition: 'padding-top .15s ease'
