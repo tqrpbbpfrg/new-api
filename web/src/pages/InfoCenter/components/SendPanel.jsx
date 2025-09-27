@@ -16,7 +16,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { IconEyeClosed, IconEyeOpened, IconMarkdown, IconReply, IconSend } from '@douyinfe/semi-icons';
+import { IconEyeClosed, IconEyeOpened, IconFile, IconReply, IconSend } from '@douyinfe/semi-icons';
 import { AutoComplete, Button, Form, Select, Switch, Tooltip, Typography } from '@douyinfe/semi-ui';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -66,7 +66,7 @@ export default function SendPanel({ replyTo, onSent }){
     <div className='send-panel-head'>
       <Typography.Text className='title'>{ isReply? t('回复消息') : t('发送消息')}</Typography.Text>
       <div className='actions'>
-        <Tooltip content={markdown? t('切换到纯文本'): t('切换到 Markdown')}><Button size='small' theme='borderless' icon={<IconMarkdown />} onClick={()=>setMarkdown(m=>!m)} /></Tooltip>
+  <Tooltip content={markdown? t('切换到纯文本'): t('切换到 Markdown')}><Button size='small' theme='borderless' icon={<IconFile />} onClick={()=>setMarkdown(m=>!m)} /></Tooltip>
         <Tooltip content={t('清空')}><Button size='small' theme='borderless' onClick={()=> formApi && formApi.reset()} >⌫</Button></Tooltip>
       </div>
     </div>
