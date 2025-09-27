@@ -18,7 +18,7 @@ For commercial licensing, please contact support@quantumnous.com
 */
 
 import { Layout } from '@douyinfe/semi-ui';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
@@ -111,6 +111,21 @@ const PageLayout = () => {
     }
   }, [i18n]);
 
+  // 动态测量 Header 实际高度，避免硬编码 paddingTop 造成大面积留白
+  const headerWrapRef = useRef(null);
+  const [headerHeight, setHeaderHeight] = useState(60);
+  useLayoutEffect(() => {
+    const measure = () => {
+      if (headerWrapRef.current) {
+        const h = headerWrapRef.current.getBoundingClientRect().height;
+        if (h && Math.abs(h - headerHeight) > 2) setHeaderHeight(h);
+      }
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [headerHeight]);
+
   return (
     <Layout
       style={{
@@ -129,7 +144,7 @@ const PageLayout = () => {
           zIndex: 100,
         }}
       >
-        <div style={{position:'fixed',top:0,left:0,right:0,zIndex:100}}>
+        <div ref={headerWrapRef} style={{position:'fixed',top:0,left:0,right:0,zIndex:100}}>
           <HeaderBar
             onMobileMenuToggle={() => setDrawerOpen((prev) => !prev)}
             drawerOpen={drawerOpen}
@@ -180,10 +195,12 @@ const PageLayout = () => {
               flex: '1 0 auto',
               overflowY: isMobile ? 'visible' : 'hidden',
               WebkitOverflowScrolling: 'touch',
-              padding: `${shouldInnerPadding ? (isMobile ? '5px' : '24px') : '0'}`,
-              paddingTop: '72px',
+              // 让内部 padding 与 header 高度叠加，不再额外留一大片空白
+              padding: shouldInnerPadding ? (isMobile ? '5px' : '24px') : '0',
+              paddingTop: headerHeight + (shouldInnerPadding ? (isMobile ? 5 : 16) : 0),
               position: 'relative',
               boxSizing: 'border-box',
+              transition: 'padding-top .15s ease'
             }}
           >
             <App />
