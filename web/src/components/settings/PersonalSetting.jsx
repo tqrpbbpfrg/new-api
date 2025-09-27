@@ -21,12 +21,13 @@ import { Modal } from '@douyinfe/semi-ui';
 import { useContext, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import { ConsoleSection } from '../layout/ConsoleSection';
 import { UserContext } from '../../context/User';
 import { API, copy, showError, showInfo, showSuccess } from '../../helpers';
 
 // 导入子组件
 import AccountManagement from './personal/cards/AccountManagement';
-import NotificationSettings from './personal/cards/NotificationSettings';
+import NotificationSettings from './personal/cards/NotificationSettings_new';
 import UserInfoHeader from './personal/components/UserInfoHeader';
 import AccountDeleteModal from './personal/modals/AccountDeleteModal';
 import ChangePasswordModal from './personal/modals/ChangePasswordModal';
@@ -321,35 +322,39 @@ const PersonalSetting = () => {
   };
 
   return (
-  <div>
-      <div className='flex justify-center'>
-        <div className='w-full max-w-7xl mx-auto px-2'>
+    <>
+      <ConsoleSection
+        title={t('个人设置')}
+        description={t('管理您的账户信息、安全设置和个人偏好')}
+      >
+        <div className="space-y-6">
           {/* 顶部用户信息区域 */}
           <UserInfoHeader t={t} userState={userState} />
 
-          {/* 账户管理和其他设置 */}
-          <div className='grid grid-cols-1 xl:grid-cols-2 items-start gap-4 md:gap-6 mt-4 md:mt-6'>
+          {/* 设置区域 - 使用网格布局 */}
+          <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
             {/* 左侧：账户管理设置 */}
-            <AccountManagement
-              t={t}
-              userState={userState}
-              status={status}
-              systemToken={systemToken}
-              setShowEmailBindModal={setShowEmailBindModal}
-              setShowWeChatBindModal={setShowWeChatBindModal}
-              generateAccessToken={generateAccessToken}
-              handleSystemTokenClick={handleSystemTokenClick}
-              setShowChangePasswordModal={setShowChangePasswordModal}
-              setShowAccountDeleteModal={setShowAccountDeleteModal}
-            />
+            <div className="space-y-6">
+              <AccountManagement
+                t={t}
+                userState={userState}
+                status={status}
+                systemToken={systemToken}
+                setShowEmailBindModal={setShowEmailBindModal}
+                setShowWeChatBindModal={setShowWeChatBindModal}
+                generateAccessToken={generateAccessToken}
+                handleSystemTokenClick={handleSystemTokenClick}
+                setShowChangePasswordModal={setShowChangePasswordModal}
+                setShowAccountDeleteModal={setShowAccountDeleteModal}
+              />
 
-              {/* UI 偏好设置（扁平化外观） */}
-              <div className='mt-4 bg-white dark:bg-zinc-800 rounded-lg p-4 border border-semi-color-border shadow-none'>
-                <h3 className='text-base font-semibold mb-2'>{t('界面外观')}</h3>
+              {/* UI 偏好设置 */}
+              <div className='bg-white dark:bg-zinc-800 rounded-lg p-6 border border-semi-color-border shadow-sm hover:shadow-md transition-shadow'>
+                <h3 className='text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100'>{t('界面外观')}</h3>
                 <div className='flex items-center justify-between gap-4'>
                   <div className='flex-1'>
-                    <div className='font-medium'>{t('移除界面阴影')}</div>
-                    <div className='text-xs text-semi-color-text-2 mt-1'>
+                    <div className='font-medium text-gray-800 dark:text-gray-200'>{t('移除界面阴影')}</div>
+                    <div className='text-sm text-gray-600 dark:text-gray-400 mt-1'>
                       {t('启用后将移除卡片、浮层等的阴影，界面更加扁平。')}
                     </div>
                   </div>
@@ -361,26 +366,35 @@ const PersonalSetting = () => {
                       onChange={toggleNoShadow}
                     />
                     <span
-                      className={`relative inline-block w-11 h-6 transition rounded-full ${noShadow ? 'bg-green-500' : 'bg-gray-300 dark:bg-zinc-600'}`}
+                      className={`relative inline-block w-12 h-6 transition-colors duration-200 rounded-full ${
+                        noShadow 
+                          ? 'bg-blue-500 hover:bg-blue-600' 
+                          : 'bg-gray-300 dark:bg-zinc-600 hover:bg-gray-400 dark:hover:bg-zinc-500'
+                      }`}
                     >
                       <span
-                        className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transform transition ${noShadow ? 'translate-x-5' : ''}`}
+                        className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transform transition-transform duration-200 ${
+                          noShadow ? 'translate-x-6' : ''
+                        }`}
                       />
                     </span>
                   </label>
                 </div>
               </div>
+            </div>
 
-            {/* 右侧：其他设置 */}
-            <NotificationSettings
-              t={t}
-              notificationSettings={notificationSettings}
-              handleNotificationSettingChange={handleNotificationSettingChange}
-              saveNotificationSettings={saveNotificationSettings}
-            />
+            {/* 右侧：通知设置 */}
+            <div>
+              <NotificationSettings
+                t={t}
+                notificationSettings={notificationSettings}
+                handleNotificationSettingChange={handleNotificationSettingChange}
+                saveNotificationSettings={saveNotificationSettings}
+              />
+            </div>
           </div>
         </div>
-      </div>
+      </ConsoleSection>
 
       {/* 模态框组件 */}
       <EmailBindModal
@@ -433,7 +447,7 @@ const PersonalSetting = () => {
         turnstileSiteKey={turnstileSiteKey}
         setTurnstileToken={setTurnstileToken}
       />
-    </div>
+    </>
   );
 };
 
