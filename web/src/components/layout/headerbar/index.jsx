@@ -54,20 +54,26 @@ const HeaderBar = ({ onMobileMenuToggle, drawerOpen }) => {
     t,
   } = useHeaderBar({ onMobileMenuToggle, drawerOpen });
 
-  // notifications modal removed; InfoCenter (/console/info) now hosts announcements & messages
-  const unreadCount = 0; // placeholder; could integrate global unread counters if needed
-
   const { mainNavLinks } = useNavigation(t, docsLink, headerNavModules);
-
   const blurState = useBlurGlass();
-  return (
-  <div className={`text-semi-color-text-0 transition-colors duration-200 border-b border-solid border-[rgba(0,0,0,0.06)] shadow-sm header-bar-root glass-lite ${(blurState.enabled && (blurState.area==='both'||blurState.area==='header'))? '':'bg-white dark:bg-zinc-900'}`} style={(blurState.enabled && (blurState.area==='both'||blurState.area==='header'))?{backdropFilter:`blur(${Math.min(8,Math.max(2,blurState.strength))}px)`}:{}}>
-      {/* NoticeModal removed: announcements/messages moved to 信息处 (InfoCenter) */}
 
+  return (
+    <div
+      className={`text-semi-color-text-0 transition-colors duration-200 border-b border-solid border-[rgba(0,0,0,0.06)] header-bar-root glass-lite ${
+        blurState.enabled && (blurState.area === 'both' || blurState.area === 'header')
+          ? ''
+          : 'bg-white dark:bg-zinc-900'
+      }`}
+      style={
+        blurState.enabled && (blurState.area === 'both' || blurState.area === 'header')
+          ? { backdropFilter: `blur(${Math.min(8, Math.max(2, blurState.strength))}px)` }
+          : {}
+      }
+    >
       <div className='w-full px-2 md:px-4'>
-        {/* 压缩高度: mobile 48px, desktop 52px */}
-        <div className='flex items-center justify-between h-12 md:h-[52px]'>
-          <div className='flex items-center'>
+        <div className='flex items-center h-14 md:h-[56px] gap-3'>
+          {/* 左侧：菜单按钮 + Logo */}
+          <div className='flex items-center gap-2 flex-shrink-0'>
             <MobileMenuButton
               isConsoleRoute={isConsoleRoute}
               isMobile={isMobile}
@@ -76,7 +82,6 @@ const HeaderBar = ({ onMobileMenuToggle, drawerOpen }) => {
               onToggle={handleMobileMenuToggle}
               t={t}
             />
-
             <HeaderLogo
               isMobile={isMobile}
               isConsoleRoute={isConsoleRoute}
@@ -90,32 +95,36 @@ const HeaderBar = ({ onMobileMenuToggle, drawerOpen }) => {
             />
           </div>
 
-          <Navigation
-            mainNavLinks={mainNavLinks}
-            isMobile={isMobile}
-            isLoading={isLoading}
-            userState={userState}
-            pricingRequireAuth={pricingRequireAuth}
-          />
+          {/* 中间：主导航 */}
+            <Navigation
+              mainNavLinks={mainNavLinks}
+              isMobile={isMobile}
+              isLoading={isLoading}
+              userState={userState}
+              pricingRequireAuth={pricingRequireAuth}
+            />
 
-          <ErrorBoundary>
-            <SafeActionButtonsWrapper>
-              <ActionButtons
-                isNewYear={isNewYear}
-                theme={theme}
-                onThemeToggle={handleThemeToggle}
-                currentLang={currentLang}
-                onLanguageChange={handleLanguageChange}
-                userState={userState}
-                isLoading={isLoading}
-                isMobile={isMobile}
-                isSelfUseMode={isSelfUseMode}
-                logout={logout}
-                navigate={navigate}
-                t={t}
-              />
-            </SafeActionButtonsWrapper>
-          </ErrorBoundary>
+          {/* 右侧：功能按钮组 */}
+          <div className='ml-auto flex items-center'>
+            <ErrorBoundary>
+              <SafeActionButtonsWrapper>
+                <ActionButtons
+                  isNewYear={isNewYear}
+                  theme={theme}
+                  onThemeToggle={handleThemeToggle}
+                  currentLang={currentLang}
+                  onLanguageChange={handleLanguageChange}
+                  userState={userState}
+                  isLoading={isLoading}
+                  isMobile={isMobile}
+                  isSelfUseMode={isSelfUseMode}
+                  logout={logout}
+                  navigate={navigate}
+                  t={t}
+                />
+              </SafeActionButtonsWrapper>
+            </ErrorBoundary>
+          </div>
         </div>
       </div>
     </div>
