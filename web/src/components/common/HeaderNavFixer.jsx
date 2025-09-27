@@ -58,7 +58,7 @@ const HeaderNavFixer = () => {
         }
 
         if (needsFix) {
-          // 设置默认配置
+          // 设置默认配置 - 与useHeaderBar.js中的defaultConfig保持一致
           const defaultConfig = {
             home: true,
             console: true,
