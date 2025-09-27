@@ -27,11 +27,11 @@ import { useOptions } from '../../context/Options';
 import { StatusContext } from '../../context/Status';
 import { UserContext } from '../../context/User';
 import {
-  API,
-  getLogo,
-  getSystemName,
-  setStatusData,
-  showError,
+    API,
+    getLogo,
+    getSystemName,
+    setStatusData,
+    showError,
 } from '../../helpers';
 import { useIsMobile } from '../../hooks/common/useIsMobile';
 import { useSidebarCollapsed } from '../../hooks/common/useSidebarCollapsed';

@@ -21,14 +21,12 @@ import ConsoleSection from '../../components/layout/ConsoleSection';
 import TokensTable from '../../components/table/tokens';
 
 const Token = () => (
-  <div className='px-2'>
-    <ConsoleSection
-      title='令牌管理'
-      description='创建、查看、禁用或批量操作访问令牌，控制调用权限。'
-    >
-      <TokensTable />
-    </ConsoleSection>
-  </div>
+  <ConsoleSection
+    title='令牌管理'
+    description='创建、查看、禁用或批量操作访问令牌，控制调用权限。'
+  >
+    <TokensTable />
+  </ConsoleSection>
 );
 
 export default Token;

@@ -19,17 +19,16 @@ For commercial licensing, please contact support@quantumnous.com
 
 import { IconBell, IconKey, IconLink, IconMail } from '@douyinfe/semi-icons';
 import {
-    Button,
-    Card,
-    Form,
-    Radio,
-    Switch,
-    Typography,
+  Button,
+  Card,
+  Form,
+  Radio,
+  Typography
 } from '@douyinfe/semi-ui';
 import { Bell } from 'lucide-react';
 import { useRef } from 'react';
 import {
-    renderQuotaWithPrompt,
+  renderQuotaWithPrompt,
 } from '../../../../helpers';
 
 const NotificationSettings = ({

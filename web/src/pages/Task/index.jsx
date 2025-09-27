@@ -21,14 +21,12 @@ import ConsoleSection from '../../components/layout/ConsoleSection';
 import TaskLogsTable from '../../components/table/task-logs';
 
 const Task = () => (
-  <div className='px-2'>
-    <ConsoleSection
-      title='任务日志'
-      description='追踪异步任务、视频/图像/音频处理流水。'
-    >
-      <TaskLogsTable />
-    </ConsoleSection>
-  </div>
+  <ConsoleSection
+    title='任务日志'
+    description='追踪异步任务、视频/图像/音频处理流水。'
+  >
+    <TaskLogsTable />
+  </ConsoleSection>
 );
 
 export default Task;

@@ -21,14 +21,12 @@ import ConsoleSection from '../../components/layout/ConsoleSection';
 import UsageLogsTable from '../../components/table/usage-logs';
 
 const Token = () => (
-  <div className='px-2'>
-    <ConsoleSection
-      title='使用日志'
-      description='追踪调用记录、用量、错误与耗时，支持筛选与导出。'
-    >
-      <UsageLogsTable />
-    </ConsoleSection>
-  </div>
+  <ConsoleSection
+    title='使用日志'
+    description='追踪调用记录、用量、错误与耗时，支持筛选与导出。'
+  >
+    <UsageLogsTable />
+  </ConsoleSection>
 );
 
 export default Token;

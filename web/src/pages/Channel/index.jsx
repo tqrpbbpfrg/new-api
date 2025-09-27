@@ -21,14 +21,12 @@ import ConsoleSection from '../../components/layout/ConsoleSection';
 import ChannelsTable from '../../components/table/channels';
 
 const File = () => (
-  <div className='px-2'>
-    <ConsoleSection
-      title='渠道管理'
-      description='配置与监控上游模型渠道、负载及可用性。'
-    >
-      <ChannelsTable />
-    </ConsoleSection>
-  </div>
+  <ConsoleSection
+    title='渠道管理'
+    description='配置与监控上游模型渠道、负载及可用性。'
+  >
+    <ChannelsTable />
+  </ConsoleSection>
 );
 
 export default File;

@@ -21,9 +21,9 @@ import { Modal } from '@douyinfe/semi-ui';
 import { useContext, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { ConsoleSection } from '../layout/ConsoleSection';
 import { UserContext } from '../../context/User';
 import { API, copy, showError, showInfo, showSuccess } from '../../helpers';
+import { ConsoleSection } from '../layout/ConsoleSection';
 
 // 导入子组件
 import AccountManagement from './personal/cards/AccountManagement';

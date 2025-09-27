@@ -21,14 +21,12 @@ import ConsoleSection from '../../components/layout/ConsoleSection';
 import MjLogsTable from '../../components/table/mj-logs';
 
 const Midjourney = () => (
-  <div className='px-2'>
-    <ConsoleSection
-      title='Midjourney 日志'
-      description='查看绘图任务记录、参数与状态。'
-    >
-      <MjLogsTable />
-    </ConsoleSection>
-  </div>
+  <ConsoleSection
+    title='Midjourney 日志'
+    description='查看绘图任务记录、参数与状态。'
+  >
+    <MjLogsTable />
+  </ConsoleSection>
 );
 
 export default Midjourney;

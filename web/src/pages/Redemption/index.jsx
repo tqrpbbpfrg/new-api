@@ -21,14 +21,12 @@ import ConsoleSection from '../../components/layout/ConsoleSection';
 import RedemptionsTable from '../../components/table/redemptions';
 
 const Redemption = () => (
-  <div className='px-2'>
-    <ConsoleSection
-      title='兑换码管理'
-      description='管理充值 / 促销 / 活动兑换码，监控使用情况。'
-    >
-      <RedemptionsTable />
-    </ConsoleSection>
-  </div>
+  <ConsoleSection
+    title='兑换码管理'
+    description='管理充值 / 促销 / 活动兑换码，监控使用情况。'
+  >
+    <RedemptionsTable />
+  </ConsoleSection>
 );
 
 export default Redemption;

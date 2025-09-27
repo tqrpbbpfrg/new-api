@@ -21,14 +21,12 @@ import ConsoleSection from '../../components/layout/ConsoleSection';
 import UsersTable from '../../components/table/users';
 
 const User = () => (
-  <div className='px-2'>
-    <ConsoleSection
-      title='用户管理'
-      description='查看与管理系统中的用户账号、权限与状态。'
-    >
-      <UsersTable />
-    </ConsoleSection>
-  </div>
+  <ConsoleSection
+    title='用户管理'
+    description='查看与管理系统中的用户账号、权限与状态。'
+  >
+    <UsersTable />
+  </ConsoleSection>
 );
 
 export default User;

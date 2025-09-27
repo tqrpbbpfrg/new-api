@@ -16,7 +16,7 @@
   flex: 1 1 auto;
   overflow: auto;
   -webkit-overflow-scrolling: touch;
-  padding: calc(var(--app-header-height) + 8px) var(--console-gap-lg) 32px;
+  padding: calc(var(--app-header-height) + 24px) var(--console-gap-lg) 32px;
   box-sizing: border-box;
   width: 100%;
   margin: 0 auto;
@@ -29,7 +29,7 @@ html.dark .console-main {
 }
 @media (max-width: 860px) {
   .console-main {
-    padding: calc(var(--app-header-height) + 6px) var(--console-gap) 28px;
+    padding: calc(var(--app-header-height) + 16px) var(--console-gap) 28px;
   }
 }
 .card-grid {

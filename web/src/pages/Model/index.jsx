@@ -20,14 +20,12 @@ import ConsoleSection from '../../components/layout/ConsoleSection';
 import ModelsTable from '../../components/table/models';
 
 const ModelPage = () => (
-  <div className='px-2'>
-    <ConsoleSection
-      title='模型管理'
-      description='同步平台可用模型、维护元数据与倍率策略。'
-    >
-      <ModelsTable />
-    </ConsoleSection>
-  </div>
+  <ConsoleSection
+    title='模型管理'
+    description='同步平台可用模型、维护元数据与倍率策略。'
+  >
+    <ModelsTable />
+  </ConsoleSection>
 );
 
 export default ModelPage;
