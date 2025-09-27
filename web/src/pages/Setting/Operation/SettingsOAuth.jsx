@@ -130,47 +130,48 @@ export default function OAuthSettings(props) {
           return showError(t('部分保存失败，请检查必填项')); 
         }
         showSuccess(t('保存成功'));
-        setInputsRow(structuredClone(inputs));
-        props.refresh();
         
-        // 同步OAuth认证开关到本地存储
+        // 立即更新组件状态，确保显示一致性
+        const newInputsRow = structuredClone(inputs);
+        setInputsRow(newInputsRow);
+        
+        // 同步OAuth认证开关到本地存储，解决刷新后还原问题
         const oauthSwitches = [
           'GitHubOAuthEnabled',
-          'DiscordOAuthEnabled',
+          'DiscordOAuthEnabled', 
           'TelegramOAuthEnabled',
           'LinuxDOOAuthEnabled',
           'WeChatAuthEnabled',
           'PasswordLoginEnabled',
-          'PasswordRegisterEnabled',
+          'PasswordRegisterEnabled', 
           'EmailVerificationEnabled',
           'TurnstileCheckEnabled',
           'RegisterEnabled'
         ];
         
-        const hasOAuthUpdates = updateArray.some(i => oauthSwitches.includes(i.key));
-        if(hasOAuthUpdates){
-          try { 
-            // 获取当前缓存
-            const cache = localStorage.getItem('options_cache');
-            let options = {};
-            if(cache) {
-              options = JSON.parse(cache);
-            }
-            
-            // 更新所有变更的OAuth开关
-            oauthSwitches.forEach(key => {
-              if(key in inputs) {
-                localStorage.setItem(key, String(inputs[key]));
-                options[key] = inputs[key];
-              }
-            });
-            
-            // 更新options_cache
-            localStorage.setItem('options_cache', JSON.stringify(options));
-            
-          } catch(e){
-            console.warn('Failed to sync OAuth switches to localStorage:', e);
-          }
+        try { 
+          // 获取当前缓存
+          const cache = localStorage.getItem('options_cache');
+          let options = cache ? JSON.parse(cache) : {};
+          
+          // 更新所有变更的配置项
+          updateArray.forEach(item => {
+            const value = typeof inputs[item.key] === 'boolean' ? inputs[item.key] : inputs[item.key];
+            localStorage.setItem(item.key, String(value));
+            options[item.key] = value;
+          });
+          
+          // 更新options_cache
+          localStorage.setItem('options_cache', JSON.stringify(options));
+          
+          console.log('OAuth配置已同步至本地缓存');
+        } catch(e){
+          console.warn('Failed to sync OAuth settings to localStorage:', e);
+        }
+        
+        // 刷新父组件状态
+        if (props.refresh) {
+          props.refresh();
         }
       })
       .catch((e) => {

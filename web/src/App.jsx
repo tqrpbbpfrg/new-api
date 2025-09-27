@@ -33,7 +33,7 @@ import OAuth2Callback from './components/auth/OAuth2Callback';
 import PasswordResetConfirm from './components/auth/PasswordResetConfirm';
 import PasswordResetForm from './components/auth/PasswordResetForm';
 import SetupCheck from './components/layout/SetupCheck';
-import PersonalSetting from './components/settings/PersonalSetting';
+import PersonalSettingNew from './components/settings/PersonalSettingNew';
 import AdminMail from './pages/AdminMail';
 import Channel from './pages/Channel';
 import Chat from './pages/Chat';
@@ -54,6 +54,7 @@ import Setup from './pages/Setup';
 import Task from './pages/Task';
 import Token from './pages/Token';
 import TopUp from './pages/TopUp';
+import TopUpNew from './components/topup/TopUpNew';
 import Workspace from './pages/Workspace';
 
 const Home = lazy(() => import('./pages/Home'));
@@ -237,7 +238,7 @@ function App() {
           element={
             <PrivateRoute>
               <Suspense fallback={<Loading></Loading>} key={location.pathname}>
-                <PersonalSetting />
+                <PersonalSettingNew />
               </Suspense>
             </PrivateRoute>
           }
@@ -247,7 +248,7 @@ function App() {
           element={
             <PrivateRoute>
               <Suspense fallback={<Loading></Loading>} key={location.pathname}>
-                <TopUp />
+                <TopUpNew />
               </Suspense>
             </PrivateRoute>
           }
