@@ -232,7 +232,7 @@ const PageLayout = () => {
               </div>
             ) : (
               <div style={{
-                paddingTop: headerHeight + (shouldInnerPadding ? (isMobile ? 8 : 16) : 0),
+                paddingTop: shouldInnerPadding ? (headerHeight + (isMobile ? 8 : 16)) : headerHeight,
                 padding: shouldInnerPadding ? (isMobile ? '8px' : '24px') : '0',
                 boxSizing: 'border-box',
                 minHeight: `calc(100vh - ${headerHeight}px)`

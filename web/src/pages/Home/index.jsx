@@ -106,7 +106,9 @@ const Home = () => {
       }
     } else {
       showError(message);
-      setHomePageContent('加载首页内容失败...');
+      // 失败时设置为空字符串以显示默认内容
+      setHomePageContent('');
+      localStorage.removeItem('home_page_content');
     }
     setHomePageContentLoaded(true);
   };
