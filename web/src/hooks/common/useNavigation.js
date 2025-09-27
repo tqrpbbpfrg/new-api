@@ -21,7 +21,7 @@ import { useMemo } from 'react';
 
 export const useNavigation = (t, docsLink, headerNavModules) => {
   const mainNavLinks = useMemo(() => {
-    // 默认配置，如果没有传入配置则显示所有模块
+    // 默认配置，确保在没有传入配置或配置为空时也能正常显示
     const defaultModules = {
       home: true,
       console: true,
@@ -30,8 +30,10 @@ export const useNavigation = (t, docsLink, headerNavModules) => {
       about: true,
     };
 
-    // 使用传入的配置或默认配置
-    const modules = headerNavModules || defaultModules;
+    // 使用传入的配置或默认配置，确保不为null/undefined
+    const modules = headerNavModules && typeof headerNavModules === 'object' 
+      ? headerNavModules 
+      : defaultModules;
 
     const allLinks = [
       {

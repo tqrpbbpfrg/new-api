@@ -56,6 +56,18 @@ export const useHeaderBar = ({ onMobileMenuToggle, drawerOpen }) => {
 
   // 使用useMemo确保headerNavModules正确响应statusState变化
   const headerNavModules = useMemo(() => {
+    // 默认配置，确保在没有后端配置时也能正常显示
+    const defaultConfig = {
+      home: true,
+      console: true,
+      pricing: {
+        enabled: true,
+        requireAuth: false,
+      },
+      docs: true,
+      about: true,
+    };
+
     if (headerNavModulesConfig) {
       try {
         const modules = JSON.parse(headerNavModulesConfig);
@@ -68,13 +80,14 @@ export const useHeaderBar = ({ onMobileMenuToggle, drawerOpen }) => {
           };
         }
 
-        return modules;
+        // 合并默认配置和用户配置，确保所有必要字段都存在
+        return { ...defaultConfig, ...modules };
       } catch (error) {
         console.error('解析顶栏模块配置失败:', error);
-        return null;
+        return defaultConfig; // 返回默认配置而不是null
       }
     }
-    return null;
+    return defaultConfig; // 返回默认配置而不是null
   }, [headerNavModulesConfig]);
 
   // 获取模型广场权限配置
