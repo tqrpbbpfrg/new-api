@@ -72,23 +72,105 @@ const SiderBar = ({ onNavigate = () => {} }) => {
   const location = useLocation();
   const [routerMapState, setRouterMapState] = useState(routerMap);
 
-  const workspaceItems = useMemo(() => {
-  const [windows,setWindows] = useState({free_quota_until:0,double_cost_until:0,now:0});
-  // 定时刷新用户窗口（每 30s 轻量一次）
-  useEffect(()=>{ let mounted=true; const fetch=async()=>{ try{ const r=await API.get('/api/user/self'); if(r.data?.success){ const d=r.data.data; setWindows(w=>({...w, free_quota_until:d.free_quota_until||0, double_cost_until:d.double_cost_until||0, now: Math.floor(Date.now()/1000)})); } }catch(e){} }; fetch(); const iv=setInterval(fetch,30000); return ()=>clearInterval(iv); },[]);
-  // 秒级本地 now 增量
-  useEffect(()=>{ const iv=setInterval(()=> setWindows(w=>({...w, now:w.now+1})),1000); return ()=>clearInterval(iv); },[]);
-  const renderWindows = ()=>{ const {free_quota_until,double_cost_until,now}=windows; if(free_quota_until<=now && double_cost_until<=now) return null; const pillStyle={display:'inline-flex',alignItems:'center',gap:4,padding:'2px 6px',borderRadius:4,fontSize:12,background:'var(--semi-color-bg-1)',marginRight:6}; const remainFmt=(sec)=>{ if(sec<=0)return '0s'; const h=Math.floor(sec/3600),m=Math.floor(sec%3600/60),s=sec%60; if(h>0)return `${h}h${m.toString().padStart(2,'0')}m`; if(m>0)return `${m}m${s.toString().padStart(2,'0')}s`; return `${s}s`; }; return <div style={{padding:'8px 12px',borderTop:'1px solid var(--semi-color-border)',marginTop:8}}> {free_quota_until>now && <Tooltip content={t('免费调用期内调用不扣额度')}><span style={pillStyle}><Tag color='green' size='small'>{t('免费期剩余')}</Tag>{remainFmt(free_quota_until-now)}</span></Tooltip>} {double_cost_until>now && <Tooltip content={t('双倍消耗期内调用扣费翻倍')}><span style={pillStyle}><Tag color='red' size='small'>{t('双倍期剩余')}</Tag>{remainFmt(double_cost_until-now)}</span></Tooltip>} </div>; };
+  // ===== 奖励窗口（免费 / 双倍）状态与计时 =====
+  const [windows, setWindows] = useState({
+    free_quota_until: 0,
+    double_cost_until: 0,
+    now: 0,
+  });
+  // 周期性拉取用户窗口信息
+  useEffect(() => {
+    const fetchWin = async () => {
+      try {
+        const r = await API.get('/api/user/self');
+        if (r.data?.success) {
+          const d = r.data.data || {};
+          setWindows((w) => ({
+            ...w,
+            free_quota_until: d.free_quota_until || 0,
+            double_cost_until: d.double_cost_until || 0,
+            now: Math.floor(Date.now() / 1000),
+          }));
+        }
+      } catch (e) {
+        // 静默失败
+      }
+    };
+    fetchWin();
+    const iv = setInterval(fetchWin, 30000);
+    return () => clearInterval(iv);
+  }, []);
+  // 本地秒更新
+  useEffect(() => {
+    const iv = setInterval(
+      () => setWindows((w) => ({ ...w, now: w.now + 1 })),
+      1000,
+    );
+    return () => clearInterval(iv);
+  }, []);
 
-  const items = [
+  const renderWindows = () => {
+    const { free_quota_until, double_cost_until, now } = windows;
+    if (free_quota_until <= now && double_cost_until <= now) return null;
+    const pillStyle = {
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: 4,
+      padding: '2px 6px',
+      borderRadius: 4,
+      fontSize: 12,
+      background: 'var(--semi-color-bg-1)',
+      marginRight: 6,
+    };
+    const remainFmt = (sec) => {
+      if (sec <= 0) return '0s';
+      const h = Math.floor(sec / 3600);
+      const m = Math.floor((sec % 3600) / 60);
+      const s = sec % 60;
+      if (h > 0) return `${h}h${m.toString().padStart(2, '0')}m`;
+      if (m > 0) return `${m}m${s.toString().padStart(2, '0')}s`;
+      return `${s}s`;
+    };
+    return (
+      <div
+        style={{
+          padding: '8px 12px 4px',
+          borderTop: '1px solid var(--semi-color-border)',
+          marginTop: 8,
+        }}
+      >
+        {free_quota_until > now && (
+          <Tooltip content={t('免费调用期内调用不扣额度')}>
+            <span style={pillStyle}>
+              <Tag color='green' size='small'>
+                {t('免费期剩余')}
+              </Tag>
+              {remainFmt(free_quota_until - now)}
+            </span>
+          </Tooltip>
+        )}
+        {double_cost_until > now && (
+          <Tooltip content={t('双倍消耗期内调用扣费翻倍')}>
+            <span style={pillStyle}>
+              <Tag color='red' size='small'>
+                {t('双倍期剩余')}
+              </Tag>
+              {remainFmt(double_cost_until - now)}
+            </span>
+          </Tooltip>
+        )}
+      </div>
+    );
+  };
+
+  const workspaceItems = useMemo(() => {
+    const items = [
       { text: t('工作台'), itemKey: 'control', to: '/control' },
       { text: t('操练场'), itemKey: 'playground', to: '/console/playground' },
       { text: t('令牌管理'), itemKey: 'token', to: '/console/token' },
       { text: t('使用日志'), itemKey: 'log', to: '/console/log' },
     ];
-      {renderWindows()}
-  {renderWindows()}
-    return items.filter(item => isModuleVisible('console', item.itemKey));
+    return items.filter((item) => isModuleVisible('console', item.itemKey));
   }, [t, isModuleVisible]);
 
   const { total:infoUnread } = useUnread() || { total:0 };
@@ -447,6 +529,7 @@ const SiderBar = ({ onNavigate = () => {} }) => {
                   <div className='sidebar-group-label'>{t('控制台')}</div>
                 )}
                 {workspaceItems.map((item) => renderNavItem(item))}
+                {renderWindows()}
               </div>
             </>
           )}
