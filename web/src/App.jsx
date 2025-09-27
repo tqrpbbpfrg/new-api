@@ -27,6 +27,7 @@ import { AdminRoute, AuthRedirect, PrivateRoute } from './helpers';
 import Forbidden from './pages/Forbidden';
 import NotFound from './pages/NotFound';
 import Setting from './pages/Setting';
+import SystemSettingNew from './components/settings/SystemSettingNew';
 import User from './pages/User';
 
 import OAuth2Callback from './components/auth/OAuth2Callback';
@@ -228,7 +229,7 @@ function App() {
           element={
             <AdminRoute>
               <Suspense fallback={<Loading></Loading>} key={location.pathname}>
-                <Setting />
+                <SystemSettingNew />
               </Suspense>
             </AdminRoute>
           }
