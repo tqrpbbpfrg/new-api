@@ -441,7 +441,7 @@ const Playground = () => {
         {(showSettings || !isMobile) && (
           <Layout.Sider
             className={`
-              bg-transparent border-r-0 flex-shrink-0 overflow-auto mt-header
+              bg-transparent border-r-0 flex-shrink-0 overflow-auto
               ${
                 isMobile
                   ? 'fixed top-0 left-0 right-0 bottom-0 z-[1000] w-full h-auto bg-white shadow-lg'
@@ -474,7 +474,7 @@ const Playground = () => {
         )}
 
         <Layout.Content className='relative flex-1 overflow-hidden'>
-          <div className='overflow-hidden flex flex-col lg:flex-row h-screen-minus-header mt-header'>
+          <div className='overflow-hidden flex flex-col lg:flex-row h-screen-minus-header'>
             <div className='flex-1 flex flex-col'>
               <ChatArea
                 chatRef={chatRef}

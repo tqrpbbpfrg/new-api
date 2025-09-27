@@ -133,7 +133,7 @@ const About = () => {
   );
 
   return (
-  <div className='mt-header px-2'>
+  <div className='px-2'>
       {aboutLoaded && about === '' ? (
         <div className='flex justify-center items-center h-screen p-8'>
           <Empty

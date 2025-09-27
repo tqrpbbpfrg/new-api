@@ -20,7 +20,7 @@ For commercial licensing, please contact support@quantumnous.com
 import Dashboard from '../../components/dashboard';
 
 const Detail = () => (
-  <div className='mt-header px-2'>
+  <div className='px-2'>
     <Dashboard />
   </div>
 );

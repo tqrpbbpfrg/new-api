@@ -656,7 +656,7 @@ const LoginForm = () => {
         className='blur-ball blur-ball-teal'
         style={{ top: '50%', left: '-120px' }}
       />
-  <div className='w-full max-w-sm mt-header'>
+  <div className='w-full max-w-sm'>
         {showEmailLogin || !hasAnyOAuth ? renderEmailLoginForm() : renderOAuthOptions()}
         {renderWeChatLoginModal()}
         {render2FAModal()}

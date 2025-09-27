@@ -16,15 +16,23 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
+import React from 'react';
 
-import UsersTable from '../../components/table/users';
-
-const User = () => {
+export default function ConsoleSection({ title, description, children, action }) {
   return (
-  <div className='px-2'>
-      <UsersTable />
-    </div>
+    <section className='console-section'>
+      {(title || description || action) && (
+        <header className='console-section__head'>
+          <div className='console-section__titles'>
+            {title && <h2 className='console-section__title'>{title}</h2>}
+            {description && (
+              <p className='console-section__desc'>{description}</p>
+            )}
+          </div>
+          {action && <div className='console-section__action'>{action}</div>}
+        </header>
+      )}
+      <div className='console-section__body'>{children}</div>
+    </section>
   );
-};
-
-export default User;
+}

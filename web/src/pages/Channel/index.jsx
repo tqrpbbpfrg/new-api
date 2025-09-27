@@ -21,7 +21,7 @@ import ChannelsTable from '../../components/table/channels';
 
 const File = () => {
   return (
-  <div className='mt-header px-2'>
+  <div className='px-2'>
       <ChannelsTable />
     </div>
   );

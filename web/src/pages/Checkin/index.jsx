@@ -134,7 +134,7 @@ const CheckinPage = () => {
   // 首次根据全局 options 判断是否应该直接禁用（避免短暂闪烁）
   const globallyDisabled = getBool('CheckinEnabled', safeLocalBool('CheckinEnabled', true)) === false;
   if(disabled || globallyDisabled){
-  return <div className='mt-header px-4'>
+  return <div className='px-4'>
       <Card title={t('每日签到')}>
         <Banner type='warning' description={error || t('签到功能未开启')} closeIcon={null} />
       </Card>
@@ -142,7 +142,7 @@ const CheckinPage = () => {
   }
 
   if(!isLoggedIn()){
-  return <div className='mt-header px-4'>
+  return <div className='px-4'>
       <Card title={t('每日签到')}>
         <Banner type='warning' description={t('请先登录后查看签到信息')} closeIcon={null} />
       </Card>
@@ -150,7 +150,7 @@ const CheckinPage = () => {
   }
 
   return (
-  <div className='mt-header px-4 checkin-wrapper'>
+  <div className='px-4 checkin-wrapper'>
       <Card title={t('每日签到')}>
         {loading ? <Spin /> : (
           <div className='flex flex-col gap-4'>

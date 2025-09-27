@@ -78,14 +78,6 @@
 [class~='h-[calc(100vh-66px)]'] {
   height: calc(100vh - var(--app-header-height)) !important;
 }
-/* 在控制台内容容器中，内部页面再使用 mt-header 时避免双倍顶部空白 */
-.console-layout .mt-header {
-  margin-top: 0 !important;
-}
-/* 语义化间距工具类（适用于所有主题） */
-.mt-header {
-  margin-top: var(--app-header-height);
-}
 .h-screen-minus-header {
   height: calc(100vh - var(--app-header-height));
 }

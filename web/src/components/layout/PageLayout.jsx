@@ -38,6 +38,7 @@ import { useSidebarCollapsed } from '../../hooks/common/useSidebarCollapsed';
 import FooterBar from './Footer';
 import HeaderBar from './headerbar';
 import SiderBar from './SiderBar';
+import '../../styles/console-layout.css';
 const { Sider, Content, Header } = Layout;
 
 const PageLayout = () => {
@@ -216,21 +217,27 @@ const PageLayout = () => {
           }}
         >
           <Content
-            className={isConsoleRoute ? 'console-layout' : ''}
+            className={isConsoleRoute ? 'console-layout-root' : ''}
             style={{
               flex: '1 0 auto',
-              overflowY: isMobile ? 'visible' : 'hidden',
-              WebkitOverflowScrolling: 'touch',
-              // 让内部 padding 与 header 高度叠加，不再额外留一大片空白
-              padding: shouldInnerPadding ? (isMobile ? '5px' : '24px') : '0',
-              // 仅非 console 路由在 Content 层做顶内边距；console 下的各页面已经使用 .mt-header 语义类（或被覆盖）避免双倍空白
-              paddingTop: !isConsoleRoute ? headerHeight + (shouldInnerPadding ? (isMobile ? 4 : 12) : 0) : 0,
+              overflow: 'hidden',
               position: 'relative',
-              boxSizing: 'border-box',
-              transition: 'padding-top .15s ease'
+              boxSizing: 'border-box'
             }}
           >
-            <App />
+            {isConsoleRoute ? (
+              <div className='console-main'>
+                <App />
+              </div>
+            ) : (
+              <div style={{
+                paddingTop: headerHeight + (shouldInnerPadding ? (isMobile ? 4 : 12) : 0),
+                padding: shouldInnerPadding ? (isMobile ? '5px' : '24px') : '0',
+                boxSizing:'border-box'
+              }}>
+                <App />
+              </div>
+            )}
           </Content>
           {!shouldHideFooter && (
             <Layout.Footer

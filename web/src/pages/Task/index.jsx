@@ -20,7 +20,7 @@ For commercial licensing, please contact support@quantumnous.com
 import TaskLogsTable from '../../components/table/task-logs';
 
 const Task = () => (
-  <div className='mt-header px-2'>
+  <div className='px-2'>
     <TaskLogsTable />
   </div>
 );

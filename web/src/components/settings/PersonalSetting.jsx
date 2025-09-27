@@ -321,7 +321,7 @@ const PersonalSetting = () => {
   };
 
   return (
-  <div className='mt-header'>
+  <div>
       <div className='flex justify-center'>
         <div className='w-full max-w-7xl mx-auto px-2'>
           {/* 顶部用户信息区域 */}

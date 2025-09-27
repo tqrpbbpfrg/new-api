@@ -20,7 +20,7 @@ import ModelsTable from '../../components/table/models';
 
 const ModelPage = () => {
   return (
-  <div className='mt-header px-2'>
+  <div className='px-2'>
       <ModelsTable />
     </div>
   );
