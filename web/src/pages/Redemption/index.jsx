@@ -17,8 +17,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import RedemptionsTable from '../../components/table/redemptions';
 import ConsoleSection from '../../components/layout/ConsoleSection';
+import RedemptionsTable from '../../components/table/redemptions';
 
 const Redemption = () => (
   <div className='px-2'>
@@ -26,11 +26,7 @@ const Redemption = () => (
       title='兑换码管理'
       description='管理充值 / 促销 / 活动兑换码，监控使用情况。'
     >
-      <div className='card-grid'>
-        <div className='col-span-full'>
-          <RedemptionsTable />
-        </div>
-      </div>
+      <RedemptionsTable />
     </ConsoleSection>
   </div>
 );

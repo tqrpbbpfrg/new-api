@@ -17,8 +17,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import TaskLogsTable from '../../components/table/task-logs';
 import ConsoleSection from '../../components/layout/ConsoleSection';
+import TaskLogsTable from '../../components/table/task-logs';
 
 const Task = () => (
   <div className='px-2'>
@@ -26,11 +26,7 @@ const Task = () => (
       title='任务日志'
       description='追踪异步任务、视频/图像/音频处理流水。'
     >
-      <div className='card-grid'>
-        <div className='col-span-full'>
-          <TaskLogsTable />
-        </div>
-      </div>
+      <TaskLogsTable />
     </ConsoleSection>
   </div>
 );

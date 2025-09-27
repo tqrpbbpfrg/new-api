@@ -27,18 +27,18 @@ import { useOptions } from '../../context/Options';
 import { StatusContext } from '../../context/Status';
 import { UserContext } from '../../context/User';
 import {
-    API,
-    getLogo,
-    getSystemName,
-    setStatusData,
-    showError,
+  API,
+  getLogo,
+  getSystemName,
+  setStatusData,
+  showError,
 } from '../../helpers';
 import { useIsMobile } from '../../hooks/common/useIsMobile';
 import { useSidebarCollapsed } from '../../hooks/common/useSidebarCollapsed';
+import '../../styles/console-layout.css';
 import FooterBar from './Footer';
 import HeaderBar from './headerbar';
 import SiderBar from './SiderBar';
-import '../../styles/console-layout.css';
 const { Sider, Content, Header } = Layout;
 
 const PageLayout = () => {
@@ -138,7 +138,7 @@ const PageLayout = () => {
 
   // 动态测量 Header 实际高度，避免硬编码 paddingTop 造成大面积留白
   const headerWrapRef = useRef(null);
-  const [headerHeight, setHeaderHeight] = useState(52); // 初始与精简后 desktop 高度一致
+  const [headerHeight, setHeaderHeight] = useState(56); // 与新的 header 高度一致
   useLayoutEffect(() => {
     const measure = () => {
       if (headerWrapRef.current) {
@@ -232,9 +232,10 @@ const PageLayout = () => {
               </div>
             ) : (
               <div style={{
-                paddingTop: headerHeight + (shouldInnerPadding ? (isMobile ? 4 : 12) : 0),
-                padding: shouldInnerPadding ? (isMobile ? '5px' : '24px') : '0',
-                boxSizing:'border-box'
+                paddingTop: headerHeight + (shouldInnerPadding ? (isMobile ? 8 : 16) : 0),
+                padding: shouldInnerPadding ? (isMobile ? '8px' : '24px') : '0',
+                boxSizing: 'border-box',
+                minHeight: `calc(100vh - ${headerHeight}px)`
               }}>
                 <App />
               </div>

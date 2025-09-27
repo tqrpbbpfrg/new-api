@@ -17,8 +17,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import TokensTable from '../../components/table/tokens';
 import ConsoleSection from '../../components/layout/ConsoleSection';
+import TokensTable from '../../components/table/tokens';
 
 const Token = () => (
   <div className='px-2'>
@@ -26,11 +26,7 @@ const Token = () => (
       title='令牌管理'
       description='创建、查看、禁用或批量操作访问令牌，控制调用权限。'
     >
-      <div className='card-grid'>
-        <div className='col-span-full'>
-          <TokensTable />
-        </div>
-      </div>
+      <TokensTable />
     </ConsoleSection>
   </div>
 );

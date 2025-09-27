@@ -17,8 +17,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import UsersTable from '../../components/table/users';
 import ConsoleSection from '../../components/layout/ConsoleSection';
+import UsersTable from '../../components/table/users';
 
 const User = () => (
   <div className='px-2'>
@@ -26,11 +26,7 @@ const User = () => (
       title='用户管理'
       description='查看与管理系统中的用户账号、权限与状态。'
     >
-      <div className='card-grid'>
-        <div className='col-span-full'>
-          <UsersTable />
-        </div>
-      </div>
+      <UsersTable />
     </ConsoleSection>
   </div>
 );

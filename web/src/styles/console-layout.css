@@ -1,22 +1,108 @@
 /* Console unified layout and grid */
-:root { --console-gap:16px; --console-gap-lg:20px; --console-max-width:1440px; --console-section-gap:32px; }
-.console-layout-root { flex:1 1 auto; overflow:hidden; display:flex; flex-direction:column; }
-/* 顶部内边距减少，结合更矮的 Header */
-.console-main { flex:1 1 auto; overflow:auto; -webkit-overflow-scrolling:touch; padding:calc(var(--app-header-height) + 4px) var(--console-gap-lg) 28px; box-sizing:border-box; width:100%; margin:0 auto; max-width:var(--console-max-width); scrollbar-gutter:stable; background:linear-gradient(#fafafa,#f5f7fa); }
-html.dark .console-main { background:linear-gradient(#18181b,#111827); }
-@media (max-width:860px){ .console-main { padding:calc(var(--app-header-height) + 2px) var(--console-gap) 24px; } }
-.card-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:var(--console-gap); align-items:stretch; }
-.card-grid.card-grid--tight { gap:12px; }
-.console-section { margin-bottom:var(--console-section-gap); }
-.console-section__head { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:12px; flex-wrap:wrap; }
-.console-section__title { font-size:18px; font-weight:600; margin:0; line-height:1.25; }
-.console-section__desc { margin:4px 0 0; line-height:1.4; font-size:13px; color:var(--semi-color-text-2); }
-.console-section__titles { display:flex; flex-direction:column; gap:2px; }
-.console-section__body { display:flex; flex-direction:column; gap:16px; }
-.sidebar-nav-item-selected { position:relative; font-weight:600; }
-.sidebar-nav-item-selected::before { content:''; position:absolute; left:0; top:4px; bottom:4px; width:3px; border-radius:2px; background:linear-gradient(180deg,#6366f1,#3b82f6); }
-.header-bar-root.glass-lite { backdrop-filter:blur(5px); background:rgba(255,255,255,0.68); }
-html.dark .header-bar-root.glass-lite { background:rgba(24,24,27,0.58); }
-.sidebar-collapse-button { transition:background .18s ease,color .18s ease; }
-.sidebar-collapse-button:hover { background:rgba(0,0,0,0.06); }
-html.dark .sidebar-collapse-button:hover { background:rgba(255,255,255,0.08); }
+:root {
+  --console-gap: 16px;
+  --console-gap-lg: 20px;
+  --console-max-width: 1440px;
+  --console-section-gap: 32px;
+}
+.console-layout-root {
+  flex: 1 1 auto;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+/* 控制台主容器样式 */
+.console-main {
+  flex: 1 1 auto;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: calc(var(--app-header-height) + 8px) var(--console-gap-lg) 32px;
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0 auto;
+  max-width: var(--console-max-width);
+  scrollbar-gutter: stable;
+  background: linear-gradient(180deg, #fafafa 0%, #f5f7fa 100%);
+}
+html.dark .console-main {
+  background: linear-gradient(180deg, #18181b 0%, #111827 100%);
+}
+@media (max-width: 860px) {
+  .console-main {
+    padding: calc(var(--app-header-height) + 6px) var(--console-gap) 28px;
+  }
+}
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--console-gap);
+  align-items: stretch;
+}
+.card-grid.card-grid--tight {
+  gap: 12px;
+}
+.console-section {
+  margin-bottom: var(--console-section-gap);
+}
+.console-section__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.console-section__title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.25;
+}
+.console-section__desc {
+  margin: 4px 0 0;
+  line-height: 1.4;
+  font-size: 13px;
+  color: var(--semi-color-text-2);
+}
+.console-section__titles {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.console-section__body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.sidebar-nav-item-selected {
+  position: relative;
+  font-weight: 600;
+}
+.sidebar-nav-item-selected::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 4px;
+  bottom: 4px;
+  width: 3px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, #6366f1, #3b82f6);
+}
+.header-bar-root.glass-lite {
+  backdrop-filter: blur(5px);
+  background: rgba(255, 255, 255, 0.68);
+}
+html.dark .header-bar-root.glass-lite {
+  background: rgba(24, 24, 27, 0.58);
+}
+.sidebar-collapse-button {
+  transition:
+    background 0.18s ease,
+    color 0.18s ease;
+}
+.sidebar-collapse-button:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+html.dark .sidebar-collapse-button:hover {
+  background: rgba(255, 255, 255, 0.08);
+}

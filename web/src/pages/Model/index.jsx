@@ -16,8 +16,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import ModelsTable from '../../components/table/models';
 import ConsoleSection from '../../components/layout/ConsoleSection';
+import ModelsTable from '../../components/table/models';
 
 const ModelPage = () => (
   <div className='px-2'>
@@ -25,11 +25,7 @@ const ModelPage = () => (
       title='模型管理'
       description='同步平台可用模型、维护元数据与倍率策略。'
     >
-      <div className='card-grid'>
-        <div className='col-span-full'>
-          <ModelsTable />
-        </div>
-      </div>
+      <ModelsTable />
     </ConsoleSection>
   </div>
 );

@@ -17,8 +17,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import ChannelsTable from '../../components/table/channels';
 import ConsoleSection from '../../components/layout/ConsoleSection';
+import ChannelsTable from '../../components/table/channels';
 
 const File = () => (
   <div className='px-2'>
@@ -26,11 +26,7 @@ const File = () => (
       title='渠道管理'
       description='配置与监控上游模型渠道、负载及可用性。'
     >
-      <div className='card-grid'>
-        <div className='col-span-full'>
-          <ChannelsTable />
-        </div>
-      </div>
+      <ChannelsTable />
     </ConsoleSection>
   </div>
 );

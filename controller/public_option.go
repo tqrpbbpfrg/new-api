@@ -43,20 +43,20 @@ func GetPublicOptions(c *gin.Context) {
 		"EmailVerificationEnabled": {},
 		"UIBlurGlassEnabled":       {},
 		// OAuth 公开（仅非敏感标识，用于前端显示按钮；不包含 Secret）
-		"GitHubOAuthEnabled":   {},
-		"GitHubClientId":       {},
-		"DiscordOAuthEnabled":  {},
-		"DiscordClientId":      {},
-		"DiscordOAuthScopes":   {},
-		"TelegramOAuthEnabled": {},
-		"TelegramBotName":      {},
-		"LinuxDOOAuthEnabled":  {},
-		"LinuxDOClientId":      {},
-		"WeChatAuthEnabled":    {},
+		"GitHubOAuthEnabled":          {},
+		"GitHubClientId":              {},
+		"DiscordOAuthEnabled":         {},
+		"DiscordClientId":             {},
+		"DiscordOAuthScopes":          {},
+		"TelegramOAuthEnabled":        {},
+		"TelegramBotName":             {},
+		"LinuxDOOAuthEnabled":         {},
+		"LinuxDOClientId":             {},
+		"WeChatAuthEnabled":           {},
 		"WeChatAccountQRCodeImageURL": {},
-		"OIDCEnabled":                {},
-		"OIDCClientId":               {},
-		"OIDCAuthorizationEndpoint":  {},
+		"OIDCEnabled":                 {},
+		"OIDCClientId":                {},
+		"OIDCAuthorizationEndpoint":   {},
 		// UI 外观
 		"UIBlurGlassStrength": {},
 		"UIBlurGlassArea":     {},
@@ -131,4 +131,5 @@ func GetPublicOptions(c *gin.Context) {
 		"data":    result,
 	})
 }
+
 // END GetPublicOptions
