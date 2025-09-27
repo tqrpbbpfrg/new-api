@@ -1,12 +1,14 @@
 FROM oven/bun:latest AS builder
 
-WORKDIR /build
+# 前端构建目录放在 /build/web，保证与本地开发结构一致，避免相对路径混乱
+WORKDIR /build/web
 COPY web/package.json .
 COPY web/bun.lock .
 RUN bun install
-COPY ./web .
-COPY ./VERSION .
-RUN DISABLE_ESLINT_PLUGIN='true' VITE_REACT_APP_VERSION=$(cat VERSION) bun run build
+COPY web/ .
+# 版本文件保留在上一层，仍可引用
+COPY VERSION ../
+RUN DISABLE_ESLINT_PLUGIN='true' VITE_REACT_APP_VERSION=$(cat ../VERSION) bun run build
 
 FROM golang:alpine AS builder2
 
@@ -20,7 +22,7 @@ ADD go.mod go.sum ./
 RUN go mod download
 
 COPY . .
-COPY --from=builder /build/dist ./web/dist
+COPY --from=builder /build/web/dist ./web/dist
 RUN go build -ldflags "-s -w -X 'one-api/common.Version=$(cat VERSION)'" -o one-api
 
 FROM alpine

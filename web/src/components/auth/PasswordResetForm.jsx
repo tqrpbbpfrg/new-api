@@ -17,20 +17,20 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useEffect, useState } from 'react';
-import {
-  API,
-  getLogo,
-  showError,
-  showInfo,
-  showSuccess,
-  getSystemName,
-} from '../../helpers';
-import Turnstile from 'react-turnstile';
-import { Button, Card, Form, Typography } from '@douyinfe/semi-ui';
 import { IconMail } from '@douyinfe/semi-icons';
-import { Link } from 'react-router-dom';
+import { Button, Card, Form, Typography } from '@douyinfe/semi-ui';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
+import Turnstile from 'react-turnstile';
+import {
+    API,
+    getLogo,
+    getSystemName,
+    showError,
+    showInfo,
+    showSuccess,
+} from '../../helpers';
 
 const { Text, Title } = Typography;
 

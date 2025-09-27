@@ -27,6 +27,7 @@ import { useTranslation } from 'react-i18next';
 import { BrowserRouter } from 'react-router-dom';
 import 'react-toastify/dist/ReactToastify.css';
 import PageLayout from './components/layout/PageLayout';
+import { OptionsProvider } from './context/Options';
 import { StatusProvider } from './context/Status';
 import { ThemeProvider } from './context/Theme';
 import { UIOptionsProvider } from './context/UIOptions';
@@ -69,11 +70,13 @@ root.render(
         >
           <ThemeProvider>
             <UIOptionsProvider>
-              <SemiLocaleWrapper>
-                <UnreadProvider>
-                  <PageLayout />
-                </UnreadProvider>
-              </SemiLocaleWrapper>
+              <OptionsProvider>
+                <SemiLocaleWrapper>
+                  <UnreadProvider>
+                    <PageLayout />
+                  </UnreadProvider>
+                </SemiLocaleWrapper>
+              </OptionsProvider>
             </UIOptionsProvider>
           </ThemeProvider>
         </BrowserRouter>

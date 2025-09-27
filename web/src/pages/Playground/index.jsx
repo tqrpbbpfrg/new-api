@@ -17,47 +17,47 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useContext, useEffect, useCallback, useRef } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Layout, Toast } from '@douyinfe/semi-ui';
+import { useCallback, useContext, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Layout, Toast, Modal } from '@douyinfe/semi-ui';
+import { useSearchParams } from 'react-router-dom';
 
 // Context
 import { UserContext } from '../../context/User';
 import { useIsMobile } from '../../hooks/common/useIsMobile';
 
 // hooks
-import { usePlaygroundState } from '../../hooks/playground/usePlaygroundState';
-import { useMessageActions } from '../../hooks/playground/useMessageActions';
 import { useApiRequest } from '../../hooks/playground/useApiRequest';
-import { useSyncMessageAndCustomBody } from '../../hooks/playground/useSyncMessageAndCustomBody';
-import { useMessageEdit } from '../../hooks/playground/useMessageEdit';
 import { useDataLoader } from '../../hooks/playground/useDataLoader';
+import { useMessageActions } from '../../hooks/playground/useMessageActions';
+import { useMessageEdit } from '../../hooks/playground/useMessageEdit';
+import { usePlaygroundState } from '../../hooks/playground/usePlaygroundState';
+import { useSyncMessageAndCustomBody } from '../../hooks/playground/useSyncMessageAndCustomBody';
 
 // Constants and utils
 import {
-  MESSAGE_ROLES,
-  ERROR_MESSAGES,
+    ERROR_MESSAGES,
+    MESSAGE_ROLES,
 } from '../../constants/playground.constants';
 import {
-  getLogo,
-  stringToColor,
-  buildMessageContent,
-  createMessage,
-  createLoadingAssistantMessage,
-  getTextContent,
-  buildApiPayload,
+    buildApiPayload,
+    buildMessageContent,
+    createLoadingAssistantMessage,
+    createMessage,
+    getLogo,
+    getTextContent,
+    stringToColor,
 } from '../../helpers';
 
 // Components
-import {
-  OptimizedSettingsPanel,
-  OptimizedDebugPanel,
-  OptimizedMessageContent,
-  OptimizedMessageActions,
-} from '../../components/playground/OptimizedComponents';
 import ChatArea from '../../components/playground/ChatArea';
 import FloatingButtons from '../../components/playground/FloatingButtons';
+import {
+    OptimizedDebugPanel,
+    OptimizedMessageActions,
+    OptimizedMessageContent,
+    OptimizedSettingsPanel,
+} from '../../components/playground/OptimizedComponents';
 
 // 生成头像
 const generateAvatarDataUrl = (username) => {

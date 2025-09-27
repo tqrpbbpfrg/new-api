@@ -17,28 +17,27 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import { 
-  Banner, 
-  Button, 
-  Card, 
-  Col, 
-  Form, 
-  Row, 
-  Space, 
-  Switch, 
-  Input,
-  Typography,
-  Divider 
+import { IconGithubLogo, IconGlobe } from '@douyinfe/semi-icons';
+import {
+    Banner,
+    Button,
+    Card,
+    Col,
+    Divider,
+    Form,
+    Row,
+    Space,
+    Switch,
+    Typography
 } from '@douyinfe/semi-ui';
-import { IconGithubLogo, IconUser, IconLock, IconGlobe } from '@douyinfe/semi-icons';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  API,
-  compareObjects,
-  showError,
-  showSuccess,
-  showWarning,
+    API,
+    compareObjects,
+    showError,
+    showSuccess,
+    showWarning,
 } from '../../../helpers';
 
 const { Title, Text } = Typography;
@@ -84,7 +83,29 @@ export default function OAuthSettings(props) {
     };
   }
 
+  function validateBeforeSubmit() {
+    // Discord：若要启用必须有 ClientId + Secret + Scopes
+    if (inputs.DiscordOAuthEnabled) {
+      if (!inputs.DiscordClientId) return showError(t('启用 Discord 需要填写 Client ID'));
+      if (!inputs.DiscordClientSecret) return showError(t('启用 Discord 需要填写 Client Secret'));
+      if (!inputs.DiscordOAuthScopes) return showError(t('启用 Discord 需要至少一个 Scope'));
+      // 简单校验字符
+      if (/[^a-zA-Z0-9_\s,]/.test(inputs.DiscordOAuthScopes)) return showWarning(t('Scopes 仅支持字母、数字、下划线、逗号与空格')); 
+    }
+    if (inputs.GitHubOAuthEnabled) {
+      if (!inputs.GitHubClientId || !inputs.GitHubClientSecret) return showError(t('启用 GitHub 需要填写 Client ID 与 Client Secret'));
+    }
+    if (inputs.LinuxDOOAuthEnabled) {
+      if (!inputs.LinuxDOClientId || !inputs.LinuxDOClientSecret) return showError(t('启用 LinuxDO 需要填写 Client ID 与 Client Secret'));
+    }
+    if (inputs.TelegramOAuthEnabled) {
+      if (!inputs.TelegramBotToken || !inputs.TelegramBotName) return showError(t('启用 Telegram 需要 Bot Token 与 Bot Name'));
+    }
+    return true;
+  }
+
   function onSubmit() {
+    if (!validateBeforeSubmit()) return;
     const updateArray = compareObjects(inputsRow, inputs);
     if (!updateArray.length) return showWarning(t('你似乎并没有修改什么'));
     
@@ -103,21 +124,19 @@ export default function OAuthSettings(props) {
     
     setLoading(true);
     Promise.all(requestQueue)
-      .then((res) => {
-        if (requestQueue.length === 1) {
-          if (res.includes(undefined)) return;
-        } else if (requestQueue.length > 1) {
-          if (res.includes(undefined))
-            return showError(t('部分保存失败，请重试'));
+      .then((resList) => {
+        // 检查后端返回内是否有失败（后端失败时我们 helper 里会 showError 并返回 undefined）
+        if (resList.includes(undefined)) {
+          return showError(t('部分保存失败，请检查必填项')); 
         }
         showSuccess(t('保存成功'));
         setInputsRow(structuredClone(inputs));
         props.refresh();
       })
-      .catch(() => showError(t('保存失败，请重试')))
-      .finally(() => {
-        setLoading(false);
-      });
+      .catch((e) => {
+        showError(t('保存失败：') + (e?.message || ''));
+      })
+      .finally(() => setLoading(false));
   }
 
   useEffect(() => {

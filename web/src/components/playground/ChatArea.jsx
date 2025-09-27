@@ -17,9 +17,9 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
+import { Button, Card, Chat, Typography } from '@douyinfe/semi-ui';
+import { Eye, EyeOff, MessageSquare } from 'lucide-react';
 import React from 'react';
-import { Card, Chat, Typography, Button } from '@douyinfe/semi-ui';
-import { MessageSquare, Eye, EyeOff } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import CustomInputRender from './CustomInputRender';
 

@@ -17,19 +17,19 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useEffect, useState } from 'react';
-import {
-  API,
-  copy,
-  showError,
-  showNotice,
-  getLogo,
-  getSystemName,
-} from '../../helpers';
-import { useSearchParams, Link } from 'react-router-dom';
-import { Button, Card, Form, Typography, Banner } from '@douyinfe/semi-ui';
-import { IconMail, IconLock, IconCopy } from '@douyinfe/semi-icons';
+import { IconCopy, IconLock, IconMail } from '@douyinfe/semi-icons';
+import { Banner, Button, Card, Form, Typography } from '@douyinfe/semi-ui';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Link, useSearchParams } from 'react-router-dom';
+import {
+    API,
+    copy,
+    getLogo,
+    getSystemName,
+    showError,
+    showNotice,
+} from '../../helpers';
 
 const { Text, Title } = Typography;
 

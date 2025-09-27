@@ -23,8 +23,8 @@ import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import App from '../../App';
-import { StatusContext } from '../../context/Status';
 import { useOptions } from '../../context/Options';
+import { StatusContext } from '../../context/Status';
 import { UserContext } from '../../context/User';
 import {
     API,

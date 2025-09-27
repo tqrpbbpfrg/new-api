@@ -77,17 +77,17 @@ export default function GeneralSettings(props) {
     });
     setLoading(true);
     Promise.all(requestQueue)
-      .then((res) => {
+      .then(async (res) => {
         if (requestQueue.length === 1) {
           if (res.includes(undefined)) return;
         } else if (requestQueue.length > 1) {
           if (res.includes(undefined))
             return showError(t('部分保存失败，请重试'));
         }
+        // 先刷新全局 options，再提示成功，避免短暂不一致
+        try { await props.refresh?.(); } catch {}
         showSuccess(t('保存成功'));
-        // 保存成功后，将当前 inputs 复制为新的基线，避免再次提示“未修改”
         setInputsRow(structuredClone(inputs));
-        props.refresh();
         // 即时刷新本地 blur 状态
         if(updateArray.some(i=>['UIBlurGlassEnabled','UIBlurGlassStrength','UIBlurGlassArea'].includes(i.key))){
           try {
@@ -97,7 +97,6 @@ export default function GeneralSettings(props) {
             window.dispatchEvent(new Event('ui-option-update'));
           } catch{}
         }
-        // 同步签到开关到本地（用于前端模块显示控制）
         if(updateArray.some(i=>i.key==='CheckinEnabled')){
           try { localStorage.setItem('CheckinEnabled', String(inputs.CheckinEnabled)); } catch{}
         }
@@ -114,12 +113,14 @@ export default function GeneralSettings(props) {
     const template = { ...inputs };
     const optionKeys = Object.keys(template);
     const filled = {};
-    optionKeys.forEach(k=>{
-      if(k in props.options){
-        filled[k] = props.options[k];
+    optionKeys.forEach(k => {
+      let val;
+      if (k in props.options) {
+        val = props.options[k];
       } else {
-        filled[k] = template[k];
+        val = template[k];
       }
+      filled[k] = val;
     });
     setInputs(filled);
     setInputsRow(structuredClone(filled));

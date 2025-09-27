@@ -21,6 +21,7 @@ import { Banner, Button, Card, Divider, Spin, Typography } from '@douyinfe/semi-
 import dayjs from 'dayjs';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useOptions } from '../../context/Options';
 import { isLoggedIn } from '../../helpers/auth';
 import './style.css';
 
@@ -47,6 +48,7 @@ const genMonthDays = (month) => { // month YYYY-MM
 const CheckinPage = () => {
   const { t } = useTranslation();
   const [month, setMonth] = useState(dayjs().format('YYYY-MM'));
+  const { getBool, getNumber } = useOptions();
   const [records, setRecords] = useState({});
   const [status, setStatus] = useState(null); // status.data
   const [loading, setLoading] = useState(false);
@@ -55,13 +57,15 @@ const CheckinPage = () => {
   const [disabled, setDisabled] = useState(false);
   const [bestStreak, setBestStreak] = useState(0);
 
-  // 简单的选项缓存（避免单独接口，利用已经存储的 option map，若不存在则回退默认）
-  const getOptionBool = (k, def=false) => {
-    try { const val = localStorage.getItem('options_cache'); if(!val) return def; const obj = JSON.parse(val); return obj[k] === true || obj[k] === 'true'; } catch { return def; }
+  // 优先使用全局 OptionsContext，若还未加载完成再回退本地缓存逻辑
+  const safeLocalBool = (k, def=false) => {
+    try { const cache = localStorage.getItem('options_cache'); if(!cache) return def; const obj = JSON.parse(cache); return obj[k] === true || obj[k] === 'true'; } catch { return def; }
   };
-  const getOptionNumber = (k, def=0) => { try { const val = localStorage.getItem('options_cache'); if(!val) return def; const obj = JSON.parse(val); const v = obj[k]; const n = Number(v); return isNaN(n)?def:n; } catch { return def; } };
-  const displayCurrency = getOptionBool('DisplayInCurrencyEnabled', false);
-  const quotaPerUnit = getOptionNumber('QuotaPerUnit', 500000); // 与后端默认一致
+  const safeLocalNumber = (k, def=0) => {
+    try { const cache = localStorage.getItem('options_cache'); if(!cache) return def; const obj = JSON.parse(cache); const v = obj[k]; const n = Number(v); return isNaN(n)?def:n; } catch { return def; }
+  };
+  const displayCurrency = getBool('DisplayInCurrencyEnabled', safeLocalBool('DisplayInCurrencyEnabled', false));
+  const quotaPerUnit = getNumber('QuotaPerUnit', safeLocalNumber('QuotaPerUnit', 500000));
 
   const formatAmount = (raw) => {
     if(raw == null) return '';
@@ -86,8 +90,8 @@ const CheckinPage = () => {
       const st = await fetchJSON('/api/checkin/status');
       if(st.code===0){
         setStatus(st.data);
-        localStorage.setItem('CheckinEnabled','true');
-        setDisabled(false);
+        // 不再这里强制写入 true，避免覆盖管理端刚刚关闭后的状态缓存
+        setDisabled(false); // 既然 status 成功，说明当前是开启的
         setBestStreak(st.data?.best_streak || 0);
       } else {
         setError(st.message);
@@ -127,7 +131,9 @@ const CheckinPage = () => {
   const monthRewardSum = status?.month_reward_sum || 0;
   const monthCheckedDays = status?.month_checked_days || 0;
 
-  if(disabled){
+  // 首次根据全局 options 判断是否应该直接禁用（避免短暂闪烁）
+  const globallyDisabled = getBool('CheckinEnabled', safeLocalBool('CheckinEnabled', true)) === false;
+  if(disabled || globallyDisabled){
   return <div className='mt-header px-4'>
       <Card title={t('每日签到')}>
         <Banner type='warning' description={error || t('签到功能未开启')} closeIcon={null} />

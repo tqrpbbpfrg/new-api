@@ -17,26 +17,26 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useEffect, useState, useContext, useRef } from 'react';
-import {
-  API,
-  showError,
-  showInfo,
-  showSuccess,
-  renderQuota,
-  renderQuotaWithAmount,
-  copy,
-  getQuotaPerUnit,
-} from '../../helpers';
 import { Modal, Toast } from '@douyinfe/semi-ui';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { UserContext } from '../../context/User';
 import { StatusContext } from '../../context/Status';
+import { UserContext } from '../../context/User';
+import {
+    API,
+    copy,
+    getQuotaPerUnit,
+    renderQuota,
+    renderQuotaWithAmount,
+    showError,
+    showInfo,
+    showSuccess,
+} from '../../helpers';
 
-import RechargeCard from './RechargeCard';
 import InvitationCard from './InvitationCard';
-import TransferModal from './modals/TransferModal';
 import PaymentConfirmModal from './modals/PaymentConfirmModal';
+import TransferModal from './modals/TransferModal';
+import RechargeCard from './RechargeCard';
 
 const TopUp = () => {
   const { t } = useTranslation();

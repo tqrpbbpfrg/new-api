@@ -27,7 +27,7 @@ import {
 import { Button, Card, Divider, Form, Icon, Modal } from '@douyinfe/semi-ui';
 import Text from '@douyinfe/semi-ui/lib/es/typography/text';
 import Title from '@douyinfe/semi-ui/lib/es/typography/title';
-import { useContext, useEffect, useState, useMemo } from 'react';
+import { useContext, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import TelegramLoginButton from 'react-telegram-login/src';

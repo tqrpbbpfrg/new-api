@@ -17,34 +17,34 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useEffect, useState } from 'react';
 import { Layout, TabPane, Tabs } from '@douyinfe/semi-ui';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import {
-  Settings,
-  Calculator,
-  Gauge,
-  Shapes,
-  Cog,
-  MoreHorizontal,
-  LayoutDashboard,
-  MessageSquare,
-  Palette,
-  CreditCard,
+    Calculator,
+    Cog,
+    CreditCard,
+    Gauge,
+    LayoutDashboard,
+    MessageSquare,
+    MoreHorizontal,
+    Palette,
+    Settings,
+    Shapes,
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useLocation, useNavigate } from 'react-router-dom';
 
+import ChatsSetting from '../../components/settings/ChatsSetting';
+import DashboardSetting from '../../components/settings/DashboardSetting';
+import DrawingSetting from '../../components/settings/DrawingSetting';
+import ModelSetting from '../../components/settings/ModelSetting';
+import OperationSetting from '../../components/settings/OperationSetting';
+import OtherSetting from '../../components/settings/OtherSetting';
+import PaymentSetting from '../../components/settings/PaymentSetting';
+import RateLimitSetting from '../../components/settings/RateLimitSetting';
+import RatioSetting from '../../components/settings/RatioSetting';
 import SystemSetting from '../../components/settings/SystemSetting';
 import { isRoot } from '../../helpers';
-import OtherSetting from '../../components/settings/OtherSetting';
-import OperationSetting from '../../components/settings/OperationSetting';
-import RateLimitSetting from '../../components/settings/RateLimitSetting';
-import ModelSetting from '../../components/settings/ModelSetting';
-import DashboardSetting from '../../components/settings/DashboardSetting';
-import RatioSetting from '../../components/settings/RatioSetting';
-import ChatsSetting from '../../components/settings/ChatsSetting';
-import DrawingSetting from '../../components/settings/DrawingSetting';
-import PaymentSetting from '../../components/settings/PaymentSetting';
 
 const Setting = () => {
   const { t } = useTranslation();

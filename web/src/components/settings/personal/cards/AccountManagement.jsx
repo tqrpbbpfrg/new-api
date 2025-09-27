@@ -39,13 +39,13 @@ import {
 import { ShieldCheck, UserPlus } from 'lucide-react';
 import { SiLinux, SiTelegram, SiWechat } from 'react-icons/si';
 import TelegramLoginButton from 'react-telegram-login';
-import {
-  onDiscordOAuthClicked,
-  onGitHubOAuthClicked,
-  onLinuxDOOAuthClicked,
-  onOIDCClicked,
-} from '../../../../helpers';
 import { useOptions } from '../../../../context/Options';
+import {
+    onDiscordOAuthClicked,
+    onGitHubOAuthClicked,
+    onLinuxDOOAuthClicked,
+    onOIDCClicked,
+} from '../../../../helpers';
 import DiscordIcon from '../../../common/logo/DiscordIcon';
 import TwoFASetting from '../components/TwoFASetting';
 

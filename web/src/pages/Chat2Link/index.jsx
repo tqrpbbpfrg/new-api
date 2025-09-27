@@ -17,7 +17,6 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React from 'react';
 import { useTokenKeys } from '../../hooks/chat/useTokenKeys';
 
 const chat2page = () => {

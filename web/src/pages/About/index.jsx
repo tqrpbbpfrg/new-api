@@ -17,15 +17,15 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useEffect, useState } from 'react';
-import { API, showError } from '../../helpers';
-import { marked } from 'marked';
-import { Empty } from '@douyinfe/semi-ui';
 import {
-  IllustrationConstruction,
-  IllustrationConstructionDark,
+    IllustrationConstruction,
+    IllustrationConstructionDark,
 } from '@douyinfe/semi-illustrations';
+import { Empty } from '@douyinfe/semi-ui';
+import { marked } from 'marked';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { API, showError } from '../../helpers';
 
 const About = () => {
   const { t } = useTranslation();

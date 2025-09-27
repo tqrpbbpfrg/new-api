@@ -83,8 +83,12 @@
   margin-top: 0 !important;
 }
 /* 语义化间距工具类（适用于所有主题） */
-.mt-header { margin-top: var(--app-header-height); }
-.h-screen-minus-header { height: calc(100vh - var(--app-header-height)); }
+.mt-header {
+  margin-top: var(--app-header-height);
+}
+.h-screen-minus-header {
+  height: calc(100vh - var(--app-header-height));
+}
 
 html.dark {
   /* Dark mode overrides */
@@ -109,9 +113,17 @@ html.dark {
 }
 
 /* 全局移除组件默认阴影（可按需注释掉） */
-.no-shadow, .flat, .shadow-none { box-shadow: none !important; }
+.no-shadow,
+.flat,
+.shadow-none {
+  box-shadow: none !important;
+}
 /* 若想一次性禁用页面上所有阴影，可在 body 上添加类 body.no-shadows */
-body.no-shadows *, body.no-shadows *::before, body.no-shadows *::after { box-shadow: none !important; }
+body.no-shadows *,
+body.no-shadows *::before,
+body.no-shadows *::after {
+  box-shadow: none !important;
+}
 
 body.sidebar-collapsed {
   --sidebar-current-width: var(--sidebar-width-collapsed);

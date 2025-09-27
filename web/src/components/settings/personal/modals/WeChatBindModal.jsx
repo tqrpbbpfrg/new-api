@@ -17,11 +17,10 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React from 'react';
-import { useOptions } from '../../../../context/Options';
-import { Button, Input, Modal, Image } from '@douyinfe/semi-ui';
 import { IconKey } from '@douyinfe/semi-icons';
+import { Button, Image, Input, Modal } from '@douyinfe/semi-ui';
 import { SiWechat } from 'react-icons/si';
+import { useOptions } from '../../../../context/Options';
 
 const WeChatBindModal = ({
   t,

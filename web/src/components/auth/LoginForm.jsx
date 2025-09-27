@@ -20,7 +20,7 @@ For commercial licensing, please contact support@quantumnous.com
 import { Button, Card, Divider, Form, Icon, Modal } from '@douyinfe/semi-ui';
 import Text from '@douyinfe/semi-ui/lib/es/typography/text';
 import Title from '@douyinfe/semi-ui/lib/es/typography/title';
-import { useContext, useEffect, useState, useMemo } from 'react';
+import { useContext, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import TelegramLoginButton from 'react-telegram-login';
 import Turnstile from 'react-turnstile';
