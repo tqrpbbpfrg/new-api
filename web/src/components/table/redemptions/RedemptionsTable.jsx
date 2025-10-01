@@ -27,7 +27,7 @@ import {
 import { getRedemptionsColumns, isExpired } from './RedemptionsColumnDefs';
 import { getRedemptionsGroupedColumns, getRedemptionsSubColumns } from './RedemptionsGroupedColumnDefs';
 import DeleteRedemptionModal from './modals/DeleteRedemptionModal';
-import { IconList, IconGroup, IconChevronDown, IconChevronRight } from '@douyinfe/semi-icons';
+import { IconList, IconUserGroup, IconChevronDown, IconChevronRight } from '@douyinfe/semi-icons';
 
 const RedemptionsTable = (redemptionsData) => {
   const {
@@ -208,7 +208,7 @@ const RedemptionsTable = (redemptionsData) => {
       <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Space>
           <Button
-            icon={groupMode ? <IconList /> : <IconGroup />}
+            icon={groupMode ? <IconList /> : <IconUserGroup />}
             onClick={toggleGroupMode}
             type={groupMode ? 'primary' : 'default'}
           >
