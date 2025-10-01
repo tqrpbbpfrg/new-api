@@ -266,6 +266,7 @@ func migrateDB() error {
 		&Setup{},
 		&TwoFA{},
 		&TwoFABackupCode{},
+		&CheckIn{},
 	)
 	if err != nil {
 		return err

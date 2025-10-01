@@ -32,6 +32,7 @@ import {
   MessageSquare,
   Palette,
   CreditCard,
+  Calendar,
 } from 'lucide-react';
 
 import SystemSetting from '../../components/settings/SystemSetting';
@@ -45,6 +46,7 @@ import RatioSetting from '../../components/settings/RatioSetting';
 import ChatsSetting from '../../components/settings/ChatsSetting';
 import DrawingSetting from '../../components/settings/DrawingSetting';
 import PaymentSetting from '../../components/settings/PaymentSetting';
+import CheckInSetting from '../../components/settings/CheckInSetting';
 
 const Setting = () => {
   const { t } = useTranslation();
@@ -143,6 +145,16 @@ const Setting = () => {
       ),
       content: <SystemSetting />,
       itemKey: 'system',
+    });
+    panes.push({
+      tab: (
+        <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+          <Calendar size={18} />
+          {t('签到设置')}
+        </span>
+      ),
+      content: <CheckInSetting />,
+      itemKey: 'checkin',
     });
     panes.push({
       tab: (
