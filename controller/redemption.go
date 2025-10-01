@@ -2,6 +2,7 @@ package controller
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"one-api/common"
 	"one-api/model"
@@ -12,7 +13,23 @@ import (
 )
 
 func GetAllRedemptions(c *gin.Context) {
+	groupMode := c.Query("group_mode")
 	pageInfo := common.GetPageQuery(c)
+	
+	if groupMode == "true" {
+		// 分组模式
+		groups, total, err := model.GetRedemptionsGroupedByName(pageInfo.GetStartIdx(), pageInfo.GetPageSize())
+		if err != nil {
+			common.ApiError(c, err)
+			return
+		}
+		pageInfo.SetTotal(int(total))
+		pageInfo.SetItems(groups)
+		common.ApiSuccess(c, pageInfo)
+		return
+	}
+	
+	// 普通模式
 	redemptions, total, err := model.GetAllRedemptions(pageInfo.GetStartIdx(), pageInfo.GetPageSize())
 	if err != nil {
 		common.ApiError(c, err)
@@ -226,6 +243,82 @@ func DeleteInvalidRedemption(c *gin.Context) {
 		"success": true,
 		"message": "",
 		"data":    rows,
+	})
+	return
+}
+
+func DeleteRedemptionsByName(c *gin.Context) {
+	name := c.Param("name")
+	if name == "" {
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": "名称不能为空",
+		})
+		return
+	}
+	
+	rows, err := model.DeleteRedemptionsByName(name)
+	if err != nil {
+		common.ApiError(c, err)
+		return
+	}
+	
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "",
+		"data":    rows,
+	})
+	return
+}
+
+func DeleteRedemptionsByNames(c *gin.Context) {
+	var req struct {
+		Names []string `json:"names"`
+	}
+	
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": "请求参数错误",
+		})
+		return
+	}
+	
+	if len(req.Names) == 0 {
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": "请选择要删除的分组",
+		})
+		return
+	}
+	
+	var totalRows int64 = 0
+	var deletedNames []string
+	
+	for _, name := range req.Names {
+		if name != "" {
+			rows, err := model.DeleteRedemptionsByName(name)
+			if err != nil {
+				c.JSON(http.StatusOK, gin.H{
+					"success": false,
+					"message": fmt.Sprintf("删除分组 %s 失败: %v", name, err),
+				})
+				return
+			}
+			if rows > 0 {
+				totalRows += rows
+				deletedNames = append(deletedNames, name)
+			}
+		}
+	}
+	
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "",
+		"data": map[string]interface{}{
+			"total_deleted": totalRows,
+			"deleted_names": deletedNames,
+		},
 	})
 	return
 }

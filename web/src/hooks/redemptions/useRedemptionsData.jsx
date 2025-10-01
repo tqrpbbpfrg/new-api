@@ -39,6 +39,8 @@ export const useRedemptionsData = () => {
   const [pageSize, setPageSize] = useState(ITEMS_PER_PAGE);
   const [tokenCount, setTokenCount] = useState(0);
   const [selectedKeys, setSelectedKeys] = useState([]);
+  const [groupMode, setGroupMode] = useState(false);
+  const [expandedGroups, setExpandedGroups] = useState({});
 
   // Edit state
   const [editingRedemption, setEditingRedemption] = useState({
@@ -74,9 +76,11 @@ export const useRedemptionsData = () => {
   const loadRedemptions = async (page = 1, pageSize) => {
     setLoading(true);
     try {
-      const res = await API.get(
-        `/api/redemption/?p=${page}&page_size=${pageSize}`,
-      );
+      const url = groupMode 
+        ? `/api/redemption/?p=${page}&page_size=${pageSize}&group_mode=true`
+        : `/api/redemption/?p=${page}&page_size=${pageSize}`;
+      
+      const res = await API.get(url);
       const { success, message, data } = res.data;
       if (success) {
         const newPageData = data.items;
@@ -272,6 +276,84 @@ export const useRedemptionsData = () => {
     });
   };
 
+  // Toggle group mode
+  const toggleGroupMode = async () => {
+    const newGroupMode = !groupMode;
+    setGroupMode(newGroupMode);
+    setActivePage(1);
+    setSelectedKeys([]);
+    setExpandedGroups({});
+    
+    // Reload data with new mode
+    setLoading(true);
+    try {
+      const url = newGroupMode 
+        ? `/api/redemption/?p=1&page_size=${pageSize}&group_mode=true`
+        : `/api/redemption/?p=1&page_size=${pageSize}`;
+      
+      const res = await API.get(url);
+      const { success, message, data } = res.data;
+      if (success) {
+        const newPageData = data.items;
+        setActivePage(data.page <= 0 ? 1 : data.page);
+        setTokenCount(data.total);
+        setRedemptionFormat(newPageData);
+      } else {
+        showError(message);
+      }
+    } catch (error) {
+      showError(error.message);
+    }
+    setLoading(false);
+  };
+
+  // Toggle group expansion
+  const toggleGroupExpansion = (groupName) => {
+    setExpandedGroups(prev => ({
+      ...prev,
+      [groupName]: !prev[groupName]
+    }));
+  };
+
+  // Batch delete selected groups
+  const batchDeleteGroups = async () => {
+    if (selectedKeys.length === 0) {
+      showError(t('请至少选择一个分组！'));
+      return;
+    }
+
+    const groupNames = selectedKeys.map(key => key.name);
+    
+    Modal.confirm({
+      title: t('确定删除选中的分组？'),
+      content: t('将删除选中分组下的所有兑换码，此操作不可撤销。分组：{{groups}}', { 
+        groups: groupNames.join(', ') 
+      }),
+      onOk: async () => {
+        setLoading(true);
+        try {
+          const res = await API.delete('/api/redemption/batch', {
+            data: { names: groupNames }
+          });
+          const { success, message, data } = res.data;
+          
+          if (success) {
+            showSuccess(t('已删除 {{count}} 个分组，共 {{total}} 条兑换码', { 
+              count: data.deleted_names.length,
+              total: data.total_deleted 
+            }));
+            await refresh();
+          } else {
+            showError(message);
+          }
+        } catch (error) {
+          showError(error.message);
+        }
+        setLoading(false);
+      },
+    });
+  };
+
   // Close edit modal
   const closeEdit = () => {
     setShowEdit(false);
@@ -324,6 +406,8 @@ export const useRedemptionsData = () => {
     // UI state
     compactMode,
     setCompactMode,
+    groupMode,
+    expandedGroups,
 
     // Data operations
     loadRedemptions,
@@ -341,6 +425,7 @@ export const useRedemptionsData = () => {
     setShowEdit,
     setFormApi,
     setLoading,
+    setExpandedGroups,
 
     // Event handlers
     handlePageChange,
@@ -353,6 +438,11 @@ export const useRedemptionsData = () => {
     // Batch operations
     batchCopyRedemptions,
     batchDeleteRedemptions,
+
+    // Group mode operations
+    toggleGroupMode,
+    toggleGroupExpansion,
+    batchDeleteGroups,
 
     // Translation function
     t,

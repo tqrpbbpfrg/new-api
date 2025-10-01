@@ -91,7 +91,7 @@ export class CheckInService {
    */
   static async checkIn(verifyCode = '') {
     try {
-      const response = await API.post('/api/checkin/', { verifyCode });
+      const response = await API.post('/api/checkin/', { authCode: verifyCode });
       return response.data;
     } catch (error) {
       showError('签到失败');
@@ -113,6 +113,23 @@ export class CheckInService {
       return response.data;
     } catch (error) {
       showError('获取签到记录失败');
+      throw error;
+    }
+  }
+
+  /**
+   * 获取签到排行榜
+   * @param {number} limit - 限制数量
+   * @returns {Promise<Object>}
+   */
+  static async getLeaderboard(limit = 20) {
+    try {
+      const response = await API.get('/api/checkin/leaderboard', {
+        params: { limit }
+      });
+      return response.data;
+    } catch (error) {
+      showError('获取签到排行榜失败');
       throw error;
     }
   }

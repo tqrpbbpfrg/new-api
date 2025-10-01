@@ -17,40 +17,40 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useContext, useEffect, useState } from 'react';
+import { Button, Card, Divider, Form, Icon, Modal } from '@douyinfe/semi-ui';
+import Text from '@douyinfe/semi-ui/lib/es/typography/text';
+import Title from '@douyinfe/semi-ui/lib/es/typography/title';
+import { useContext, useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { UserContext } from '../../context/User';
+import TelegramLoginButton from 'react-telegram-login';
+import Turnstile from 'react-turnstile';
 import { StatusContext } from '../../context/Status';
+import { UserContext } from '../../context/User';
 import {
   API,
+  buildAssertionResult,
   getLogo,
+  getSystemName,
+  isPasskeySupported,
+  onDiscordOAuthClicked,
+  onGitHubOAuthClicked,
+  onLinuxDOOAuthClicked,
+  onOIDCClicked,
+  prepareCredentialRequestOptions,
+  setUserData,
   showError,
   showInfo,
   showSuccess,
   updateAPI,
-  getSystemName,
-  setUserData,
-  onGitHubOAuthClicked,
-  onOIDCClicked,
-  onLinuxDOOAuthClicked,
-  onDiscordOAuthClicked,
-  prepareCredentialRequestOptions,
-  buildAssertionResult,
-  isPasskeySupported,
 } from '../../helpers';
-import Turnstile from 'react-turnstile';
-import { Button, Card, Divider, Form, Icon, Modal } from '@douyinfe/semi-ui';
-import Title from '@douyinfe/semi-ui/lib/es/typography/title';
-import Text from '@douyinfe/semi-ui/lib/es/typography/text';
-import TelegramLoginButton from 'react-telegram-login';
 
-import { IconGithubLogo, IconMail, IconLock, IconKey } from '@douyinfe/semi-icons';
+import { IconGithubLogo, IconKey, IconLock, IconMail } from '@douyinfe/semi-icons';
+import { useTranslation } from 'react-i18next';
+import DiscordIcon from '../common/logo/DiscordIcon';
+import LinuxDoIcon from '../common/logo/LinuxDoIcon';
 import OIDCIcon from '../common/logo/OIDCIcon';
 import WeChatIcon from '../common/logo/WeChatIcon';
-import LinuxDoIcon from '../common/logo/LinuxDoIcon';
-import DiscordIcon from '../common/logo/DiscordIcon';
 import TwoFAVerification from './TwoFAVerification';
-import { useTranslation } from 'react-i18next';
 
 const LoginForm = () => {
   let navigate = useNavigate();
@@ -247,40 +247,58 @@ const LoginForm = () => {
   const handleGitHubClick = () => {
     setGithubLoading(true);
     try {
+      // 设置OAuth来源标识
+      sessionStorage.setItem('oauth_from', 'login');
       onGitHubOAuthClicked(status.github_client_id);
-    } finally {
-      // 由于重定向，这里不会执行到，但为了完整性添加
-      setTimeout(() => setGithubLoading(false), 3000);
+    } catch (error) {
+      showError('GitHub 授权启动失败，请重试');
+      setGithubLoading(false);
     }
+    // 页面将重定向，所以不需要手动重置loading状态
   };
 
   // 包装的OIDC登录点击处理
   const handleOIDCClick = () => {
     setOidcLoading(true);
     try {
+      // 设置OAuth来源标识
+      sessionStorage.setItem('oauth_from', 'login');
       onOIDCClicked(status.oidc_authorization_endpoint, status.oidc_client_id);
-    } finally {
-      // 由于重定向，这里不会执行到，但为了完整性添加
-      setTimeout(() => setOidcLoading(false), 3000);
+    } catch (error) {
+      showError('OIDC 授权启动失败，请重试');
+      setOidcLoading(false);
     }
+    // 页面将重定向，所以不需要手动重置loading状态
   };
 
   // 包装的LinuxDO登录点击处理
   const handleLinuxDOClick = () => {
     setLinuxdoLoading(true);
     try {
+      // 设置OAuth来源标识
+      sessionStorage.setItem('oauth_from', 'login');
       onLinuxDOOAuthClicked(status.linuxdo_client_id);
-    } finally {
-      // 由于重定向，这里不会执行到，但为了完整性添加
-      setTimeout(() => setLinuxdoLoading(false), 3000);
+    } catch (error) {
+      showError('LinuxDO 授权启动失败，请重试');
+      setLinuxdoLoading(false);
     }
+    // 页面将重定向，所以不需要手动重置loading状态
   };
   
   // 包装的Discord登录点击处理
   const handleDiscordClick = () => {
+    if (!status.discord_client_id) {
+      showError('Discord 客户端 ID 未配置，请联系管理员');
+      return;
+    }
+    
     setDiscordLoading(true);
     try {
+      sessionStorage.setItem('oauth_from', 'login');
       onDiscordOAuthClicked(status.discord_client_id);
+    } catch (error) {
+      showError('Discord 授权启动失败，请重试');
+      setDiscordLoading(false);
     } finally {
       // 由于重定向，这里不会执行到，但为了完整性添加
       setTimeout(() => setDiscordLoading(false), 3000);

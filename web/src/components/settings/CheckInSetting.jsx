@@ -17,23 +17,21 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useEffect, useState } from 'react';
-import { 
-  Form, 
-  Input, 
-  InputNumber, 
-  Switch, 
-  Button, 
-  Space, 
-  Card, 
-  Divider,
-  Toast,
-  Spin
+import {
+    Button,
+    Card,
+    Divider,
+    Form,
+    Space,
+    Spin
 } from '@douyinfe/semi-ui';
+import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { showError, showSuccess } from '../../helpers';
 import { CheckInService } from '../../services/checkin';
-import { showSuccess, showError } from '../../helpers';
 
 const CheckInSetting = ({ options = {}, refresh }) => {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [config, setConfig] = useState({
     enabled: false,
@@ -67,21 +65,22 @@ const CheckInSetting = ({ options = {}, refresh }) => {
   };
 
   // 保存配置
-  const handleSave = async () => {
+  const handleSave = async (values) => {
     try {
       setLoading(true);
-      const values = await formApiRef.current.getValues();
       const response = await CheckInService.updateConfig(values);
       if (response.success) {
-        showSuccess('签到配置已更新');
+        showSuccess(t('签到配置已更新'));
         setConfig(values);
-        refresh();
+        if (refresh && typeof refresh === 'function') {
+          refresh();
+        }
       } else {
-        showError(response.message || '更新配置失败');
+        showError(response.message || t('更新配置失败'));
       }
     } catch (error) {
       console.error('保存签到配置失败:', error);
-      showError('保存配置失败');
+      showError(t('保存配置失败'));
     } finally {
       setLoading(false);
     }
@@ -168,13 +167,6 @@ const CheckInSetting = ({ options = {}, refresh }) => {
             placeholder="请输入鉴权码"
             extraText="用户签到时需要输入的鉴权码，留空则关闭鉴权码验证"
             style={{ width: '100%' }}
-            disabled={!config.authCodeEnabled}
-            rules={[
-              {
-                required: config.authCodeEnabled,
-                message: '请输入鉴权码',
-              }
-            ]}
           />
 
           <Divider margin="12px" />
@@ -195,7 +187,6 @@ const CheckInSetting = ({ options = {}, refresh }) => {
             suffix="额度"
             extraText="每连续签到N天增加的额外奖励额度"
             style={{ width: '100%' }}
-            disabled={!config.continuousEnabled}
           />
 
           <Form.InputNumber
@@ -208,7 +199,6 @@ const CheckInSetting = ({ options = {}, refresh }) => {
             suffix="天"
             extraText="每连续签到此天数增加一次额外奖励"
             style={{ width: '100%' }}
-            disabled={!config.continuousEnabled}
           />
 
           <Space style={{ marginTop: 24 }}>

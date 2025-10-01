@@ -19,7 +19,7 @@ For commercial licensing, please contact support@quantumnous.com
 
 import React from 'react';
 import { Tag, Button, Space, Popover, Dropdown } from '@douyinfe/semi-ui';
-import { IconMore } from '@douyinfe/semi-icons';
+import { IconMore, IconChevronDown, IconChevronRight } from '@douyinfe/semi-icons';
 import { renderQuota, timestamp2string } from '../../../helpers';
 import {
   REDEMPTION_STATUS,
@@ -124,32 +124,88 @@ const renderGiftInfo = (record, t) => {
 };
 
 /**
- * Get redemption code table column definitions
+ * Get redemption code table column definitions for grouped mode
  */
-export const getRedemptionsColumns = ({
+export const getRedemptionsGroupedColumns = ({
   t,
   manageRedemption,
   copyText,
   setEditingRedemption,
   setShowEdit,
   refresh,
-  redemptions,
-  activePage,
+  expandedGroups,
+  toggleGroupExpansion,
+  showDeleteRedemptionModal,
+}) => {
+  return [
+    {
+      title: t('分组名称'),
+      dataIndex: 'name',
+      key: 'name',
+      render: (text, record) => {
+        const isExpanded = expandedGroups[text];
+        return (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Button
+              type='tertiary'
+              icon={isExpanded ? <IconChevronDown /> : <IconChevronRight />}
+              onClick={() => toggleGroupExpansion(text)}
+              size='small'
+              style={{ padding: 2 }}
+            />
+            <span>{text}</span>
+            <Tag size='small' color='blue'>
+              {record.count} {t('个')}
+            </Tag>
+          </div>
+        );
+      },
+    },
+    {
+      title: t('操作'),
+      dataIndex: 'operate',
+      fixed: 'right',
+      width: 150,
+      render: (text, record) => {
+        return (
+          <Space>
+            <Button
+              type='tertiary'
+              size='small'
+              onClick={() => toggleGroupExpansion(record.name)}
+            >
+              {expandedGroups[record.name] ? t('收起') : t('展开')}
+            </Button>
+          </Space>
+        );
+      },
+    },
+  ];
+};
+
+/**
+ * Get redemption code sub-table column definitions for grouped mode
+ */
+export const getRedemptionsSubColumns = ({
+  t,
+  manageRedemption,
+  copyText,
+  setEditingRedemption,
+  setShowEdit,
+  refresh,
   showDeleteRedemptionModal,
 }) => {
   return [
     {
       title: t('ID'),
       dataIndex: 'id',
-    },
-    {
-      title: t('名称'),
-      dataIndex: 'name',
+      width: 80,
     },
     {
       title: t('状态'),
       dataIndex: 'status',
       key: 'status',
+      width: 100,
       render: (text, record) => {
         return <div>{renderStatus(text, record, t)}</div>;
       },
@@ -158,6 +214,7 @@ export const getRedemptionsColumns = ({
       title: t('类型'),
       dataIndex: 'type',
       key: 'type',
+      width: 100,
       render: (text, record) => {
         return <div>{renderType(text, record, t)}</div>;
       },
@@ -165,6 +222,7 @@ export const getRedemptionsColumns = ({
     {
       title: t('额度'),
       dataIndex: 'quota',
+      width: 120,
       render: (text) => {
         return (
           <div>
@@ -179,6 +237,7 @@ export const getRedemptionsColumns = ({
       title: t('礼品码信息'),
       dataIndex: 'gift_info',
       key: 'gift_info',
+      width: 200,
       render: (text, record) => {
         return <div>{renderGiftInfo(record, t)}</div>;
       },
@@ -186,6 +245,7 @@ export const getRedemptionsColumns = ({
     {
       title: t('创建时间'),
       dataIndex: 'created_time',
+      width: 150,
       render: (text) => {
         return <div>{renderTimestamp(text)}</div>;
       },
@@ -193,6 +253,7 @@ export const getRedemptionsColumns = ({
     {
       title: t('过期时间'),
       dataIndex: 'expired_time',
+      width: 150,
       render: (text) => {
         return <div>{text === 0 ? t('永不过期') : renderTimestamp(text)}</div>;
       },
@@ -200,6 +261,7 @@ export const getRedemptionsColumns = ({
     {
       title: t('兑换人ID'),
       dataIndex: 'used_user_id',
+      width: 100,
       render: (text) => {
         return <div>{text === 0 ? t('无') : text}</div>;
       },

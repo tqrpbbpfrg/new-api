@@ -35,7 +35,7 @@ type OidcUser struct {
 	Picture           string `json:"picture"`
 }
 
-func getOidcUserInfoByCode(code string) (*OidcUser, error) {
+func getOidcUserInfoByCode(code string, c *gin.Context) (*OidcUser, error) {
 	if code == "" {
 		return nil, errors.New("无效的参数")
 	}
@@ -45,7 +45,20 @@ func getOidcUserInfoByCode(code string) (*OidcUser, error) {
 	values.Set("client_secret", system_setting.GetOIDCSettings().ClientSecret)
 	values.Set("code", code)
 	values.Set("grant_type", "authorization_code")
-	values.Set("redirect_uri", fmt.Sprintf("%s/oauth/oidc", system_setting.ServerAddress))
+
+	// 动态构建redirect_uri，确保与前端一致
+	redirectURI := system_setting.ServerAddress
+	if redirectURI == "" {
+		// 如果ServerAddress为空，从请求中获取
+		scheme := "http"
+		if c.Request.TLS != nil || c.GetHeader("X-Forwarded-Proto") == "https" {
+			scheme = "https"
+		}
+		redirectURI = fmt.Sprintf("%s://%s", scheme, c.Request.Host)
+	}
+	// 确保末尾没有斜杠
+	redirectURI = strings.TrimSuffix(redirectURI, "/")
+	values.Set("redirect_uri", fmt.Sprintf("%s/oauth/oidc", redirectURI))
 	formData := values.Encode()
 	req, err := http.NewRequest("POST", system_setting.GetOIDCSettings().TokenEndpoint, strings.NewReader(formData))
 	if err != nil {
@@ -124,7 +137,7 @@ func OidcAuth(c *gin.Context) {
 		return
 	}
 	code := c.Query("code")
-	oidcUser, err := getOidcUserInfoByCode(code)
+	oidcUser, err := getOidcUserInfoByCode(code, c)
 	if err != nil {
 		common.ApiError(c, err)
 		return
@@ -156,10 +169,10 @@ func OidcAuth(c *gin.Context) {
 			}
 			user.Role = common.RoleCommonUser
 			user.Status = common.UserStatusEnabled
-			
+
 			// 根据注册方式设置默认用户组
 			user.Group = setting.GetDefaultUserGroupForMethod("oidc")
-			
+
 			err := user.Insert(0)
 			if err != nil {
 				c.JSON(http.StatusOK, gin.H{
@@ -196,7 +209,7 @@ func OidcBind(c *gin.Context) {
 		return
 	}
 	code := c.Query("code")
-	oidcUser, err := getOidcUserInfoByCode(code)
+	oidcUser, err := getOidcUserInfoByCode(code, c)
 	if err != nil {
 		common.ApiError(c, err)
 		return

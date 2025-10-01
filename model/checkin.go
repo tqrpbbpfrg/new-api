@@ -194,3 +194,51 @@ func GetAllCheckIns(pageInfo *common.PageInfo) ([]*CheckIn, int64, error) {
 	
 	return checkIns, total, nil
 }
+
+// CheckInLeaderboard 签到排行榜数据结构
+type CheckInLeaderboard struct {
+	UserId          int    `json:"user_id"`
+	Username        string `json:"username"`
+	TotalCheckIns   int    `json:"total_checkins"`
+	ContinuousDays  int    `json:"continuous_days"`
+	TotalRewards    int    `json:"total_rewards"`
+	LastCheckInDate string `json:"last_checkin_date"`
+	Rank            int    `json:"rank"`
+}
+
+// GetCheckInLeaderboard 获取签到排行榜
+func GetCheckInLeaderboard(limit int) ([]*CheckInLeaderboard, error) {
+	var leaderboard []*CheckInLeaderboard
+	
+	// 使用原生SQL查询获取排行榜数据
+	// 查询每个用户的签到统计信息，按总签到次数排序
+	sql := `
+		SELECT 
+			c.user_id,
+			u.username,
+			COUNT(c.id) as total_checkins,
+			SUM(c.reward) as total_rewards,
+			MAX(c.check_date) as last_checkin_date,
+			ROW_NUMBER() OVER (ORDER BY COUNT(c.id) DESC) as rank
+		FROM check_ins c
+		LEFT JOIN users u ON c.user_id = u.id
+		GROUP BY c.user_id, u.username
+		ORDER BY total_checkins DESC
+		LIMIT ?
+	`
+	
+	err := DB.Raw(sql, limit).Scan(&leaderboard).Error
+	if err != nil {
+		return nil, err
+	}
+	
+	// 为每个用户计算连续签到天数
+	for _, item := range leaderboard {
+		continuousDays, err := GetUserContinuousCheckInDays(item.UserId)
+		if err == nil {
+			item.ContinuousDays = continuousDays
+		}
+	}
+	
+	return leaderboard, nil
+}

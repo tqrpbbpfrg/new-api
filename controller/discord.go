@@ -54,7 +54,7 @@ type DiscordGuildMember struct {
 	Pending      bool                `json:"pending"`
 }
 
-func getDiscordUserInfoByCode(code string) (*DiscordUserResponse, *[]DiscordGuildMember, error) {
+func getDiscordUserInfoByCode(code string, c *gin.Context) (*DiscordUserResponse, *[]DiscordGuildMember, error) {
 	if code == "" {
 		return nil, nil, errors.New("无效的参数")
 	}
@@ -65,9 +65,22 @@ func getDiscordUserInfoByCode(code string) (*DiscordUserResponse, *[]DiscordGuil
 	values.Set("client_secret", common.DiscordClientSecret)
 	values.Set("code", code)
 	values.Set("grant_type", "authorization_code")
-	values.Set("redirect_uri", fmt.Sprintf("%s/oauth/discord", common.ServerAddress))
+
+	// 动态构建redirect_uri，确保与前端一致
+	redirectURI := common.ServerAddress
+	if redirectURI == "" {
+		// 如果ServerAddress为空，从请求中获取
+		scheme := "http"
+		if c.Request.TLS != nil || c.GetHeader("X-Forwarded-Proto") == "https" {
+			scheme = "https"
+		}
+		redirectURI = fmt.Sprintf("%s://%s", scheme, c.Request.Host)
+	}
+	// 确保末尾没有斜杠
+	redirectURI = strings.TrimSuffix(redirectURI, "/")
+	values.Set("redirect_uri", fmt.Sprintf("%s/oauth/discord", redirectURI))
 	formData := values.Encode()
-	
+
 	req, err := http.NewRequest("POST", "https://discord.com/api/oauth2/token", strings.NewReader(formData))
 	if err != nil {
 		return nil, nil, err
@@ -83,7 +96,7 @@ func getDiscordUserInfoByCode(code string) (*DiscordUserResponse, *[]DiscordGuil
 		return nil, nil, errors.New("无法连接至 Discord 服务器，请稍后重试")
 	}
 	defer res.Body.Close()
-	
+
 	if res.StatusCode != http.StatusOK {
 		common.SysLog(fmt.Sprintf("Discord 授权失败: %d", res.StatusCode))
 		return nil, nil, errors.New("Discord 授权失败，请检查配置")
@@ -112,7 +125,7 @@ func getDiscordUserInfoByCode(code string) (*DiscordUserResponse, *[]DiscordGuil
 		return nil, nil, errors.New("无法连接至 Discord 服务器，请稍后重试")
 	}
 	defer userRes.Body.Close()
-	
+
 	if userRes.StatusCode != http.StatusOK {
 		common.SysLog(fmt.Sprintf("Discord 获取用户信息失败: %d", userRes.StatusCode))
 		return nil, nil, errors.New("Discord 获取用户信息失败")
@@ -133,7 +146,7 @@ func getDiscordUserInfoByCode(code string) (*DiscordUserResponse, *[]DiscordGuil
 		}
 		guildReq.Header.Set("Authorization", fmt.Sprintf("%s %s", tokenResponse.TokenType, tokenResponse.AccessToken))
 		guildRes, err := client.Do(guildReq)
-		
+
 		if err != nil {
 			common.SysLog(err.Error())
 			// 如果获取服务器信息失败，但不是必需的，继续处理
@@ -170,9 +183,10 @@ func DiscordAuth(c *gin.Context) {
 	session := sessions.Default(c)
 	state := c.Query("state")
 	if state == "" || session.Get("oauth_state") == nil || state != session.Get("oauth_state").(string) {
+		common.SysLog(fmt.Sprintf("Discord OAuth 状态验证失败: state=%s, session_state=%v", state, session.Get("oauth_state")))
 		c.JSON(http.StatusForbidden, gin.H{
 			"success": false,
-			"message": "state is empty or not same",
+			"message": "Discord 授权失败，请重新尝试登录",
 		})
 		return
 	}
@@ -189,9 +203,20 @@ func DiscordAuth(c *gin.Context) {
 		return
 	}
 	code := c.Query("code")
-	discordUser, _, err := getDiscordUserInfoByCode(code)
+	if code == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": "Discord 授权码为空，请重新授权",
+		})
+		return
+	}
+	discordUser, _, err := getDiscordUserInfoByCode(code, c)
 	if err != nil {
-		common.ApiError(c, err)
+		common.SysLog(fmt.Sprintf("Discord OAuth 获取用户信息失败: %v", err))
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": fmt.Sprintf("Discord 授权失败: %s", err.Error()),
+		})
 		return
 	}
 	user := model.User{
@@ -217,10 +242,10 @@ func DiscordAuth(c *gin.Context) {
 			user.Username = "discord_" + strconv.Itoa(model.GetMaxUserId()+1)
 			user.Role = common.RoleCommonUser
 			user.Status = common.UserStatusEnabled
-			
+
 			// 根据注册方式设置默认用户组
 			user.Group = setting.GetDefaultUserGroupForMethod("discord")
-			
+
 			err := user.Insert(0)
 			if err != nil {
 				c.JSON(http.StatusOK, gin.H{
@@ -261,7 +286,7 @@ func DiscordBind(c *gin.Context) {
 		return
 	}
 	code := c.Query("code")
-	discordUser, _, err := getDiscordUserInfoByCode(code)
+	discordUser, _, err := getDiscordUserInfoByCode(code, c)
 	if err != nil {
 		common.ApiError(c, err)
 		return

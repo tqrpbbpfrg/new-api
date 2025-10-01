@@ -17,17 +17,17 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useContext, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useContext, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { UserContext } from '../../context/User';
 import {
   API,
+  setUserData,
   showError,
   showSuccess,
   updateAPI,
-  setUserData,
 } from '../../helpers';
-import { UserContext } from '../../context/User';
 import Loading from '../common/ui/Loading';
 
 const OAuth2Callback = (props) => {
@@ -48,7 +48,7 @@ const OAuth2Callback = (props) => {
       const { success, message, data } = resData;
 
       if (!success) {
-        throw new Error(message || 'OAuth2 callback error');
+        throw new Error(message || t('授权失败'));
       }
 
       if (message === 'bind') {
@@ -60,7 +60,7 @@ const OAuth2Callback = (props) => {
         setUserData(data);
         updateAPI();
         showSuccess(t('登录成功！'));
-        navigate('/console/token');
+        navigate('/console');
       }
     } catch (error) {
       if (retry < MAX_RETRIES) {
@@ -69,9 +69,46 @@ const OAuth2Callback = (props) => {
         return sendCode(code, state, retry + 1);
       }
 
-      // 重试次数耗尽，提示错误并返回设置页面
-      showError(error.message || t('授权失败'));
-      navigate('/console/personal');
+      // 重试次数耗尽，提示错误
+      let errorMsg = t('授权失败');
+      if (error.response?.data?.message) {
+        errorMsg = error.response.data.message;
+      } else if (error.message) {
+        errorMsg = error.message;
+      }
+      
+      // 针对不同OAuth提供商的特定错误处理
+      if (props.type === 'discord') {
+        if (errorMsg.includes('state')) {
+          errorMsg = 'Discord 授权状态验证失败，请重新登录';
+        } else if (errorMsg.includes('code')) {
+          errorMsg = 'Discord 授权码无效，请重新授权';
+        } else if (errorMsg.includes('Token') || errorMsg.includes('Client')) {
+          errorMsg = 'Discord 配置错误，请联系管理员检查 Client ID 和 Client Secret';
+        }
+      } else if (props.type === 'github') {
+        if (errorMsg.includes('state')) {
+          errorMsg = 'GitHub 授权状态验证失败，请重新登录';
+        } else if (errorMsg.includes('code')) {
+          errorMsg = 'GitHub 授权码无效，请重新授权';
+        }
+      } else if (props.type === 'oidc') {
+        if (errorMsg.includes('state')) {
+          errorMsg = 'OIDC 授权状态验证失败，请重新登录';
+        }
+      }
+      
+      showError(errorMsg);
+      
+      // 如果是从登录页面来的，返回登录页
+      // 否则返回个人设置页面
+      const from = sessionStorage.getItem('oauth_from') || 'login';
+      sessionStorage.removeItem('oauth_from');
+      
+      // 延迟跳转，让用户看到错误信息
+      setTimeout(() => {
+        navigate(from === 'personal' ? '/console/personal' : '/login');
+      }, 2000);
     }
   };
 

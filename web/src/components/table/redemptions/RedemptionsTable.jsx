@@ -18,14 +18,16 @@ For commercial licensing, please contact support@quantumnous.com
 */
 
 import React, { useMemo, useState } from 'react';
-import { Empty } from '@douyinfe/semi-ui';
+import { Empty, Card, Button, Space, Tag } from '@douyinfe/semi-ui';
 import CardTable from '../../common/ui/CardTable';
 import {
   IllustrationNoResult,
   IllustrationNoResultDark,
 } from '@douyinfe/semi-illustrations';
 import { getRedemptionsColumns, isExpired } from './RedemptionsColumnDefs';
+import { getRedemptionsGroupedColumns, getRedemptionsSubColumns } from './RedemptionsGroupedColumnDefs';
 import DeleteRedemptionModal from './modals/DeleteRedemptionModal';
+import { IconList, IconGroup, IconChevronDown, IconChevronRight } from '@douyinfe/semi-icons';
 
 const RedemptionsTable = (redemptionsData) => {
   const {
@@ -44,6 +46,12 @@ const RedemptionsTable = (redemptionsData) => {
     setShowEdit,
     refresh,
     t,
+    groupMode,
+    expandedGroups,
+    toggleGroupExpansion,
+    toggleGroupMode,
+    batchDeleteGroups,
+    selectedKeys,
   } = redemptionsData;
 
   // Modal states
@@ -56,7 +64,7 @@ const RedemptionsTable = (redemptionsData) => {
     setShowDeleteModal(true);
   };
 
-  // Get all columns
+  // Get all columns for normal mode
   const columns = useMemo(() => {
     return getRedemptionsColumns({
       t,
@@ -81,6 +89,52 @@ const RedemptionsTable = (redemptionsData) => {
     showDeleteRedemptionModal,
   ]);
 
+  // Get grouped columns for group mode
+  const groupedColumns = useMemo(() => {
+    return getRedemptionsGroupedColumns({
+      t,
+      manageRedemption,
+      copyText,
+      setEditingRedemption,
+      setShowEdit,
+      refresh,
+      expandedGroups,
+      toggleGroupExpansion,
+      showDeleteRedemptionModal,
+    });
+  }, [
+    t,
+    manageRedemption,
+    copyText,
+    setEditingRedemption,
+    setShowEdit,
+    refresh,
+    expandedGroups,
+    toggleGroupExpansion,
+    showDeleteRedemptionModal,
+  ]);
+
+  // Get sub-table columns for group mode
+  const subColumns = useMemo(() => {
+    return getRedemptionsSubColumns({
+      t,
+      manageRedemption,
+      copyText,
+      setEditingRedemption,
+      setShowEdit,
+      refresh,
+      showDeleteRedemptionModal,
+    });
+  }, [
+    t,
+    manageRedemption,
+    copyText,
+    setEditingRedemption,
+    setShowEdit,
+    refresh,
+    showDeleteRedemptionModal,
+  ]);
+
   // Handle compact mode by removing fixed positioning
   const tableColumns = useMemo(() => {
     return compactMode
@@ -94,38 +148,131 @@ const RedemptionsTable = (redemptionsData) => {
       : columns;
   }, [compactMode, columns]);
 
+  // Render grouped table
+  const renderGroupedTable = () => {
+    return (
+      <div>
+        {redemptions.map((group) => (
+          <Card
+            key={group.name}
+            style={{ marginBottom: 16 }}
+            title={
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Button
+                  type='tertiary'
+                  icon={expandedGroups[group.name] ? <IconChevronDown /> : <IconChevronRight />}
+                  onClick={() => toggleGroupExpansion(group.name)}
+                  size='small'
+                  style={{ padding: 2 }}
+                />
+                <span>{group.name}</span>
+                <Tag size='small' color='blue'>
+                  {group.count} {t('个')}
+                </Tag>
+              </div>
+            }
+            headerExtraContent={
+              <Space>
+                <Button
+                  type='tertiary'
+                  size='small'
+                  onClick={() => toggleGroupExpansion(group.name)}
+                >
+                  {expandedGroups[group.name] ? t('收起') : t('展开')}
+                </Button>
+              </Space>
+            }
+          >
+            {expandedGroups[group.name] && (
+              <CardTable
+                columns={subColumns}
+                dataSource={group.redemptions}
+                scroll={compactMode ? undefined : { x: 'max-content' }}
+                pagination={false}
+                loading={loading}
+                rowSelection={rowSelection}
+                onRow={handleRow}
+                size='small'
+                style={{ marginTop: 16 }}
+              />
+            )}
+          </Card>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <>
-      <CardTable
-        columns={tableColumns}
-        dataSource={redemptions}
-        scroll={compactMode ? undefined : { x: 'max-content' }}
-        pagination={{
-          currentPage: activePage,
-          pageSize: pageSize,
-          total: tokenCount,
-          showSizeChanger: true,
-          pageSizeOptions: [10, 20, 50, 100],
-          onPageSizeChange: redemptionsData.handlePageSizeChange,
-          onPageChange: handlePageChange,
-        }}
-        hidePagination={true}
-        loading={loading}
-        rowSelection={rowSelection}
-        onRow={handleRow}
-        empty={
-          <Empty
-            image={<IllustrationNoResult style={{ width: 150, height: 150 }} />}
-            darkModeImage={
-              <IllustrationNoResultDark style={{ width: 150, height: 150 }} />
-            }
-            description={t('搜索无结果')}
-            style={{ padding: 30 }}
-          />
-        }
-        className='rounded-xl overflow-hidden'
-        size='middle'
-      />
+      {/* Mode toggle and batch actions */}
+      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Space>
+          <Button
+            icon={groupMode ? <IconList /> : <IconGroup />}
+            onClick={toggleGroupMode}
+            type={groupMode ? 'primary' : 'default'}
+          >
+            {groupMode ? t('列表视图') : t('分组视图')}
+          </Button>
+          {groupMode && selectedKeys.length > 0 && (
+            <Button
+              type='danger'
+              onClick={batchDeleteGroups}
+            >
+              {t('删除选中分组')} ({selectedKeys.length})
+            </Button>
+          )}
+        </Space>
+      </div>
+
+      {groupMode ? (
+        <>
+          {renderGroupedTable()}
+          {/* Pagination for grouped mode */}
+          <div style={{ marginTop: 16, display: 'flex', justifyContent: 'center' }}>
+            <CardTable.Pagination
+              currentPage={activePage}
+              pageSize={pageSize}
+              total={tokenCount}
+              showSizeChanger={true}
+              pageSizeOptions={[10, 20, 50, 100]}
+              onPageSizeChange={redemptionsData.handlePageSizeChange}
+              onPageChange={handlePageChange}
+            />
+          </div>
+        </>
+      ) : (
+        <CardTable
+          columns={tableColumns}
+          dataSource={redemptions}
+          scroll={compactMode ? undefined : { x: 'max-content' }}
+          pagination={{
+            currentPage: activePage,
+            pageSize: pageSize,
+            total: tokenCount,
+            showSizeChanger: true,
+            pageSizeOptions: [10, 20, 50, 100],
+            onPageSizeChange: redemptionsData.handlePageSizeChange,
+            onPageChange: handlePageChange,
+          }}
+          hidePagination={true}
+          loading={loading}
+          rowSelection={rowSelection}
+          onRow={handleRow}
+          empty={
+            <Empty
+              image={<IllustrationNoResult style={{ width: 150, height: 150 }} />}
+              darkModeImage={
+                <IllustrationNoResultDark style={{ width: 150, height: 150 }} />
+              }
+              description={t('搜索无结果')}
+              style={{ padding: 30 }}
+            />
+          }
+          className='rounded-xl overflow-hidden'
+          size='middle'
+        />
+      )}
 
       <DeleteRedemptionModal
         visible={showDeleteModal}

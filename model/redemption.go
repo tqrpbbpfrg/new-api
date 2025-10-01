@@ -63,6 +63,76 @@ func GetAllRedemptions(startIdx int, num int) (redemptions []*Redemption, total 
 	return redemptions, total, nil
 }
 
+// GetRedemptionsGroupedByName 按名称分组获取兑换码
+func GetRedemptionsGroupedByName(startIdx int, num int) (groups []map[string]interface{}, total int64, err error) {
+	// 开始事务
+	tx := DB.Begin()
+	if tx.Error != nil {
+		return nil, 0, tx.Error
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	// 获取所有不重复的名称
+	var names []string
+	err = tx.Model(&Redemption{}).Select("DISTINCT name").Where("name != ''").Order("name ASC").Find(&names).Error
+	if err != nil {
+		tx.Rollback()
+		return nil, 0, err
+	}
+
+	total = int64(len(names))
+
+	// 分页处理名称
+	start := startIdx
+	end := startIdx + num
+	if start > len(names) {
+		start = len(names)
+	}
+	if end > len(names) {
+		end = len(names)
+	}
+
+	pagedNames := names[start:end]
+
+	// 为每个名称获取对应的兑换码
+	for _, name := range pagedNames {
+		var redemptions []*Redemption
+		err = tx.Where("name = ?", name).Order("id desc").Find(&redemptions).Error
+		if err != nil {
+			tx.Rollback()
+			return nil, 0, err
+		}
+
+		group := map[string]interface{}{
+			"name":        name,
+			"redemptions": redemptions,
+			"count":       len(redemptions),
+		}
+		groups = append(groups, group)
+	}
+
+	// 提交事务
+	if err = tx.Commit().Error; err != nil {
+		return nil, 0, err
+	}
+
+	return groups, total, nil
+}
+
+// DeleteRedemptionsByName 按名称删除兑换码
+func DeleteRedemptionsByName(name string) (int64, error) {
+	if name == "" {
+		return 0, errors.New("名称不能为空")
+	}
+	
+	result := DB.Where("name = ?", name).Delete(&Redemption{})
+	return result.RowsAffected, result.Error
+}
+
 func SearchRedemptions(keyword string, startIdx int, num int) (redemptions []*Redemption, total int64, err error) {
 	tx := DB.Begin()
 	if tx.Error != nil {

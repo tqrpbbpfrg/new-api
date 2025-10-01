@@ -183,6 +183,8 @@ func SetApiRouter(router *gin.Engine) {
 			redemptionRoute.PUT("/", controller.UpdateRedemption)
 			redemptionRoute.DELETE("/invalid", controller.DeleteInvalidRedemption)
 			redemptionRoute.DELETE("/:id", controller.DeleteRedemption)
+			redemptionRoute.DELETE("/name/:name", controller.DeleteRedemptionsByName)
+			redemptionRoute.DELETE("/batch", controller.DeleteRedemptionsByNames)
 		}
 		logRoute := apiRouter.Group("/log")
 		logRoute.GET("/", middleware.AdminAuth(), controller.GetAllLogs)
@@ -259,6 +261,7 @@ func SetApiRouter(router *gin.Engine) {
 			checkinRoute.POST("/", middleware.UserAuth(), controller.CheckIn)
 			checkinRoute.PUT("/config", middleware.RootAuth(), controller.UpdateCheckInConfig)
 			checkinRoute.GET("/all", middleware.AdminAuth(), controller.GetAllCheckIns)
+			checkinRoute.GET("/leaderboard", controller.GetCheckInLeaderboard)
 		}
 	}
 }

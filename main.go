@@ -140,12 +140,16 @@ func main() {
 	middleware.SetUpLogger(server)
 	// Initialize session store
 	store := cookie.NewStore([]byte(common.SessionSecret))
+
+	// 动态设置Secure选项，生产环境启用HTTPS时应设为true
+	isSecure := os.Getenv("SESSION_SECURE") == "true" || common.ServerAddress != "" && strings.HasPrefix(common.ServerAddress, "https://")
+
 	store.Options(sessions.Options{
 		Path:     "/",
 		MaxAge:   2592000, // 30 days
 		HttpOnly: true,
-		Secure:   false,
-		SameSite: http.SameSiteStrictMode,
+		Secure:   isSecure,
+		SameSite: http.SameSiteLaxMode, // 改为Lax模式，兼容OAuth回调
 	})
 	server.Use(sessions.Sessions("session", store))
 

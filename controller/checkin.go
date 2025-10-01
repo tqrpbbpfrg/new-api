@@ -321,3 +321,25 @@ func GetAllCheckIns(c *gin.Context) {
 		"total":   total,
 	})
 }
+
+// GetCheckInLeaderboard 获取签到排行榜
+func GetCheckInLeaderboard(c *gin.Context) {
+	limit, _ := strconv.Atoi(c.Query("limit"))
+	if limit <= 0 || limit > 100 {
+		limit = 20 // 默认显示前20名
+	}
+
+	leaderboard, err := model.GetCheckInLeaderboard(limit)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": "获取签到排行榜失败",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data":    leaderboard,
+	})
+}

@@ -29,11 +29,14 @@ import {
   Descriptions,
   Tag,
   Table,
-  Typography
+  Typography,
+  Avatar,
+  List,
+  Badge
 } from '@douyinfe/semi-ui';
 import { CheckInService } from '../../services/checkin';
 import { showSuccess, showError } from '../../helpers';
-import { Calendar as CalendarIcon, Gift, TrendingUp, History } from 'lucide-react';
+import { Calendar as CalendarIcon, Gift, TrendingUp, History, Trophy, Crown, Medal, Award } from 'lucide-react';
 
 const { Text } = Typography;
 
@@ -41,9 +44,11 @@ const CheckIn = () => {
   const [loading, setLoading] = useState(false);
   const [configLoading, setConfigLoading] = useState(false);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [leaderboardLoading, setLeaderboardLoading] = useState(false);
   const [status, setStatus] = useState(null);
   const [config, setConfig] = useState(null);
   const [history, setHistory] = useState([]);
+  const [leaderboard, setLeaderboard] = useState([]);
   const [showVerifyModal, setShowVerifyModal] = useState(false);
   const [verifyCode, setVerifyCode] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -97,6 +102,21 @@ const CheckIn = () => {
     }
   };
 
+  // 获取签到排行榜
+  const fetchLeaderboard = async () => {
+    try {
+      setLeaderboardLoading(true);
+      const response = await CheckInService.getLeaderboard(10);
+      if (response.success) {
+        setLeaderboard(response.data || []);
+      }
+    } catch (error) {
+      console.error('获取签到排行榜失败:', error);
+    } finally {
+      setLeaderboardLoading(false);
+    }
+  };
+
   // 处理签到
   const handleCheckIn = async () => {
     try {
@@ -121,6 +141,7 @@ const CheckIn = () => {
         showSuccess(`签到成功！获得 ${response.data.reward} 额度`);
         await fetchStatus();
         await fetchHistory(currentPage);
+        await fetchLeaderboard();
         setShowVerifyModal(false);
         setVerifyCode('');
       } else {
@@ -167,6 +188,20 @@ const CheckIn = () => {
     return null;
   };
 
+  // 获取排名图标
+  const getRankIcon = (rank) => {
+    switch (rank) {
+      case 1:
+        return <Crown size={20} style={{ color: '#FFD700' }} />;
+      case 2:
+        return <Medal size={20} style={{ color: '#C0C0C0' }} />;
+      case 3:
+        return <Award size={20} style={{ color: '#CD7F32' }} />;
+      default:
+        return <Trophy size={16} style={{ color: 'var(--semi-color-text-2)' }} />;
+    }
+  };
+
   // 历史记录表格列
   const historyColumns = [
     {
@@ -201,6 +236,7 @@ const CheckIn = () => {
     fetchConfig();
     fetchStatus();
     fetchHistory(1);
+    fetchLeaderboard();
   }, []);
 
   if (configLoading || !config) {
@@ -257,30 +293,88 @@ const CheckIn = () => {
               </Descriptions.Item>
             </Descriptions>
           )}
-          
-          {!status?.checked_in_today && (
-            <Button
-              type="primary"
-              size="large"
-              icon={<Gift />}
-              loading={loading}
-              onClick={handleCheckIn}
-              style={{ width: '100%', marginTop: '16px' }}
-            >
-              立即签到
-            </Button>
-          )}
         </Card>
 
-        {/* 签到日历 */}
-        <Card title="签到日历" loading={historyLoading}>
-          <Calendar
-            mode="month"
-            renderCell={renderCalendarCell}
-            style={{ width: '100%' }}
+        {/* 签到排行榜 */}
+        <Card 
+          title={
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <TrendingUp size={18} />
+              签到排行榜
+            </div>
+          }
+          loading={leaderboardLoading}
+        >
+          <List
+            dataSource={leaderboard}
+            renderItem={(item) => (
+              <List.Item
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: '8px 0',
+                  borderBottom: '1px solid var(--semi-color-border)'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '100%' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: '80px' }}>
+                    {getRankIcon(item.rank)}
+                    <Text strong>#{item.rank}</Text>
+                  </div>
+                  <Avatar size="small" style={{ backgroundColor: 'var(--semi-color-primary)' }}>
+                    {item.username ? item.username.charAt(0).toUpperCase() : 'U'}
+                  </Avatar>
+                  <div style={{ flex: 1 }}>
+                    <Text strong>{item.username || `用户${item.user_id}`}</Text>
+                    <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                      <Tag size="small" color="blue">
+                        {item.total_checkins}次
+                      </Tag>
+                      <Tag size="small" color="green">
+                        连续{item.continuous_days}天
+                      </Tag>
+                    </div>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <Text type="success" strong>+{item.total_rewards}</Text>
+                    <div style={{ fontSize: '12px', color: 'var(--semi-color-text-2)' }}>
+                      总奖励
+                    </div>
+                  </div>
+                </div>
+              </List.Item>
+            )}
           />
         </Card>
       </div>
+
+      {/* 签到日历 - 居中显示，签到按钮在右上角 */}
+      <Card 
+        title="签到日历" 
+        loading={historyLoading}
+        headerExtraContent={
+          !status?.checked_in_today && (
+            <Button
+              type="primary"
+              icon={<Gift />}
+              loading={loading}
+              onClick={handleCheckIn}
+              size="large"
+            >
+              立即签到
+            </Button>
+          )
+        }
+        style={{ marginBottom: '20px' }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <Calendar
+            mode="month"
+            renderCell={renderCalendarCell}
+            style={{ width: '600px' }}
+          />
+        </div>
+      </Card>
 
       {/* 签到历史 */}
       <Card 
