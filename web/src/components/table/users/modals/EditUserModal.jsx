@@ -42,6 +42,7 @@ import {
   Col,
   Input,
   InputNumber,
+  TagInput,
 } from '@douyinfe/semi-ui';
 import {
   IconUser,
@@ -74,9 +75,12 @@ const EditUserModal = (props) => {
     oidc_id: '',
     wechat_id: '',
     telegram_id: '',
+    discord_id: '',
+    linux_do_id: '',
     email: '',
     quota: 0,
     group: 'default',
+    extra_groups: [],
     remark: '',
   });
 
@@ -98,6 +102,10 @@ const EditUserModal = (props) => {
     const { success, message, data } = res.data;
     if (success) {
       data.password = '';
+      // 确保 extra_groups 是数组
+      if (!data.extra_groups) {
+        data.extra_groups = [];
+      }
       formApiRef.current?.setValues({ ...getInitValues(), ...data });
     } else {
       showError(message);
@@ -119,15 +127,46 @@ const EditUserModal = (props) => {
     if (userId) {
       payload.id = parseInt(userId);
     }
-    const url = userId ? `/api/user/` : `/api/user/self`;
-    const res = await API.put(url, payload);
-    const { success, message } = res.data;
-    if (success) {
+    
+    // 如果有额外用户组，单独处理
+    if (userId && payload.extra_groups) {
+      // 先更新基本信息
+      const basicPayload = { ...payload };
+      delete basicPayload.extra_groups;
+      
+      const url = `/api/user/`;
+      const res = await API.put(url, basicPayload);
+      const { success, message } = res.data;
+      if (!success) {
+        showError(message);
+        setLoading(false);
+        return;
+      }
+      
+      // 再更新额外用户组
+      const extraGroupsRes = await API.put(`/api/user/${userId}/extra-groups`, {
+        extra_groups: payload.extra_groups
+      });
+      if (!extraGroupsRes.data.success) {
+        showError(extraGroupsRes.data.message);
+        setLoading(false);
+        return;
+      }
+      
       showSuccess(t('用户信息更新成功！'));
       props.refresh();
       props.handleClose();
     } else {
-      showError(message);
+      const url = userId ? `/api/user/` : `/api/user/self`;
+      const res = await API.put(url, payload);
+      const { success, message } = res.data;
+      if (success) {
+        showSuccess(t('用户信息更新成功！'));
+        props.refresh();
+        props.handleClose();
+      } else {
+        showError(message);
+      }
     }
     setLoading(false);
   };
@@ -276,12 +315,23 @@ const EditUserModal = (props) => {
                       <Col span={24}>
                         <Form.Select
                           field='group'
-                          label={t('分组')}
-                          placeholder={t('请选择分组')}
+                          label={t('主用户组')}
+                          placeholder={t('请选择主用户组')}
                           optionList={groupOptions}
                           allowAdditions
                           search
-                          rules={[{ required: true, message: t('请选择分组') }]}
+                          rules={[{ required: true, message: t('请选择主用户组') }]}
+                        />
+                      </Col>
+
+                      <Col span={24}>
+                        <Form.TagInput
+                          field='extra_groups'
+                          label={t('额外用户组')}
+                          placeholder={t('请输入额外用户组，按回车添加')}
+                          allowDuplicates={false}
+                          showClear
+                          extraText={t('用户可以同时属于多个用户组')}
                         />
                       </Col>
 
@@ -331,22 +381,35 @@ const EditUserModal = (props) => {
 
                   <Row gutter={12}>
                     {[
-                      'github_id',
-                      'oidc_id',
-                      'wechat_id',
-                      'email',
-                      'telegram_id',
-                    ].map((field) => (
+                      { field: 'github_id', label: 'GitHub' },
+                      { field: 'oidc_id', label: 'OIDC' },
+                      { field: 'wechat_id', label: '微信' },
+                      { field: 'email', label: '邮箱' },
+                      { field: 'telegram_id', label: 'Telegram' },
+                      { field: 'discord_id', label: 'Discord' },
+                      { field: 'linux_do_id', label: 'LinuxDO' },
+                    ].map(({ field, label }) => (
                       <Col span={24} key={field}>
                         <Form.Input
                           field={field}
-                          label={t(
-                            `已绑定的 ${field.replace('_id', '').toUpperCase()} 账户`,
-                          )}
+                          label={t(`已绑定的 ${label} 账户`)}
                           readonly
-                          placeholder={t(
-                            '此项只读，需要用户通过个人设置页面的相关绑定按钮进行绑定，不可直接修改',
-                          )}
+                          placeholder={
+                            values[field]
+                              ? values[field]
+                              : t('未绑定')
+                          }
+                          prefix={
+                            values[field] ? (
+                              <Tag color='green' size='small'>
+                                {t('已绑定')}
+                              </Tag>
+                            ) : (
+                              <Tag color='grey' size='small'>
+                                {t('未绑定')}
+                              </Tag>
+                            )
+                          }
                         />
                       </Col>
                     ))}

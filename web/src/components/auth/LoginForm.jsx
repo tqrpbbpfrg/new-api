@@ -20,6 +20,7 @@ For commercial licensing, please contact support@quantumnous.com
 import React, { useContext, useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { UserContext } from '../../context/User';
+import { StatusContext } from '../../context/Status';
 import {
   API,
   getLogo,
@@ -82,6 +83,7 @@ const LoginForm = () => {
   const [showTwoFA, setShowTwoFA] = useState(false);
   const [passkeySupported, setPasskeySupported] = useState(false);
   const [passkeyLoading, setPasskeyLoading] = useState(false);
+  const [statusState] = useContext(StatusContext);
 
   const logo = getLogo();
   const systemName = getSystemName();
@@ -91,10 +93,11 @@ const LoginForm = () => {
     localStorage.setItem('aff', affCode);
   }
 
-  const [status] = useState(() => {
+  // 使用StatusContext中的status，如果未加载则从localStorage读取作为初始值
+  const status = statusState?.status || (() => {
     const savedStatus = localStorage.getItem('status');
     return savedStatus ? JSON.parse(savedStatus) : {};
-  });
+  })();
 
   useEffect(() => {
     if (status.turnstile_check) {

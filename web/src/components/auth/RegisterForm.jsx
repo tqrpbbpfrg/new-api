@@ -29,6 +29,7 @@ import {
   getSystemName,
   setUserData,
 } from '../../helpers';
+import { StatusContext } from '../../context/Status';
 import Turnstile from 'react-turnstile';
 import { Button, Card, Divider, Form, Icon, Modal } from '@douyinfe/semi-ui';
 import Title from '@douyinfe/semi-ui/lib/es/typography/title';
@@ -82,6 +83,7 @@ const RegisterForm = () => {
   const [wechatCodeSubmitLoading, setWechatCodeSubmitLoading] = useState(false);
   const [disableButton, setDisableButton] = useState(false);
   const [countdown, setCountdown] = useState(30);
+  const [statusState] = useContext(StatusContext);
 
   const logo = getLogo();
   const systemName = getSystemName();
@@ -91,10 +93,11 @@ const RegisterForm = () => {
     localStorage.setItem('aff', affCode);
   }
 
-  const [status] = useState(() => {
+  // 使用StatusContext中的status，如果未加载则从localStorage读取作为初始值
+  const status = statusState?.status || (() => {
     const savedStatus = localStorage.getItem('status');
     return savedStatus ? JSON.parse(savedStatus) : {};
-  });
+  })();
 
   const [showEmailVerification, setShowEmailVerification] = useState(() => {
     return status.email_verification ?? false;

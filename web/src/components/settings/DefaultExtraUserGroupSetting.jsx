@@ -17,7 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   Button,
   Form,
@@ -42,7 +42,7 @@ import { useTranslation } from 'react-i18next';
 
 const DefaultExtraUserGroupSetting = () => {
   const { t } = useTranslation();
-  const [form] = Form.useForm();
+  const formApiRef = useRef();
   const [loading, setLoading] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [registrationMethods, setRegistrationMethods] = useState([
@@ -82,7 +82,9 @@ const DefaultExtraUserGroupSetting = () => {
             }
           }
         });
-        form.setFieldsValue(newInputs);
+        if (formApiRef.current) {
+          formApiRef.current.setValues(newInputs);
+        }
         setIsLoaded(true);
       } else {
         showError(message);
@@ -121,19 +123,19 @@ const DefaultExtraUserGroupSetting = () => {
     setRegistrationMethods(updatedMethods);
     
     // 更新表单值
-    const currentValues = form.getFieldValue('DefaultExtraUserGroups') || {};
-    form.setFieldsValue({
-      DefaultExtraUserGroups: {
+    if (formApiRef.current) {
+      const currentValues = formApiRef.current.getValue('DefaultExtraUserGroups') || {};
+      formApiRef.current.setValue('DefaultExtraUserGroups', {
         ...currentValues,
         [selectedMethod]: selectedGroups
-      }
-    });
+      });
+    }
   };
 
   const submitDefaultExtraUserGroups = async () => {
     setLoading(true);
     try {
-      const values = form.getFieldsValue();
+      const values = formApiRef.current ? formApiRef.current.getValues() : {};
       const defaultExtraGroups = values.DefaultExtraUserGroups || {};
       
       await updateOptions([
@@ -186,7 +188,7 @@ const DefaultExtraUserGroupSetting = () => {
   return (
     <div>
       {isLoaded ? (
-        <Form form={form} layout="vertical">
+        <Form getFormApi={(api) => (formApiRef.current = api)} layout="vertical">
           <Card>
             <Form.Section text={t('默认额外用户组配置')}>
               <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>

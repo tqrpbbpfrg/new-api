@@ -238,29 +238,39 @@ func SearchUsers(keyword string, group string, startIdx int, num int) ([]*User, 
 	// 构建基础查询
 	query := tx.Unscoped().Model(&User{})
 
-	// 构建搜索条件
-	likeCondition := "username LIKE ? OR email LIKE ? OR display_name LIKE ?"
+	// 构建搜索条件，包含所有第三方绑定字段
+	likeCondition := "username LIKE ? OR email LIKE ? OR display_name LIKE ? OR github_id LIKE ? OR oidc_id LIKE ? OR wechat_id LIKE ? OR telegram_id LIKE ? OR discord_id LIKE ? OR linux_do_id LIKE ?"
 
 	// 尝试将关键字转换为整数ID
 	keywordInt, err := strconv.Atoi(keyword)
+	keywordPattern := "%" + keyword + "%"
+	
 	if err == nil {
 		// 如果是数字，同时搜索ID和其他字段
 		likeCondition = "id = ? OR " + likeCondition
 		if group != "" {
 			query = query.Where("("+likeCondition+") AND "+commonGroupCol+" = ?",
-				keywordInt, "%"+keyword+"%", "%"+keyword+"%", "%"+keyword+"%", group)
+				keywordInt, keywordPattern, keywordPattern, keywordPattern, 
+				keywordPattern, keywordPattern, keywordPattern, keywordPattern, 
+				keywordPattern, keywordPattern, group)
 		} else {
 			query = query.Where(likeCondition,
-				keywordInt, "%"+keyword+"%", "%"+keyword+"%", "%"+keyword+"%")
+				keywordInt, keywordPattern, keywordPattern, keywordPattern,
+				keywordPattern, keywordPattern, keywordPattern, keywordPattern,
+				keywordPattern, keywordPattern)
 		}
 	} else {
 		// 非数字关键字，只搜索字符串字段
 		if group != "" {
 			query = query.Where("("+likeCondition+") AND "+commonGroupCol+" = ?",
-				"%"+keyword+"%", "%"+keyword+"%", "%"+keyword+"%", group)
+				keywordPattern, keywordPattern, keywordPattern,
+				keywordPattern, keywordPattern, keywordPattern, keywordPattern,
+				keywordPattern, keywordPattern, group)
 		} else {
 			query = query.Where(likeCondition,
-				"%"+keyword+"%", "%"+keyword+"%", "%"+keyword+"%")
+				keywordPattern, keywordPattern, keywordPattern,
+				keywordPattern, keywordPattern, keywordPattern, keywordPattern,
+				keywordPattern, keywordPattern)
 		}
 	}
 

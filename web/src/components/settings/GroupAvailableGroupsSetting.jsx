@@ -17,7 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   Button,
   Form,
@@ -29,7 +29,6 @@ import {
   Input,
   Space,
   Tag,
-  message,
   Divider,
 } from '@douyinfe/semi-ui';
 const { Text } = Typography;
@@ -42,7 +41,7 @@ import { useTranslation } from 'react-i18next';
 
 const GroupAvailableGroupsSetting = () => {
   const { t } = useTranslation();
-  const [form] = Form.useForm();
+  const formApiRef = useRef();
   const [loading, setLoading] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [groupAvailableGroups, setGroupAvailableGroups] = useState({});
@@ -69,7 +68,9 @@ const GroupAvailableGroupsSetting = () => {
             }
           }
         });
-        form.setFieldsValue(newInputs);
+        if (formApiRef.current) {
+          formApiRef.current.setValues(newInputs);
+        }
         setIsLoaded(true);
       } else {
         showError(message);
@@ -109,15 +110,15 @@ const GroupAvailableGroupsSetting = () => {
     setGroupAvailableGroups(updatedConfig);
     
     // 更新表单值
-    form.setFieldsValue({
-      GroupAvailableGroups: updatedConfig
-    });
+    if (formApiRef.current) {
+      formApiRef.current.setValue('GroupAvailableGroups', updatedConfig);
+    }
   };
 
   const submitGroupAvailableGroups = async () => {
     setLoading(true);
     try {
-      const values = form.getFieldsValue();
+      const values = formApiRef.current ? formApiRef.current.getValues() : {};
       const groupAvailableGroups = values.GroupAvailableGroups || {};
       
       await updateOptions([
@@ -169,7 +170,7 @@ const GroupAvailableGroupsSetting = () => {
   return (
     <div>
       {isLoaded ? (
-        <Form form={form} layout="vertical">
+        <Form getFormApi={(api) => (formApiRef.current = api)} layout="vertical">
           <Card>
             <Form.Section text={t('用户组可选分组配置')}>
               <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>

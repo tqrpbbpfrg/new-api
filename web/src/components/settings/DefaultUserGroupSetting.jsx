@@ -17,7 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   Button,
   Form,
@@ -29,7 +29,6 @@ import {
   Input,
   Space,
   Tag,
-  message,
 } from '@douyinfe/semi-ui';
 const { Text } = Typography;
 import {
@@ -41,7 +40,7 @@ import { useTranslation } from 'react-i18next';
 
 const DefaultUserGroupSetting = () => {
   const { t } = useTranslation();
-  const [form] = Form.useForm();
+  const formApiRef = useRef();
   const [loading, setLoading] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [registrationMethods, setRegistrationMethods] = useState([
@@ -80,7 +79,9 @@ const DefaultUserGroupSetting = () => {
             }
           }
         });
-        form.setFieldsValue(newInputs);
+        if (formApiRef.current) {
+          formApiRef.current.setValues(newInputs);
+        }
         setIsLoaded(true);
       } else {
         showError(message);
@@ -115,19 +116,19 @@ const DefaultUserGroupSetting = () => {
     setRegistrationMethods(updatedMethods);
     
     // 更新表单值
-    const currentValues = form.getFieldValue('DefaultUserGroups') || {};
-    form.setFieldsValue({
-      DefaultUserGroups: {
+    if (formApiRef.current) {
+      const currentValues = formApiRef.current.getValue('DefaultUserGroups') || {};
+      formApiRef.current.setValue('DefaultUserGroups', {
         ...currentValues,
         [methodKey]: groupName
-      }
-    });
+      });
+    }
   };
 
   const submitDefaultUserGroups = async () => {
     setLoading(true);
     try {
-      const values = form.getFieldsValue();
+      const values = formApiRef.current ? formApiRef.current.getValues() : {};
       const defaultGroups = values.DefaultUserGroups || {};
       
       await updateOptions([
@@ -174,7 +175,7 @@ const DefaultUserGroupSetting = () => {
   return (
     <div>
       {isLoaded ? (
-        <Form form={form} layout="vertical">
+        <Form getFormApi={(api) => (formApiRef.current = api)} layout="vertical">
           <Card>
             <Form.Section text={t('主用户组配置（原默认用户组）')}>
               <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>

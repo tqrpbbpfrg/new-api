@@ -137,14 +137,17 @@ const CheckInSetting = ({ options = {}, refresh }) => {
             extraText="用户签到时可能获得的最大额度奖励"
             style={{ width: '100%' }}
             rules={[
-              (value, values) => {
-                if (value < values.minReward) {
-                  return {
-                    validateStatus: 'error',
-                    helpMessage: '最大奖励不能小于最小奖励',
-                  };
+              {
+                validator: (rule, value) => {
+                  if (!formApiRef.current) {
+                    return Promise.resolve();
+                  }
+                  const values = formApiRef.current.getValues();
+                  if (values && values.minReward != null && value != null && value < values.minReward) {
+                    return Promise.reject('最大奖励不能小于最小奖励');
+                  }
+                  return Promise.resolve();
                 }
-                return {};
               }
             ]}
           />

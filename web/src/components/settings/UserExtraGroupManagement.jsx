@@ -17,7 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   Button,
   Form,
@@ -29,7 +29,6 @@ import {
   Input,
   Space,
   Tag,
-  message,
   Divider,
   Table,
   Modal,
@@ -45,7 +44,7 @@ import { useTranslation } from 'react-i18next';
 
 const UserExtraGroupManagement = () => {
   const { t } = useTranslation();
-  const [form] = Form.useForm();
+  const formApiRef = useRef();
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState([]);
   const [availableGroups, setAvailableGroups] = useState([]);
