@@ -14,7 +14,7 @@ import (
 
 // GetCheckInConfig 获取签到配置
 func GetCheckInConfig(c *gin.Context) {
-	configStr := model.OptionMap["CheckInConfig"]
+	configStr := common.OptionMap["CheckInConfig"]
 	if configStr == "" {
 		// 返回默认配置
 		defaultConfig := model.CheckInConfig{
@@ -188,7 +188,7 @@ func CheckIn(c *gin.Context) {
 	userId := c.GetInt("id")
 
 	// 获取签到配置
-	configStr := model.OptionMap["CheckInConfig"]
+	configStr := common.OptionMap["CheckInConfig"]
 	if configStr == "" {
 		c.JSON(http.StatusOK, gin.H{
 			"success": false,

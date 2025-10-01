@@ -46,6 +46,7 @@ var GitHubOAuthEnabled = false
 var LinuxDOOAuthEnabled = false
 var WeChatAuthEnabled = false
 var TelegramOAuthEnabled = false
+var DiscordOAuthEnabled = false
 var TurnstileCheckEnabled = false
 var RegisterEnabled = true
 
@@ -84,6 +85,11 @@ var GitHubClientSecret = ""
 var LinuxDOClientId = ""
 var LinuxDOClientSecret = ""
 var LinuxDOMinimumTrustLevel = 0
+var DiscordClientId = ""
+var DiscordClientSecret = ""
+var DiscordGuildId = ""
+var DiscordRequireGuild = false
+var ServerAddress = "" // 服务器地址，用于构建回调URL
 
 var WeChatServerAddress = ""
 var WeChatServerToken = ""
@@ -186,6 +192,11 @@ const (
 	RedemptionCodeStatusEnabled  = 1 // don't use 0, 0 is the default value!
 	RedemptionCodeStatusDisabled = 2 // also don't use 0
 	RedemptionCodeStatusUsed     = 3 // also don't use 0
+)
+
+const (
+	RedemptionTypeNormal = 1 // 兑换码：单人单次使用
+	RedemptionTypeGift   = 2 // 礼品码：多人使用，可设置使用次数限制
 )
 
 const (

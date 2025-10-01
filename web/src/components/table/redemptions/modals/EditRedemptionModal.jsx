@@ -41,13 +41,19 @@ import {
   Avatar,
   Row,
   Col,
+  RadioGroup,
+  Radio,
+  Divider,
 } from '@douyinfe/semi-ui';
 import {
   IconCreditCard,
   IconSave,
   IconClose,
   IconGift,
+  IconUserGroup,
+  IconCalendarClock,
 } from '@douyinfe/semi-icons';
+import { REDEMPTION_TYPE, REDEMPTION_TYPE_MAP } from '../../../../constants/redemption.constants';
 
 const { Text, Title } = Typography;
 
@@ -63,6 +69,9 @@ const EditRedemptionModal = (props) => {
     quota: 100000,
     count: 1,
     expired_time: null,
+    type: REDEMPTION_TYPE.NORMAL,
+    max_uses: 1,
+    max_uses_per_user: 1,
   });
 
   const handleCancel = () => {
@@ -340,6 +349,113 @@ const EditRedemptionModal = (props) => {
                       </Col>
                     )}
                   </Row>
+                </Card>
+
+                {/* Type Selection Card */}
+                <Card className='!rounded-2xl shadow-sm border-0 mb-6'>
+                  <div className='flex items-center mb-4'>
+                    <Avatar
+                      size='small'
+                      color='purple'
+                      className='mr-2 shadow-md'
+                    >
+                      <IconGift size={16} />
+                    </Avatar>
+                    <div>
+                      <Text className='text-lg font-medium'>
+                        {t('类型选择')}
+                      </Text>
+                      <div className='text-xs text-gray-600'>
+                        {t('选择兑换码类型')}
+                      </div>
+                    </div>
+                  </div>
+
+                  <Row gutter={12}>
+                    <Col span={24}>
+                      <Form.RadioGroup
+                        field='type'
+                        label={t('兑换码类型')}
+                        direction='vertical'
+                        style={{ width: '100%' }}
+                      >
+                        <Radio value={REDEMPTION_TYPE.NORMAL}>
+                          <div className='flex items-center'>
+                            <Text strong>{REDEMPTION_TYPE_MAP[REDEMPTION_TYPE.NORMAL].text}</Text>
+                            <Text type='tertiary' className='ml-2 text-sm'>
+                              {REDEMPTION_TYPE_MAP[REDEMPTION_TYPE.NORMAL].description}
+                            </Text>
+                          </div>
+                        </Radio>
+                        <Radio value={REDEMPTION_TYPE.GIFT}>
+                          <div className='flex items-center'>
+                            <Text strong>{REDEMPTION_TYPE_MAP[REDEMPTION_TYPE.GIFT].text}</Text>
+                            <Text type='tertiary' className='ml-2 text-sm'>
+                              {REDEMPTION_TYPE_MAP[REDEMPTION_TYPE.GIFT].description}
+                            </Text>
+                          </div>
+                        </Radio>
+                      </Form.RadioGroup>
+                    </Col>
+                  </Row>
+
+                  {/* Gift Code Settings */}
+                  {values.type === REDEMPTION_TYPE.GIFT && (
+                    <>
+                      <Divider margin='12px' />
+                      <div className='mt-4'>
+                        <Text className='text-base font-medium mb-3 block'>
+                          {t('礼品码设置')}
+                        </Text>
+                        <Row gutter={12}>
+                          <Col span={12}>
+                            <Form.InputNumber
+                              field='max_uses'
+                              label={t('使用人数')}
+                              min={1}
+                              placeholder={t('请输入最大使用人数')}
+                              rules={[
+                                { required: true, message: t('请输入使用人数') },
+                                {
+                                  validator: (rule, v) => {
+                                    const num = parseInt(v, 10);
+                                    return num > 0
+                                      ? Promise.resolve()
+                                      : Promise.reject(t('使用人数必须大于0'));
+                                  },
+                                },
+                              ]}
+                              style={{ width: '100%' }}
+                              extraText={t('设定可以使用此礼品码的最大人数')}
+                              showClear
+                            />
+                          </Col>
+                          <Col span={12}>
+                            <Form.InputNumber
+                              field='max_uses_per_user'
+                              label={t('每人使用次数')}
+                              min={1}
+                              placeholder={t('请输入每人最大使用次数')}
+                              rules={[
+                                { required: true, message: t('请输入每人使用次数') },
+                                {
+                                  validator: (rule, v) => {
+                                    const num = parseInt(v, 10);
+                                    return num > 0
+                                      ? Promise.resolve()
+                                      : Promise.reject(t('每人使用次数必须大于0'));
+                                  },
+                                },
+                              ]}
+                              style={{ width: '100%' }}
+                              extraText={t('设定每人可以使用此礼品码的次数，如2表示每人可用2次')}
+                              showClear
+                            />
+                          </Col>
+                        </Row>
+                      </div>
+                    </>
+                  )}
                 </Card>
               </div>
             )}

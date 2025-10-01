@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"one-api/common"
 	"one-api/model"
+	"one-api/setting"
 	"sort"
 
 	"github.com/gin-contrib/sessions"
@@ -88,12 +89,40 @@ func TelegramLogin(c *gin.Context) {
 	telegramId := params["id"][0]
 	user := model.User{TelegramId: telegramId}
 	if err := user.FillUserByTelegramId(); err != nil {
+		// 如果用户不存在，尝试自动注册
+		if common.RegisterEnabled {
+			user.Username = "telegram_" + telegramId
+			user.DisplayName = "Telegram User"
+			user.Role = common.RoleCommonUser
+			user.Status = common.UserStatusEnabled
+			
+			// 根据注册方式设置默认用户组
+			user.Group = setting.GetDefaultUserGroupForMethod("telegram")
+			
+			if err := user.Insert(0); err != nil {
+				c.JSON(200, gin.H{
+					"message": "自动注册失败: " + err.Error(),
+					"success": false,
+				})
+				return
+			}
+		} else {
+			c.JSON(200, gin.H{
+				"message": "用户不存在且管理员关闭了新用户注册",
+				"success": false,
+			})
+			return
+		}
+	}
+	
+	if user.Status != common.UserStatusEnabled {
 		c.JSON(200, gin.H{
-			"message": err.Error(),
+			"message": "用户已被封禁",
 			"success": false,
 		})
 		return
 	}
+	
 	setupLogin(&user, c)
 }
 

@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"one-api/common"
 	"one-api/model"
+	"one-api/setting"
 	"strconv"
 	"time"
 
@@ -129,30 +130,34 @@ func GitHubOAuth(c *gin.Context) {
 			})
 			return
 		}
-	} else {
-		if common.RegisterEnabled {
-			user.Username = "github_" + strconv.Itoa(model.GetMaxUserId()+1)
-			if githubUser.Name != "" {
-				user.DisplayName = githubUser.Name
-			} else {
-				user.DisplayName = "GitHub User"
-			}
-			user.Email = githubUser.Email
-			user.Role = common.RoleCommonUser
-			user.Status = common.UserStatusEnabled
-			affCode := session.Get("aff")
-			inviterId := 0
-			if affCode != nil {
-				inviterId, _ = model.GetUserIdByAffCode(affCode.(string))
-			}
+		} else {
+			if common.RegisterEnabled {
+				user.Username = "github_" + strconv.Itoa(model.GetMaxUserId()+1)
+				if githubUser.Name != "" {
+					user.DisplayName = githubUser.Name
+				} else {
+					user.DisplayName = "GitHub User"
+				}
+				user.Email = githubUser.Email
+				user.Role = common.RoleCommonUser
+				user.Status = common.UserStatusEnabled
+				
+				// 根据注册方式设置默认用户组
+				user.Group = setting.GetDefaultUserGroupForMethod("github")
+				
+				affCode := session.Get("aff")
+				inviterId := 0
+				if affCode != nil {
+					inviterId, _ = model.GetUserIdByAffCode(affCode.(string))
+				}
 
-			if err := user.Insert(inviterId); err != nil {
-				c.JSON(http.StatusOK, gin.H{
-					"success": false,
-					"message": err.Error(),
-				})
-				return
-			}
+				if err := user.Insert(inviterId); err != nil {
+					c.JSON(http.StatusOK, gin.H{
+						"success": false,
+						"message": err.Error(),
+					})
+					return
+				}
 		} else {
 			c.JSON(http.StatusOK, gin.H{
 				"success": false,

@@ -131,12 +131,10 @@ export const buildApiPayload = (
     seed: 'seed',
   };
 
-
   Object.entries(parameterMappings).forEach(([key, param]) => {
     const enabled = parameterEnabled[key];
     const value = inputs[param];
     const hasValue = value !== undefined && value !== null;
-
 
     if (enabled && hasValue) {
       payload[param] = value;
@@ -262,6 +260,15 @@ export async function onLinuxDOOAuthClicked(linuxdo_client_id) {
   if (!state) return;
   window.open(
     `https://connect.linux.do/oauth2/authorize?response_type=code&client_id=${linuxdo_client_id}&state=${state}`,
+  );
+}
+
+export async function onDiscordOAuthClicked(discord_client_id) {
+  const state = await getOAuthState();
+  if (!state) return;
+  // Discord OAuth2 需要指定 redirect_uri
+  window.open(
+    `https://discord.com/api/oauth2/authorize?client_id=${discord_client_id}&redirect_uri=${encodeURIComponent(window.location.origin + '/oauth/discord')}&response_type=code&state=${state}&scope=identify%20email%20guilds`,
   );
 }
 

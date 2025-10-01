@@ -39,6 +39,26 @@ export const REDEMPTION_STATUS_MAP = {
   },
 };
 
+// Redemption type constants
+export const REDEMPTION_TYPE = {
+  NORMAL: 1, // 兑换码：单人单次使用
+  GIFT: 2,   // 礼品码：多人使用，可设置使用次数限制
+};
+
+// Redemption type display mapping
+export const REDEMPTION_TYPE_MAP = {
+  [REDEMPTION_TYPE.NORMAL]: {
+    color: 'blue',
+    text: '兑换码',
+    description: '单人单次使用',
+  },
+  [REDEMPTION_TYPE.GIFT]: {
+    color: 'purple',
+    text: '礼品码',
+    description: '多人使用，可设置使用次数限制',
+  },
+};
+
 // Action type constants
 export const REDEMPTION_ACTIONS = {
   DELETE: 'delete',

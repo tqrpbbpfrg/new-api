@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"one-api/common"
 	"one-api/model"
+	"one-api/setting"
 	"strconv"
 	"time"
 
@@ -93,6 +94,9 @@ func WeChatAuth(c *gin.Context) {
 			user.DisplayName = "WeChat User"
 			user.Role = common.RoleCommonUser
 			user.Status = common.UserStatusEnabled
+			
+			// 根据注册方式设置默认用户组
+			user.Group = setting.GetDefaultUserGroupForMethod("wechat")
 
 			if err := user.Insert(0); err != nil {
 				c.JSON(http.StatusOK, gin.H{

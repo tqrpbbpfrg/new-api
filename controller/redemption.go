@@ -89,16 +89,38 @@ func AddRedemption(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": err.Error()})
 		return
 	}
+	
+	// 验证礼品码参数
+	if redemption.Type == common.RedemptionTypeGift {
+		if redemption.MaxUses <= 0 {
+			c.JSON(http.StatusOK, gin.H{
+				"success": false,
+				"message": "礼品码使用人数必须大于0",
+			})
+			return
+		}
+		if redemption.MaxUsesPerUser <= 0 {
+			c.JSON(http.StatusOK, gin.H{
+				"success": false,
+				"message": "每人使用次数必须大于0",
+			})
+			return
+		}
+	}
+	
 	var keys []string
 	for i := 0; i < redemption.Count; i++ {
 		key := common.GetUUID()
 		cleanRedemption := model.Redemption{
-			UserId:      c.GetInt("id"),
-			Name:        redemption.Name,
-			Key:         key,
-			CreatedTime: common.GetTimestamp(),
-			Quota:       redemption.Quota,
-			ExpiredTime: redemption.ExpiredTime,
+			UserId:         c.GetInt("id"),
+			Name:           redemption.Name,
+			Key:            key,
+			CreatedTime:    common.GetTimestamp(),
+			Quota:          redemption.Quota,
+			ExpiredTime:    redemption.ExpiredTime,
+			Type:           redemption.Type,
+			MaxUses:        redemption.MaxUses,
+			MaxUsesPerUser: redemption.MaxUsesPerUser,
 		}
 		err = cleanRedemption.Insert()
 		if err != nil {
@@ -151,10 +173,32 @@ func UpdateRedemption(c *gin.Context) {
 			c.JSON(http.StatusOK, gin.H{"success": false, "message": err.Error()})
 			return
 		}
+		
+		// 验证礼品码参数
+		if redemption.Type == common.RedemptionTypeGift {
+			if redemption.MaxUses <= 0 {
+				c.JSON(http.StatusOK, gin.H{
+					"success": false,
+					"message": "礼品码使用人数必须大于0",
+				})
+				return
+			}
+			if redemption.MaxUsesPerUser <= 0 {
+				c.JSON(http.StatusOK, gin.H{
+					"success": false,
+					"message": "每人使用次数必须大于0",
+				})
+				return
+			}
+		}
+		
 		// If you add more fields, please also update redemption.Update()
 		cleanRedemption.Name = redemption.Name
 		cleanRedemption.Quota = redemption.Quota
 		cleanRedemption.ExpiredTime = redemption.ExpiredTime
+		cleanRedemption.Type = redemption.Type
+		cleanRedemption.MaxUses = redemption.MaxUses
+		cleanRedemption.MaxUsesPerUser = redemption.MaxUsesPerUser
 	}
 	if statusOnly != "" {
 		cleanRedemption.Status = redemption.Status

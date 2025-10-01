@@ -96,6 +96,11 @@ const SystemSetting = () => {
     LinuxDOClientId: '',
     LinuxDOClientSecret: '',
     LinuxDOMinimumTrustLevel: '',
+    DiscordOAuthEnabled: '',
+    DiscordClientId: '',
+    DiscordClientSecret: '',
+    DiscordGuildId: '',
+    DiscordRequireGuild: '',
     ServerAddress: '',
     // SSRF防护配置
     'fetch_setting.enable_ssrf_protection': true,
@@ -116,6 +121,7 @@ const SystemSetting = () => {
   const [showPasswordLoginConfirmModal, setShowPasswordLoginConfirmModal] =
     useState(false);
   const [linuxDOOAuthEnabled, setLinuxDOOAuthEnabled] = useState(false);
+  const [discordOAuthEnabled, setDiscordOAuthEnabled] = useState(false);
   const [emailToAdd, setEmailToAdd] = useState('');
   const [domainFilterMode, setDomainFilterMode] = useState(true);
   const [ipFilterMode, setIpFilterMode] = useState(true);
@@ -605,6 +611,39 @@ const SystemSetting = () => {
       await updateOptions(options);
     }
   };
+  
+  const submitDiscordOAuth = async () => {
+    const options = [];
+
+    if (originInputs['DiscordClientId'] !== inputs.DiscordClientId) {
+      options.push({ key: 'DiscordClientId', value: inputs.DiscordClientId });
+    }
+    if (
+      originInputs['DiscordClientSecret'] !== inputs.DiscordClientSecret &&
+      inputs.DiscordClientSecret !== ''
+    ) {
+      options.push({
+        key: 'DiscordClientSecret',
+        value: inputs.DiscordClientSecret,
+      });
+    }
+    if (originInputs['DiscordGuildId'] !== inputs.DiscordGuildId) {
+      options.push({
+        key: 'DiscordGuildId',
+        value: inputs.DiscordGuildId,
+      });
+    }
+    if (originInputs['DiscordRequireGuild'] !== inputs.DiscordRequireGuild) {
+      options.push({
+        key: 'DiscordRequireGuild',
+        value: inputs.DiscordRequireGuild,
+      });
+    }
+
+    if (options.length > 0) {
+      await updateOptions(options);
+    }
+  };
 
   const submitPasskeySettings = async () => {
     // 使用formApi直接获取当前表单值
@@ -646,6 +685,9 @@ const SystemSetting = () => {
     }
     if (optionKey === 'LinuxDOOAuthEnabled') {
       setLinuxDOOAuthEnabled(value);
+    }
+    if (optionKey === 'DiscordOAuthEnabled') {
+      setDiscordOAuthEnabled(value);
     }
   };
 
@@ -1005,6 +1047,15 @@ const SystemSetting = () => {
                         }
                       >
                         {t('允许通过 OIDC 进行登录')}
+                      </Form.Checkbox>
+                      <Form.Checkbox
+                        field='DiscordOAuthEnabled'
+                        noLabel
+                        onChange={(e) =>
+                          handleCheckboxChange('DiscordOAuthEnabled', e)
+                        }
+                      >
+                        {t('允许通过 Discord 账户登录 & 注册')}
                       </Form.Checkbox>
                     </Col>
                   </Row>
@@ -1398,6 +1449,61 @@ const SystemSetting = () => {
                   </Row>
                   <Button onClick={submitLinuxDOOAuth}>
                     {t('保存 Linux DO OAuth 设置')}
+                  </Button>
+                </Form.Section>
+              </Card>
+
+              <Card>
+                <Form.Section text={t('配置 Discord OAuth')}>
+                  <Text>{t('用以支持通过 Discord 进行登录注册')}</Text>
+                  <Banner
+                    type='info'
+                    description={`${t('回调 URL 填')} ${inputs.ServerAddress ? inputs.ServerAddress : t('网站地址')}/oauth/discord`}
+                    style={{ marginBottom: 20, marginTop: 16 }}
+                  />
+                  <Row
+                    gutter={{ xs: 8, sm: 16, md: 24, lg: 24, xl: 24, xxl: 24 }}
+                  >
+                    <Col xs={24} sm={24} md={12} lg={12} xl={12}>
+                      <Form.Input
+                        field='DiscordClientId'
+                        label={t('Discord Client ID')}
+                        placeholder={t('输入你注册的 Discord OAuth 应用的 ID')}
+                      />
+                    </Col>
+                    <Col xs={24} sm={24} md={12} lg={12} xl={12}>
+                      <Form.Input
+                        field='DiscordClientSecret'
+                        label={t('Discord Client Secret')}
+                        type='password'
+                        placeholder={t('敏感信息不会发送到前端显示')}
+                      />
+                    </Col>
+                  </Row>
+                  <Row
+                    gutter={{ xs: 8, sm: 16, md: 24, lg: 24, xl: 24, xxl: 24 }}
+                  >
+                    <Col xs={24} sm={24} md={12} lg={12} xl={12}>
+                      <Form.Input
+                        field='DiscordGuildId'
+                        label={t('Discord 服务器 ID (可选)')}
+                        placeholder={t('要求用户加入的服务器ID')}
+                      />
+                    </Col>
+                    <Col xs={24} sm={24} md={12} lg={12} xl={12}>
+                      <Form.Checkbox
+                        field='DiscordRequireGuild'
+                        noLabel
+                        onChange={(e) =>
+                          handleCheckboxChange('DiscordRequireGuild', e)
+                        }
+                      >
+                        {t('要求用户必须加入指定服务器')}
+                      </Form.Checkbox>
+                    </Col>
+                  </Row>
+                  <Button onClick={submitDiscordOAuth}>
+                    {t('保存 Discord OAuth 设置')}
                   </Button>
                 </Form.Section>
               </Card>

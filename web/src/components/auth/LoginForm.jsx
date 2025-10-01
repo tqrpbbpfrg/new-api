@@ -32,6 +32,7 @@ import {
   onGitHubOAuthClicked,
   onOIDCClicked,
   onLinuxDOOAuthClicked,
+  onDiscordOAuthClicked,
   prepareCredentialRequestOptions,
   buildAssertionResult,
   isPasskeySupported,
@@ -46,6 +47,7 @@ import { IconGithubLogo, IconMail, IconLock, IconKey } from '@douyinfe/semi-icon
 import OIDCIcon from '../common/logo/OIDCIcon';
 import WeChatIcon from '../common/logo/WeChatIcon';
 import LinuxDoIcon from '../common/logo/LinuxDoIcon';
+import DiscordIcon from '../common/logo/DiscordIcon';
 import TwoFAVerification from './TwoFAVerification';
 import { useTranslation } from 'react-i18next';
 
@@ -70,6 +72,7 @@ const LoginForm = () => {
   const [githubLoading, setGithubLoading] = useState(false);
   const [oidcLoading, setOidcLoading] = useState(false);
   const [linuxdoLoading, setLinuxdoLoading] = useState(false);
+  const [discordLoading, setDiscordLoading] = useState(false);
   const [emailLoginLoading, setEmailLoginLoading] = useState(false);
   const [loginLoading, setLoginLoading] = useState(false);
   const [resetPasswordLoading, setResetPasswordLoading] = useState(false);
@@ -269,6 +272,17 @@ const LoginForm = () => {
       setTimeout(() => setLinuxdoLoading(false), 3000);
     }
   };
+  
+  // 包装的Discord登录点击处理
+  const handleDiscordClick = () => {
+    setDiscordLoading(true);
+    try {
+      onDiscordOAuthClicked(status.discord_client_id);
+    } finally {
+      // 由于重定向，这里不会执行到，但为了完整性添加
+      setTimeout(() => setDiscordLoading(false), 3000);
+    }
+  };
 
   // 包装的邮箱登录选项点击处理
   const handleEmailLoginClick = () => {
@@ -433,6 +447,26 @@ const LoginForm = () => {
                     loading={linuxdoLoading}
                   >
                     <span className='ml-3'>{t('使用 LinuxDO 继续')}</span>
+                  </Button>
+                )}
+                
+                {status.discord_oauth && (
+                  <Button
+                    theme='outline'
+                    className='w-full h-12 flex items-center justify-center !rounded-full border border-gray-200 hover:bg-gray-50 transition-colors'
+                    type='tertiary'
+                    icon={
+                      <DiscordIcon
+                        style={{
+                          width: '20px',
+                          height: '20px',
+                        }}
+                      />
+                    }
+                    onClick={handleDiscordClick}
+                    loading={discordLoading}
+                  >
+                    <span className='ml-3'>{t('使用 Discord 继续')}</span>
                   </Button>
                 )}
 
@@ -702,10 +736,11 @@ const LoginForm = () => {
         {showEmailLogin ||
         !(
           status.github_oauth ||
-          status.oidc_enabled ||
-          status.wechat_login ||
-          status.linuxdo_oauth ||
-          status.telegram_oauth
+                status.oidc_enabled ||
+                status.wechat_login ||
+                status.linuxdo_oauth ||
+                status.discord_oauth ||
+                status.telegram_oauth
         )
           ? renderEmailLoginForm()
           : renderOAuthOptions()}

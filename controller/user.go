@@ -215,6 +215,13 @@ func Register(c *gin.Context) {
 	if common.EmailVerificationEnabled {
 		cleanUser.Email = user.Email
 	}
+	
+	// 根据注册方式设置默认用户组
+	defaultGroup := setting.GetDefaultUserGroupForMethod("email")
+	cleanUser.Group = defaultGroup
+	
+	// 额外用户组由管理员在用户管理中手动配置，注册时不自动分配
+	
 	if err := cleanUser.Insert(inviterId); err != nil {
 		common.ApiError(c, err)
 		return
@@ -455,6 +462,8 @@ func GetSelf(c *gin.Context) {
 		"wechat_id":         user.WeChatId,
 		"telegram_id":       user.TelegramId,
 		"group":             user.Group,
+		"extra_groups":      user.GetExtraGroups(),     // 新增额外用户组字段
+		"all_groups":        user.GetAllGroups(),       // 新增所有用户组字段
 		"quota":             user.Quota,
 		"used_quota":        user.UsedQuota,
 		"request_count":     user.RequestCount,
@@ -1106,6 +1115,10 @@ type UpdateUserSettingRequest struct {
 	RecordIpLog                bool    `json:"record_ip_log"`
 }
 
+type UpdateUserExtraGroupsRequest struct {
+	ExtraGroups []string `json:"extra_groups" binding:"required"`
+}
+
 func UpdateUserSetting(c *gin.Context) {
 	var req UpdateUserSettingRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -1238,5 +1251,95 @@ func UpdateUserSetting(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "设置已更新",
+	})
+}
+
+// UpdateUserExtraGroups 更新用户的额外用户组
+func UpdateUserExtraGroups(c *gin.Context) {
+	userId, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": "无效的用户ID",
+		})
+		return
+	}
+
+	// 检查权限
+	myRole := c.GetInt("role")
+	targetUser, err := model.GetUserById(userId, false)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": "用户不存在",
+		})
+		return
+	}
+
+	if myRole <= targetUser.Role && myRole != common.RoleRootUser {
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": "无权修改同权限等级或更高权限等级用户的额外用户组",
+		})
+		return
+	}
+
+	var req UpdateUserExtraGroupsRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": "无效的参数",
+		})
+		return
+	}
+
+	// 验证所有额外用户组是否存在
+	validGroups := make([]string, 0)
+	for _, group := range req.ExtraGroups {
+		if group == "default" || setting.GroupInUserUsableGroups(group) {
+			validGroups = append(validGroups, group)
+		} else {
+			common.SysLog("warning: extra user group '" + group + "' does not exist, removing")
+		}
+	}
+
+	// 获取用户并更新额外用户组
+	user, err := model.GetUserById(userId, true)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": "获取用户信息失败",
+		})
+		return
+	}
+
+	// 设置额外用户组
+	if err := user.SetExtraGroups(validGroups); err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": "设置额外用户组失败: " + err.Error(),
+		})
+		return
+	}
+
+	// 更新用户信息
+	if err := user.Update(false); err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": "更新用户信息失败: " + err.Error(),
+		})
+		return
+	}
+
+	// 记录日志
+	model.RecordLog(userId, model.LogTypeManage, fmt.Sprintf("管理员更新了用户的额外用户组: %v", validGroups))
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "额外用户组更新成功",
+		"data": map[string]interface{}{
+			"extra_groups": validGroups,
+			"all_groups":   user.GetAllGroups(),
+		},
 	})
 }

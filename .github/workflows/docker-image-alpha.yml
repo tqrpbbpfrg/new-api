@@ -1,18 +1,14 @@
-name: Publish Docker image (alpha)
+name: Publish GHCR image (latest)
 
 on:
   push:
     branches:
-      - alpha
+      - main
   workflow_dispatch:
-    inputs:
-      name:
-        description: "reason"
-        required: false
 
 jobs:
-  push_to_registries:
-    name: Push Docker image to multiple registries
+  push_to_ghcr:
+    name: Push Docker image to GHCR
     runs-on: ubuntu-latest
     permissions:
       packages: write
@@ -23,13 +19,8 @@ jobs:
 
       - name: Save version info
         run: |
-          echo "alpha-$(date +'%Y%m%d')-$(git rev-parse --short HEAD)" > VERSION
-
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          # Embed a simple identifier inside the image
+            echo "latest" > VERSION
 
       - name: Log in to the Container registry
         uses: docker/login-action@v3
@@ -41,16 +32,13 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Extract metadata (tags, labels) for Docker
+      - name: Extract metadata (tags, labels) for GHCR
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: |
-            calciumion/new-api
-            ghcr.io/${{ github.repository }}
+          images: ghcr.io/${{ github.repository }}
           tags: |
-            type=raw,value=alpha
-            type=raw,value=alpha-{{date 'YYYYMMDD'}}-{{sha}}
+            type=raw,value=latest
 
       - name: Build and push Docker images
         uses: docker/build-push-action@v5
@@ -60,3 +48,5 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

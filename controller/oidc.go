@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"one-api/common"
 	"one-api/model"
+	"one-api/setting"
 	"one-api/setting/system_setting"
 	"strconv"
 	"strings"
@@ -153,6 +154,12 @@ func OidcAuth(c *gin.Context) {
 			} else {
 				user.DisplayName = "OIDC User"
 			}
+			user.Role = common.RoleCommonUser
+			user.Status = common.UserStatusEnabled
+			
+			// 根据注册方式设置默认用户组
+			user.Group = setting.GetDefaultUserGroupForMethod("oidc")
+			
 			err := user.Insert(0)
 			if err != nil {
 				c.JSON(http.StatusOK, gin.H{

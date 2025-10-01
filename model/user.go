@@ -29,12 +29,14 @@ type User struct {
 	OidcId           string         `json:"oidc_id" gorm:"column:oidc_id;index"`
 	WeChatId         string         `json:"wechat_id" gorm:"column:wechat_id;index"`
 	TelegramId       string         `json:"telegram_id" gorm:"column:telegram_id;index"`
+	DiscordId        string         `json:"discord_id" gorm:"column:discord_id;index"`
 	VerificationCode string         `json:"verification_code" gorm:"-:all"`                                    // this field is only for Email verification, don't save it to database!
 	AccessToken      *string        `json:"access_token" gorm:"type:char(32);column:access_token;uniqueIndex"` // this token is for system management
 	Quota            int            `json:"quota" gorm:"type:int;default:0"`
 	UsedQuota        int            `json:"used_quota" gorm:"type:int;default:0;column:used_quota"` // used quota
 	RequestCount     int            `json:"request_count" gorm:"type:int;default:0;"`               // request number
 	Group            string         `json:"group" gorm:"type:varchar(64);default:'default'"`
+	ExtraGroups      string         `json:"extra_groups" gorm:"type:text;column:extra_groups"` // 额外用户组，JSON格式存储
 	AffCode          string         `json:"aff_code" gorm:"type:varchar(32);column:aff_code;uniqueIndex"`
 	AffCount         int            `json:"aff_count" gorm:"type:int;default:0;column:aff_count"`
 	AffQuota         int            `json:"aff_quota" gorm:"type:int;default:0;column:aff_quota"`           // 邀请剩余额度
@@ -907,6 +909,20 @@ func (user *User) FillUserByLinuxDOId() error {
 	return err
 }
 
+func IsDiscordIdAlreadyTaken(discordId string) bool {
+	var user User
+	err := DB.Unscoped().Where("discord_id = ?", discordId).First(&user).Error
+	return !errors.Is(err, gorm.ErrRecordNotFound)
+}
+
+func (user *User) FillUserByDiscordId() error {
+	if user.DiscordId == "" {
+		return errors.New("discord id is empty")
+	}
+	err := DB.Where("discord_id = ?", user.DiscordId).First(user).Error
+	return err
+}
+
 func RootUserExists() bool {
 	var user User
 	err := DB.Where("role = ?", common.RoleRootUser).First(&user).Error
@@ -914,4 +930,86 @@ func RootUserExists() bool {
 		return false
 	}
 	return true
+}
+
+// GetExtraGroups 获取用户的额外用户组列表
+func (user *User) GetExtraGroups() []string {
+	if user.ExtraGroups == "" {
+		return []string{}
+	}
+	
+	var extraGroups []string
+	err := json.Unmarshal([]byte(user.ExtraGroups), &extraGroups)
+	if err != nil {
+		common.SysLog("failed to unmarshal extra groups: " + err.Error())
+		return []string{}
+	}
+	return extraGroups
+}
+
+// SetExtraGroups 设置用户的额外用户组列表
+func (user *User) SetExtraGroups(groups []string) error {
+	if len(groups) == 0 {
+		user.ExtraGroups = ""
+		return nil
+	}
+	
+	groupsBytes, err := json.Marshal(groups)
+	if err != nil {
+		return err
+	}
+	user.ExtraGroups = string(groupsBytes)
+	return nil
+}
+
+// AddExtraGroup 添加一个额外用户组
+func (user *User) AddExtraGroup(group string) error {
+	extraGroups := user.GetExtraGroups()
+	
+	// 检查是否已存在
+	for _, existingGroup := range extraGroups {
+		if existingGroup == group {
+			return nil // 已存在，无需添加
+		}
+	}
+	
+	extraGroups = append(extraGroups, group)
+	return user.SetExtraGroups(extraGroups)
+}
+
+// RemoveExtraGroup 移除一个额外用户组
+func (user *User) RemoveExtraGroup(group string) error {
+	extraGroups := user.GetExtraGroups()
+	
+	// 查找并移除
+	for i, existingGroup := range extraGroups {
+		if existingGroup == group {
+			extraGroups = append(extraGroups[:i], extraGroups[i+1:]...)
+			return user.SetExtraGroups(extraGroups)
+		}
+	}
+	
+	return nil // 不存在，无需移除
+}
+
+// GetAllGroups 获取用户的所有用户组（主用户组 + 额外用户组）
+func (user *User) GetAllGroups() []string {
+	groups := []string{user.Group}
+	extraGroups := user.GetExtraGroups()
+	
+	// 去重添加额外用户组
+	for _, extraGroup := range extraGroups {
+		found := false
+		for _, group := range groups {
+			if group == extraGroup {
+				found = true
+				break
+			}
+		}
+		if !found {
+			groups = append(groups, extraGroup)
+		}
+	}
+	
+	return groups
 }

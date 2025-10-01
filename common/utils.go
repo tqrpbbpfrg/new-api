@@ -273,6 +273,13 @@ func GetTimestamp() int64 {
 	return time.Now().Unix()
 }
 
+func GetDayStartTimestamp() int64 {
+	now := time.Now()
+	year, month, day := now.Date()
+	startOfDay := time.Date(year, month, day, 0, 0, 0, 0, now.Location())
+	return startOfDay.Unix()
+}
+
 func GetTimeString() string {
 	now := time.Now()
 	return fmt.Sprintf("%s%d", now.Format("20060102150405"), now.UnixNano()%1e9)

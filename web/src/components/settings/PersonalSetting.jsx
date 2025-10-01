@@ -82,7 +82,7 @@ const PersonalSetting = () => {
     notificationEmail: '',
     barkUrl: '',
     acceptUnsetModelRatioModel: false,
-    recordIpLog: false,
+    recordIpLog: true,
   });
 
   useEffect(() => {
@@ -151,7 +151,7 @@ const PersonalSetting = () => {
         barkUrl: settings.bark_url || '',
         acceptUnsetModelRatioModel:
           settings.accept_unset_model_ratio_model || false,
-        recordIpLog: settings.record_ip_log || false,
+        recordIpLog: true, // 默认开启IP记录
       });
     }
   }, [userState?.user?.setting]);

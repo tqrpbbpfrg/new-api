@@ -7,8 +7,12 @@ import (
 )
 
 var userUsableGroups = map[string]string{
-	"default": "默认分组",
-	"vip":     "vip分组",
+	"default":    "默认分组",
+	"vip":        "VIP分组",
+	"premium":    "高级分组",
+	"channel_a":  "渠道分组A",
+	"channel_b":  "渠道分组B",
+	"channel_c":  "渠道分组C",
 }
 var userUsableGroupsMutex sync.RWMutex
 
@@ -43,18 +47,27 @@ func UpdateUserUsableGroupsByJSONString(jsonStr string) error {
 }
 
 func GetUserUsableGroups(userGroup string) map[string]string {
-	groupsCopy := GetUserUsableGroupsCopy()
-	if userGroup == "" {
-		if _, ok := groupsCopy["default"]; !ok {
-			groupsCopy["default"] = "default"
+	// 根据用户组获取可选分组列表
+	availableGroups := GetAvailableGroupsForUserGroup(userGroup)
+	
+	// 构建返回的分组映射
+	result := make(map[string]string)
+	for _, group := range availableGroups {
+		// 从全局用户可用分组中获取描述
+		if desc, ok := userUsableGroups[group]; ok {
+			result[group] = desc
+		} else {
+			// 如果没有描述，使用分组名作为描述
+			result[group] = group
 		}
 	}
-	// 如果userGroup不在UserUsableGroups中，返回UserUsableGroups + userGroup
-	if _, ok := groupsCopy[userGroup]; !ok {
-		groupsCopy[userGroup] = "用户分组"
+	
+	// 确保至少有default分组
+	if _, ok := result["default"]; !ok {
+		result["default"] = "默认分组"
 	}
-	// 如果userGroup在UserUsableGroups中，返回UserUsableGroups
-	return groupsCopy
+	
+	return result
 }
 
 func GroupInUserUsableGroups(groupName string) bool {

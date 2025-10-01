@@ -33,6 +33,7 @@ import {
   Palette,
   CreditCard,
   Calendar,
+  Users,
 } from 'lucide-react';
 
 import SystemSetting from '../../components/settings/SystemSetting';
@@ -47,6 +48,9 @@ import ChatsSetting from '../../components/settings/ChatsSetting';
 import DrawingSetting from '../../components/settings/DrawingSetting';
 import PaymentSetting from '../../components/settings/PaymentSetting';
 import CheckInSetting from '../../components/settings/CheckInSetting';
+import DefaultUserGroupSetting from '../../components/settings/DefaultUserGroupSetting';
+import UserExtraGroupManagement from '../../components/settings/UserExtraGroupManagement';
+import GroupAvailableGroupsSetting from '../../components/settings/GroupAvailableGroupsSetting';
 
 const Setting = () => {
   const { t } = useTranslation();
@@ -155,6 +159,36 @@ const Setting = () => {
       ),
       content: <CheckInSetting />,
       itemKey: 'checkin',
+    });
+    panes.push({
+      tab: (
+        <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+          <Users size={18} />
+          {t('主用户组配置')}
+        </span>
+      ),
+      content: <DefaultUserGroupSetting />,
+      itemKey: 'defaultusergroup',
+    });
+    panes.push({
+      tab: (
+        <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+          <Users size={18} />
+          {t('用户额外用户组管理')}
+        </span>
+      ),
+      content: <UserExtraGroupManagement />,
+      itemKey: 'userextragroupmanagement',
+    });
+    panes.push({
+      tab: (
+        <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+          <Users size={18} />
+          {t('用户组可选分组配置')}
+        </span>
+      ),
+      content: <GroupAvailableGroupsSetting />,
+      itemKey: 'groupavailablegroups',
     });
     panes.push({
       tab: (

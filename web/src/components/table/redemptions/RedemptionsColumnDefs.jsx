@@ -25,6 +25,8 @@ import {
   REDEMPTION_STATUS,
   REDEMPTION_STATUS_MAP,
   REDEMPTION_ACTIONS,
+  REDEMPTION_TYPE,
+  REDEMPTION_TYPE_MAP,
 } from '../../../constants/redemption.constants';
 
 /**
@@ -74,6 +76,54 @@ const renderStatus = (status, record, t) => {
 };
 
 /**
+ * Render redemption code type
+ */
+const renderType = (type, record, t) => {
+  const typeConfig = REDEMPTION_TYPE_MAP[type];
+  if (typeConfig) {
+    return (
+      <Tag color={typeConfig.color} shape='circle'>
+        {t(typeConfig.text)}
+      </Tag>
+    );
+  }
+
+  return (
+    <Tag color='black' shape='circle'>
+      {t('未知类型')}
+    </Tag>
+  );
+};
+
+/**
+ * Render gift code info
+ */
+const renderGiftInfo = (record, t) => {
+  if (record.type === REDEMPTION_TYPE.GIFT) {
+    return (
+      <div>
+        <div>
+          <Tag size='small' color='blue'>
+            {t('使用人数')}: {record.max_uses}
+          </Tag>
+        </div>
+        <div style={{ marginTop: 4 }}>
+          <Tag size='small' color='purple'>
+            {t('每人次数')}: {record.max_uses_per_user}
+          </Tag>
+        </div>
+        <div style={{ marginTop: 4 }}>
+          <Tag size='small' color='green'>
+            {t('已使用')}: {record.used_count}
+          </Tag>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
+/**
  * Get redemption code table column definitions
  */
 export const getRedemptionsColumns = ({
@@ -105,6 +155,14 @@ export const getRedemptionsColumns = ({
       },
     },
     {
+      title: t('类型'),
+      dataIndex: 'type',
+      key: 'type',
+      render: (text, record) => {
+        return <div>{renderType(text, record, t)}</div>;
+      },
+    },
+    {
       title: t('额度'),
       dataIndex: 'quota',
       render: (text) => {
@@ -115,6 +173,14 @@ export const getRedemptionsColumns = ({
             </Tag>
           </div>
         );
+      },
+    },
+    {
+      title: t('礼品码信息'),
+      dataIndex: 'gift_info',
+      key: 'gift_info',
+      render: (text, record) => {
+        return <div>{renderGiftInfo(record, t)}</div>;
       },
     },
     {

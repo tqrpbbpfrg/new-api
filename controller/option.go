@@ -200,6 +200,24 @@ func UpdateOption(c *gin.Context) {
 			})
 			return
 		}
+	case "DefaultUserGroups":
+		err = setting.UpdateDefaultUserGroupsByJSONString(option.Value.(string))
+		if err != nil {
+			c.JSON(http.StatusOK, gin.H{
+				"success": false,
+				"message": "默认用户组配置格式错误: " + err.Error(),
+			})
+			return
+		}
+	case "GroupAvailableGroups":
+		err = setting.UpdateGroupAvailableGroupsByJSONString(option.Value.(string))
+		if err != nil {
+			c.JSON(http.StatusOK, gin.H{
+				"success": false,
+				"message": "用户组可选分组配置格式错误: " + err.Error(),
+			})
+			return
+		}
 	}
 	err = model.UpdateOption(option.Key, option.Value.(string))
 	if err != nil {
