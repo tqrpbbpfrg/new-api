@@ -7,12 +7,12 @@ import (
 )
 
 var userUsableGroups = map[string]string{
-	"default":    "默认分组",
-	"vip":        "VIP分组",
-	"premium":    "高级分组",
-	"channel_a":  "渠道分组A",
-	"channel_b":  "渠道分组B",
-	"channel_c":  "渠道分组C",
+	"default":   "默认分组",
+	"vip":       "VIP分组",
+	"premium":   "高级分组",
+	"channel_a": "渠道分组A",
+	"channel_b": "渠道分组B",
+	"channel_c": "渠道分组C",
 }
 var userUsableGroupsMutex sync.RWMutex
 
@@ -49,7 +49,7 @@ func UpdateUserUsableGroupsByJSONString(jsonStr string) error {
 func GetUserUsableGroups(userGroup string) map[string]string {
 	// 根据用户组获取可选分组列表
 	availableGroups := GetAvailableGroupsForUserGroup(userGroup)
-	
+
 	// 构建返回的分组映射
 	result := make(map[string]string)
 	for _, group := range availableGroups {
@@ -61,12 +61,12 @@ func GetUserUsableGroups(userGroup string) map[string]string {
 			result[group] = group
 		}
 	}
-	
+
 	// 确保至少有default分组
 	if _, ok := result["default"]; !ok {
 		result["default"] = "默认分组"
 	}
-	
+
 	return result
 }
 

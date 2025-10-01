@@ -66,19 +66,13 @@ func getDiscordUserInfoByCode(code string, c *gin.Context) (*DiscordUserResponse
 	values.Set("code", code)
 	values.Set("grant_type", "authorization_code")
 
-	// 动态构建redirect_uri，确保与前端一致
-	redirectURI := common.ServerAddress
-	if redirectURI == "" {
-		// 如果ServerAddress为空，从请求中获取
-		scheme := "http"
-		if c.Request.TLS != nil || c.GetHeader("X-Forwarded-Proto") == "https" {
-			scheme = "https"
-		}
-		redirectURI = fmt.Sprintf("%s://%s", scheme, c.Request.Host)
+	// 使用与前端一致的redirect_uri构建方式
+	scheme := "http"
+	if c.Request.TLS != nil || c.GetHeader("X-Forwarded-Proto") == "https" {
+		scheme = "https"
 	}
-	// 确保末尾没有斜杠
-	redirectURI = strings.TrimSuffix(redirectURI, "/")
-	values.Set("redirect_uri", fmt.Sprintf("%s/oauth/discord", redirectURI))
+	redirectURI := fmt.Sprintf("%s://%s/oauth/discord", scheme, c.Request.Host)
+	values.Set("redirect_uri", redirectURI)
 	formData := values.Encode()
 
 	req, err := http.NewRequest("POST", "https://discord.com/api/oauth2/token", strings.NewReader(formData))
@@ -182,14 +176,18 @@ func getDiscordUserInfoByCode(code string, c *gin.Context) (*DiscordUserResponse
 func DiscordAuth(c *gin.Context) {
 	session := sessions.Default(c)
 	state := c.Query("state")
-	if state == "" || session.Get("oauth_state") == nil || state != session.Get("oauth_state").(string) {
-		common.SysLog(fmt.Sprintf("Discord OAuth 状态验证失败: state=%s, session_state=%v", state, session.Get("oauth_state")))
+	sessionState := session.Get("oauth_state")
+
+	// 简化状态验证，与GitHub/LinuxDO保持一致
+	if state == "" || sessionState == nil || state != sessionState.(string) {
+		common.SysLog(fmt.Sprintf("Discord OAuth 状态验证失败: state=%s, session_state=%v", state, sessionState))
 		c.JSON(http.StatusForbidden, gin.H{
 			"success": false,
-			"message": "Discord 授权失败，请重新尝试登录",
+			"message": "Discord 授权状态验证失败，请重新尝试登录",
 		})
 		return
 	}
+
 	username := session.Get("username")
 	if username != nil {
 		DiscordBind(c)
@@ -222,42 +220,58 @@ func DiscordAuth(c *gin.Context) {
 	user := model.User{
 		DiscordId: discordUser.ID,
 	}
+
+	// 检查用户是否已存在
 	if model.IsDiscordIdAlreadyTaken(user.DiscordId) {
+		// 填充已存在的用户信息
 		err := user.FillUserByDiscordId()
 		if err != nil {
+			common.SysLog(fmt.Sprintf("Discord OAuth 填充用户信息失败: %v", err))
 			c.JSON(http.StatusOK, gin.H{
 				"success": false,
-				"message": err.Error(),
+				"message": "用户信息获取失败，请联系管理员",
+			})
+			return
+		}
+		// 检查用户是否被删除
+		if user.Id == 0 {
+			c.JSON(http.StatusOK, gin.H{
+				"success": false,
+				"message": "用户已注销",
 			})
 			return
 		}
 	} else {
-		if common.RegisterEnabled {
-			user.Email = discordUser.Email
-			if discordUser.GlobalName != "" {
-				user.DisplayName = discordUser.GlobalName
-			} else {
-				user.DisplayName = discordUser.Username
-			}
-			user.Username = "discord_" + strconv.Itoa(model.GetMaxUserId()+1)
-			user.Role = common.RoleCommonUser
-			user.Status = common.UserStatusEnabled
-
-			// 根据注册方式设置默认用户组
-			user.Group = setting.GetDefaultUserGroupForMethod("discord")
-
-			err := user.Insert(0)
-			if err != nil {
-				c.JSON(http.StatusOK, gin.H{
-					"success": false,
-					"message": err.Error(),
-				})
-				return
-			}
-		} else {
+		// 创建新用户
+		if !common.RegisterEnabled {
 			c.JSON(http.StatusOK, gin.H{
 				"success": false,
 				"message": "管理员关闭了新用户注册",
+			})
+			return
+		}
+
+		// 设置用户基本信息
+		user.Email = discordUser.Email
+		if discordUser.GlobalName != "" {
+			user.DisplayName = discordUser.GlobalName
+		} else {
+			user.DisplayName = discordUser.Username
+		}
+		user.Username = "discord_" + strconv.Itoa(model.GetMaxUserId()+1)
+		user.Role = common.RoleCommonUser
+		user.Status = common.UserStatusEnabled
+
+		// 根据注册方式设置默认用户组
+		user.Group = setting.GetDefaultUserGroupForMethod("discord")
+
+		// 创建用户
+		err := user.Insert(0)
+		if err != nil {
+			common.SysLog(fmt.Sprintf("Discord OAuth 创建用户失败: %v", err))
+			c.JSON(http.StatusOK, gin.H{
+				"success": false,
+				"message": fmt.Sprintf("用户创建失败: %s", err.Error()),
 			})
 			return
 		}
@@ -270,6 +284,15 @@ func DiscordAuth(c *gin.Context) {
 		})
 		return
 	}
+
+	// 清理 OAuth state，防止重复使用
+	session.Delete("oauth_state")
+	session.Delete("oauth_state_time")
+	err = session.Save()
+	if err != nil {
+		common.SysLog(fmt.Sprintf("Discord OAuth 保存会话失败: %v", err))
+	}
+
 	setupLogin(&user, c)
 }
 
@@ -285,39 +308,74 @@ func DiscordBind(c *gin.Context) {
 		})
 		return
 	}
+
 	code := c.Query("code")
-	discordUser, _, err := getDiscordUserInfoByCode(code, c)
-	if err != nil {
-		common.ApiError(c, err)
-		return
-	}
-	user := model.User{
-		DiscordId: discordUser.ID,
-	}
-	if model.IsDiscordIdAlreadyTaken(user.DiscordId) {
-		c.JSON(http.StatusOK, gin.H{
+	if code == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
 			"success": false,
-			"message": "该 Discord 账户已被绑定",
+			"message": "Discord 授权码为空",
 		})
 		return
 	}
-	session := sessions.Default(c)
-	id := session.Get("id")
-	user.Id = id.(int)
-	err = user.FillUserById()
+
+	discordUser, _, err := getDiscordUserInfoByCode(code, c)
 	if err != nil {
-		common.ApiError(c, err)
+		common.SysLog(fmt.Sprintf("Discord Bind 获取用户信息失败: %v", err))
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": fmt.Sprintf("Discord 授权失败: %s", err.Error()),
+		})
 		return
 	}
+
+	// 检查Discord账户是否已被其他用户绑定
+	if model.IsDiscordIdAlreadyTaken(discordUser.ID) {
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": "该 Discord 账户已被其他用户绑定",
+		})
+		return
+	}
+
+	session := sessions.Default(c)
+	id := session.Get("id")
+	if id == nil {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"success": false,
+			"message": "用户未登录",
+		})
+		return
+	}
+
+	user := model.User{Id: id.(int)}
+	err = user.FillUserById()
+	if err != nil {
+		common.SysLog(fmt.Sprintf("Discord Bind 获取用户信息失败: %v", err))
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": "用户信息获取失败",
+		})
+		return
+	}
+
 	user.DiscordId = discordUser.ID
 	err = user.Update(false)
 	if err != nil {
-		common.ApiError(c, err)
+		common.SysLog(fmt.Sprintf("Discord Bind 更新用户失败: %v", err))
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": "绑定失败，请重试",
+		})
 		return
 	}
+
+	// 清理 OAuth state
+	session.Delete("oauth_state")
+	session.Delete("oauth_state_time")
+	session.Save()
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "bind",
 	})
-	return
 }

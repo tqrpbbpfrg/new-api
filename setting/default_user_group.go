@@ -11,7 +11,7 @@ import (
 // value: 默认用户组名称
 var defaultUserGroups = map[string]string{
 	"email":    "default",
-	"github":   "default", 
+	"github":   "default",
 	"oidc":     "default",
 	"wechat":   "default",
 	"telegram": "default",
@@ -24,7 +24,7 @@ var defaultUserGroups = map[string]string{
 // value: 默认额外用户组列表
 var defaultExtraUserGroups = map[string][]string{
 	"email":    {},
-	"github":   {}, 
+	"github":   {},
 	"oidc":     {},
 	"wechat":   {},
 	"telegram": {},
@@ -86,7 +86,7 @@ func UpdateDefaultUserGroupsByJSONString(jsonStr string) error {
 			newGroups[method] = "default"
 			continue
 		}
-		
+
 		// 检查用户组是否存在（除了default组）
 		if group != "default" && !GroupInUserUsableGroups(group) {
 			common.SysLog("warning: user group '" + group + "' for method '" + method + "' does not exist, using default")
@@ -163,7 +163,7 @@ func UpdateGroupAvailableGroupsByJSONString(jsonStr string) error {
 			delete(newGroups, userGroup)
 			continue
 		}
-		
+
 		// 验证可选分组是否存在
 		validGroups := make([]string, 0)
 		for _, group := range availableGroups {
@@ -188,12 +188,12 @@ func GetAvailableGroupsForUserGroup(userGroup string) []string {
 	if groups, ok := groupAvailableGroups[userGroup]; ok {
 		return groups
 	}
-	
+
 	// 如果没有配置，返回默认的可选分组
 	if userGroup == "default" {
 		return []string{"default", "premium"}
 	}
-	
+
 	// 返回包含用户组本身的默认配置
 	return []string{userGroup, "default"}
 }

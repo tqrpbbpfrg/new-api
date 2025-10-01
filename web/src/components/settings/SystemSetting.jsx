@@ -17,31 +17,30 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useEffect, useState, useRef } from 'react';
 import {
-  Button,
-  Form,
-  Row,
-  Col,
-  Typography,
-  Modal,
-  Banner,
-  TagInput,
-  Spin,
-  Card,
-  Radio,
-  Select,
+    Banner,
+    Button,
+    Card,
+    Col,
+    Form,
+    Modal,
+    Radio,
+    Row,
+    Spin,
+    TagInput,
+    Typography
 } from '@douyinfe/semi-ui';
-const { Text } = Typography;
-import {
-  API,
-  removeTrailingSlash,
-  showError,
-  showSuccess,
-  toBoolean,
-} from '../../helpers';
 import axios from 'axios';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import {
+    API,
+    removeTrailingSlash,
+    showError,
+    showSuccess,
+    toBoolean,
+} from '../../helpers';
+const { Text } = Typography;
 
 const SystemSetting = () => {
   const { t } = useTranslation();
@@ -681,7 +680,9 @@ const SystemSetting = () => {
     if (optionKey === 'PasswordLoginEnabled' && !value) {
       setShowPasswordLoginConfirmModal(true);
     } else {
-      await updateOptions([{ key: optionKey, value }]);
+      // 对于部分配置项，需要将布尔值转换为字符串
+      const stringValue = ['DiscordRequireGuild'].includes(optionKey) ? value.toString() : value;
+      await updateOptions([{ key: optionKey, value: stringValue }]);
     }
     if (optionKey === 'LinuxDOOAuthEnabled') {
       setLinuxDOOAuthEnabled(value);

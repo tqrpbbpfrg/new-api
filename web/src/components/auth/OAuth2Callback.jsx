@@ -22,11 +22,11 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { UserContext } from '../../context/User';
 import {
-  API,
-  setUserData,
-  showError,
-  showSuccess,
-  updateAPI,
+    API,
+    setUserData,
+    showError,
+    showSuccess,
+    updateAPI,
 } from '../../helpers';
 import Loading from '../common/ui/Loading';
 
@@ -79,12 +79,18 @@ const OAuth2Callback = (props) => {
       
       // 针对不同OAuth提供商的特定错误处理
       if (props.type === 'discord') {
-        if (errorMsg.includes('state')) {
+        if (errorMsg.includes('state') || errorMsg.includes('状态')) {
           errorMsg = 'Discord 授权状态验证失败，请重新登录';
-        } else if (errorMsg.includes('code')) {
+        } else if (errorMsg.includes('code') || errorMsg.includes('授权码')) {
           errorMsg = 'Discord 授权码无效，请重新授权';
-        } else if (errorMsg.includes('Token') || errorMsg.includes('Client')) {
+        } else if (errorMsg.includes('Token') || errorMsg.includes('Client') || errorMsg.includes('配置')) {
           errorMsg = 'Discord 配置错误，请联系管理员检查 Client ID 和 Client Secret';
+        } else if (errorMsg.includes('过期')) {
+          errorMsg = 'Discord 授权已过期，请重新尝试登录';
+        } else if (errorMsg.includes('注册')) {
+          errorMsg = '管理员关闭了新用户注册，请联系管理员';
+        } else if (errorMsg.includes('封禁')) {
+          errorMsg = '您的账户已被封禁，请联系管理员';
         }
       } else if (props.type === 'github') {
         if (errorMsg.includes('state')) {

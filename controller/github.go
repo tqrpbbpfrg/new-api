@@ -130,34 +130,34 @@ func GitHubOAuth(c *gin.Context) {
 			})
 			return
 		}
-		} else {
-			if common.RegisterEnabled {
-				user.Username = "github_" + strconv.Itoa(model.GetMaxUserId()+1)
-				if githubUser.Name != "" {
-					user.DisplayName = githubUser.Name
-				} else {
-					user.DisplayName = "GitHub User"
-				}
-				user.Email = githubUser.Email
-				user.Role = common.RoleCommonUser
-				user.Status = common.UserStatusEnabled
-				
-				// 根据注册方式设置默认用户组
-				user.Group = setting.GetDefaultUserGroupForMethod("github")
-				
-				affCode := session.Get("aff")
-				inviterId := 0
-				if affCode != nil {
-					inviterId, _ = model.GetUserIdByAffCode(affCode.(string))
-				}
+	} else {
+		if common.RegisterEnabled {
+			user.Username = "github_" + strconv.Itoa(model.GetMaxUserId()+1)
+			if githubUser.Name != "" {
+				user.DisplayName = githubUser.Name
+			} else {
+				user.DisplayName = "GitHub User"
+			}
+			user.Email = githubUser.Email
+			user.Role = common.RoleCommonUser
+			user.Status = common.UserStatusEnabled
 
-				if err := user.Insert(inviterId); err != nil {
-					c.JSON(http.StatusOK, gin.H{
-						"success": false,
-						"message": err.Error(),
-					})
-					return
-				}
+			// 根据注册方式设置默认用户组
+			user.Group = setting.GetDefaultUserGroupForMethod("github")
+
+			affCode := session.Get("aff")
+			inviterId := 0
+			if affCode != nil {
+				inviterId, _ = model.GetUserIdByAffCode(affCode.(string))
+			}
+
+			if err := user.Insert(inviterId); err != nil {
+				c.JSON(http.StatusOK, gin.H{
+					"success": false,
+					"message": err.Error(),
+				})
+				return
+			}
 		} else {
 			c.JSON(http.StatusOK, gin.H{
 				"success": false,
@@ -230,12 +230,18 @@ func GenerateOAuthCode(c *gin.Context) {
 	if affCode != "" {
 		session.Set("aff", affCode)
 	}
+
+	// 设置状态并添加时间戳，用于验证时效性
 	session.Set("oauth_state", state)
+	session.Set("oauth_state_time", time.Now().Unix())
+
 	err := session.Save()
 	if err != nil {
+		common.SysLog(fmt.Sprintf("保存OAuth状态失败: %v", err))
 		common.ApiError(c, err)
 		return
 	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "",

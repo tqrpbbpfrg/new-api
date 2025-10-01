@@ -20,14 +20,14 @@ type CheckIn struct {
 
 // CheckInConfig 签到配置（存储在option表中）
 type CheckInConfig struct {
-	Enabled           bool   `json:"enabled"`             // 是否启用签到功能
-	MinReward         int    `json:"min_reward"`          // 最小签到奖励
-	MaxReward         int    `json:"max_reward"`          // 最大签到奖励（0表示固定奖励）
-	AuthCodeEnabled   bool   `json:"auth_code_enabled"`   // 是否启用鉴权码
-	AuthCode          string `json:"auth_code"`           // 鉴权码
-	ContinuousEnabled bool   `json:"continuous_enabled"`  // 是否启用连续签到奖励
-	ContinuousReward  int    `json:"continuous_reward"`   // 每连续签到N天增加的奖励
-	ContinuousDays    int    `json:"continuous_days"`     // 连续签到天数阈值
+	Enabled           bool   `json:"enabled"`            // 是否启用签到功能
+	MinReward         int    `json:"minReward"`          // 最小签到奖励
+	MaxReward         int    `json:"maxReward"`          // 最大签到奖励（0表示固定奖励）
+	AuthCodeEnabled   bool   `json:"authCodeEnabled"`    // 是否启用鉴权码
+	AuthCode          string `json:"authCode"`           // 鉴权码
+	ContinuousEnabled bool   `json:"continuousEnabled"`  // 是否启用连续签到奖励
+	ContinuousReward  int    `json:"continuousReward"`   // 每连续签到N天增加的奖励
+	ContinuousDays    int    `json:"continuousDays"`     // 连续签到天数阈值
 }
 
 // GetUserCheckInToday 获取用户今日签到记录

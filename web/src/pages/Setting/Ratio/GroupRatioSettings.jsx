@@ -34,7 +34,6 @@ export default function GroupRatioSettings(props) {
   const [loading, setLoading] = useState(false);
   const [inputs, setInputs] = useState({
     GroupRatio: '',
-    UserUsableGroups: '',
     GroupGroupRatio: '',
     AutoGroups: '',
     DefaultUseAutoGroup: false,
@@ -134,30 +133,6 @@ export default function GroupRatioSettings(props) {
                 },
               ]}
               onChange={(value) => setInputs({ ...inputs, GroupRatio: value })}
-            />
-          </Col>
-        </Row>
-        <Row gutter={16}>
-          <Col xs={24} sm={16}>
-            <Form.TextArea
-              label={t('用户可选分组')}
-              placeholder={t('为一个 JSON 文本，键为分组名称，值为分组描述')}
-              extraText={t(
-                '用户新建令牌时可选的分组，格式为 JSON 字符串，例如：{"vip": "VIP 用户", "test": "测试"}，表示用户可以选择 vip 分组和 test 分组',
-              )}
-              field={'UserUsableGroups'}
-              autosize={{ minRows: 6, maxRows: 12 }}
-              trigger='blur'
-              stopValidateWithError
-              rules={[
-                {
-                  validator: (rule, value) => verifyJSON(value),
-                  message: t('不是合法的 JSON 字符串'),
-                },
-              ]}
-              onChange={(value) =>
-                setInputs({ ...inputs, UserUsableGroups: value })
-              }
             />
           </Col>
         </Row>

@@ -44,8 +44,10 @@ func GetCheckInConfig(c *gin.Context) {
 		return
 	}
 
-	// 不返回鉴权码给前端
-	config.AuthCode = ""
+	// 不返回真实鉴权码给前端，用占位符表示已设置
+	if config.AuthCode != "" {
+		config.AuthCode = "********"
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
@@ -88,6 +90,18 @@ func UpdateCheckInConfig(c *gin.Context) {
 			"message": "最大奖励不能小于最小奖励",
 		})
 		return
+	}
+
+	// 如果鉴权码是占位符，保留原有的鉴权码
+	if config.AuthCode == "********" {
+		configStr := common.OptionMap["CheckInConfig"]
+		if configStr != "" {
+			var oldConfig model.CheckInConfig
+			err := json.Unmarshal([]byte(configStr), &oldConfig)
+			if err == nil {
+				config.AuthCode = oldConfig.AuthCode
+			}
+		}
 	}
 
 	configBytes, err := json.Marshal(config)
@@ -219,7 +233,7 @@ func CheckIn(c *gin.Context) {
 	// 检查鉴权码
 	if config.AuthCodeEnabled {
 		var req struct {
-			AuthCode string `json:"auth_code"`
+			AuthCode string `json:"authCode"`
 		}
 		err := c.ShouldBindJSON(&req)
 		if err != nil || req.AuthCode != config.AuthCode {

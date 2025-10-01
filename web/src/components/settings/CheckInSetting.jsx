@@ -164,8 +164,8 @@ const CheckInSetting = ({ options = {}, refresh }) => {
             field="authCode"
             label="鉴权码"
             initValue=""
-            placeholder="请输入鉴权码"
-            extraText="用户签到时需要输入的鉴权码，留空则关闭鉴权码验证"
+            placeholder="请输入鉴权码（如已设置，显示为 ******** 占位符）"
+            extraText="用户签到时需要输入的鉴权码，留空则关闭鉴权码验证。如要保持原鉴权码不变，请不要修改占位符"
             style={{ width: '100%' }}
           />
 

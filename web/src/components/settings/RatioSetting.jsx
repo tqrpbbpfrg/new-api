@@ -45,7 +45,6 @@ const RatioSetting = () => {
     AutoGroups: '',
     DefaultUseAutoGroup: false,
     ExposeRatioEnabled: false,
-    UserUsableGroups: '',
   });
 
   const [loading, setLoading] = useState(false);
@@ -61,7 +60,6 @@ const RatioSetting = () => {
           item.key === 'GroupRatio' ||
           item.key === 'GroupGroupRatio' ||
           item.key === 'AutoGroups' ||
-          item.key === 'UserUsableGroups' ||
           item.key === 'CompletionRatio' ||
           item.key === 'ModelPrice' ||
           item.key === 'CacheRatio' ||

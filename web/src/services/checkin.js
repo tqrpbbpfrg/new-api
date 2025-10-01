@@ -75,7 +75,7 @@ export class CheckInService {
   static async getHistory(page = 1, pageSize = 30) {
     try {
       const response = await API.get('/api/checkin/history', {
-        params: { page, pageSize }
+        params: { page, pageSize },
       });
       return response.data;
     } catch (error) {
@@ -91,7 +91,9 @@ export class CheckInService {
    */
   static async checkIn(verifyCode = '') {
     try {
-      const response = await API.post('/api/checkin/', { authCode: verifyCode });
+      const response = await API.post('/api/checkin/', {
+        authCode: verifyCode,
+      });
       return response.data;
     } catch (error) {
       showError('签到失败');
@@ -108,7 +110,7 @@ export class CheckInService {
   static async getAllCheckIns(page = 1, pageSize = 30) {
     try {
       const response = await API.get('/api/checkin/all', {
-        params: { page, pageSize }
+        params: { page, pageSize },
       });
       return response.data;
     } catch (error) {
@@ -125,7 +127,7 @@ export class CheckInService {
   static async getLeaderboard(limit = 20) {
     try {
       const response = await API.get('/api/checkin/leaderboard', {
-        params: { limit }
+        params: { limit },
       });
       return response.data;
     } catch (error) {

@@ -17,17 +17,17 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useMemo, useState } from 'react';
-import { Empty, Card, Button, Space, Tag } from '@douyinfe/semi-ui';
-import CardTable from '../../common/ui/CardTable';
+import { IconChevronDown, IconChevronRight, IconList, IconUserGroup } from '@douyinfe/semi-icons';
 import {
   IllustrationNoResult,
   IllustrationNoResultDark,
 } from '@douyinfe/semi-illustrations';
-import { getRedemptionsColumns, isExpired } from './RedemptionsColumnDefs';
+import { Button, Card, Empty, Space, Tag } from '@douyinfe/semi-ui';
+import { useMemo, useState } from 'react';
+import CardTable from '../../common/ui/CardTable';
+import { getRedemptionsColumns } from './RedemptionsColumnDefs';
 import { getRedemptionsGroupedColumns, getRedemptionsSubColumns } from './RedemptionsGroupedColumnDefs';
 import DeleteRedemptionModal from './modals/DeleteRedemptionModal';
-import { IconList, IconUserGroup, IconChevronDown, IconChevronRight } from '@douyinfe/semi-icons';
 
 const RedemptionsTable = (redemptionsData) => {
   const {

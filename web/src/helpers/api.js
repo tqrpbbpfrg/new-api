@@ -261,9 +261,31 @@ export async function onLinuxDOOAuthClicked(linuxdo_client_id) {
 
 export async function onDiscordOAuthClicked(discord_client_id) {
   const state = await getOAuthState();
-  if (!state) return;
-  // Discord OAuth2 需要指定 redirect_uri，使用当前窗口而不是新窗口
-  window.location.href = `https://discord.com/api/oauth2/authorize?client_id=${discord_client_id}&redirect_uri=${encodeURIComponent(window.location.origin + '/oauth/discord')}&response_type=code&state=${state}&scope=identify+email+guilds`;
+  if (!state) {
+    console.error('Failed to get OAuth state');
+    return;
+  }
+
+  // 构建redirect_uri，确保与后端一致
+  const redirectUri = window.location.origin + '/oauth/discord';
+
+  // 记录来源页面，用于错误时的跳转
+  const from = window.location.pathname.includes('/personal')
+    ? 'personal'
+    : 'login';
+  sessionStorage.setItem('oauth_from', from);
+
+  // Discord OAuth2 授权URL
+  const authUrl =
+    `https://discord.com/api/oauth2/authorize?` +
+    `client_id=${discord_client_id}&` +
+    `redirect_uri=${encodeURIComponent(redirectUri)}&` +
+    `response_type=code&` +
+    `state=${state}&` +
+    `scope=identify+email+guilds`;
+
+  console.log('Discord OAuth redirect URI:', redirectUri);
+  window.location.href = authUrl;
 }
 
 let channelModels = undefined;

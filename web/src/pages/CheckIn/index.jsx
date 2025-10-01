@@ -17,26 +17,24 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useEffect, useState } from 'react';
-import { 
-  Card, 
-  Button, 
-  Calendar, 
-  Modal, 
-  Input, 
-  Spin, 
-  Toast,
-  Descriptions,
-  Tag,
-  Table,
-  Typography,
-  Avatar,
-  List,
-  Badge
+import {
+    Avatar,
+    Button,
+    Calendar,
+    Card,
+    Descriptions,
+    Input,
+    List,
+    Modal,
+    Spin,
+    Table,
+    Tag,
+    Typography
 } from '@douyinfe/semi-ui';
+import { Award, Calendar as CalendarIcon, Crown, Gift, History, Medal, TrendingUp, Trophy } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { showError, showSuccess } from '../../helpers';
 import { CheckInService } from '../../services/checkin';
-import { showSuccess, showError } from '../../helpers';
-import { Calendar as CalendarIcon, Gift, TrendingUp, History, Trophy, Crown, Medal, Award } from 'lucide-react';
 
 const { Text } = Typography;
 
@@ -121,7 +119,7 @@ const CheckIn = () => {
   const handleCheckIn = async () => {
     try {
       // 检查是否需要鉴权码
-      if (config?.authCodeEnabled && config?.authCode) {
+      if (config?.authCodeEnabled) {
         setShowVerifyModal(true);
         return;
       }
@@ -265,8 +263,8 @@ const CheckIn = () => {
   }
 
   return (
-    <div style={{ padding: '20px' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
+    <div className='mt-[60px] px-2' style={{ paddingTop: '20px', paddingBottom: '20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', marginBottom: '20px' }}>
         {/* 签到状态卡片 */}
         <Card title="签到状态" loading={loading}>
           {status && (
