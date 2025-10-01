@@ -101,7 +101,7 @@ const CheckIn = () => {
   const handleCheckIn = async () => {
     try {
       // 检查是否需要鉴权码
-      if (config?.verifyCodeEnabled && config?.verifyCode) {
+      if (config?.authCodeEnabled && config?.authCode) {
         setShowVerifyModal(true);
         return;
       }

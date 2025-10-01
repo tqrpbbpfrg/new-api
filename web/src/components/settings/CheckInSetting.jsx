@@ -39,11 +39,11 @@ const CheckInSetting = ({ options = {}, refresh }) => {
     enabled: false,
     minReward: 100,
     maxReward: 1000,
-    verifyCodeEnabled: false,
-    verifyCode: '',
-    continuousBonusEnabled: false,
-    continuousBonusDays: 7,
-    continuousBonusMultiplier: 1.5
+    authCodeEnabled: false,
+    authCode: '',
+    continuousEnabled: false,
+    continuousReward: 50,
+    continuousDays: 7
   });
 
   const formApiRef = React.useRef();
@@ -155,23 +155,23 @@ const CheckInSetting = ({ options = {}, refresh }) => {
           <Divider margin="12px" />
 
           <Form.Switch
-            field="verifyCodeEnabled"
+            field="authCodeEnabled"
             label="启用鉴权码"
             initValue={false}
             extraText="开启后用户签到时需要输入鉴权码"
           />
 
           <Form.Input
-            field="verifyCode"
+            field="authCode"
             label="鉴权码"
             initValue=""
             placeholder="请输入鉴权码"
             extraText="用户签到时需要输入的鉴权码，留空则关闭鉴权码验证"
             style={{ width: '100%' }}
-            disabled={!config.verifyCodeEnabled}
+            disabled={!config.authCodeEnabled}
             rules={[
               {
-                required: config.verifyCodeEnabled,
+                required: config.authCodeEnabled,
                 message: '请输入鉴权码',
               }
             ]}
@@ -180,35 +180,35 @@ const CheckInSetting = ({ options = {}, refresh }) => {
           <Divider margin="12px" />
 
           <Form.Switch
-            field="continuousBonusEnabled"
+            field="continuousEnabled"
             label="启用连续签到奖励"
             initValue={false}
             extraText="开启后连续签到可获得额外奖励"
           />
 
           <Form.InputNumber
-            field="continuousBonusDays"
-            label="连续签到天数要求"
+            field="continuousReward"
+            label="每N天额外奖励额度"
+            initValue={50}
+            min={0}
+            step={10}
+            suffix="额度"
+            extraText="每连续签到N天增加的额外奖励额度"
+            style={{ width: '100%' }}
+            disabled={!config.continuousEnabled}
+          />
+
+          <Form.InputNumber
+            field="continuousDays"
+            label="连续签到天数阈值"
             initValue={7}
             min={2}
             max={30}
             step={1}
             suffix="天"
-            extraText="达到此连续天数后开始获得额外奖励"
+            extraText="每连续签到此天数增加一次额外奖励"
             style={{ width: '100%' }}
-            disabled={!config.continuousBonusEnabled}
-          />
-
-          <Form.InputNumber
-            field="continuousBonusMultiplier"
-            label="连续签到奖励倍数"
-            initValue={1.5}
-            min={1}
-            max={5}
-            step={0.1}
-            extraText="连续签到奖励的倍数，例如1.5表示基础奖励的1.5倍"
-            style={{ width: '100%' }}
-            disabled={!config.continuousBonusEnabled}
+            disabled={!config.continuousEnabled}
           />
 
           <Space style={{ marginTop: 24 }}>

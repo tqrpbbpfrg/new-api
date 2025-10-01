@@ -174,16 +174,6 @@ const Setting = () => {
       tab: (
         <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
           <Users size={18} />
-          {t('用户额外用户组管理')}
-        </span>
-      ),
-      content: <UserExtraGroupManagement />,
-      itemKey: 'userextragroupmanagement',
-    });
-    panes.push({
-      tab: (
-        <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-          <Users size={18} />
           {t('用户组可选分组配置')}
         </span>
       ),

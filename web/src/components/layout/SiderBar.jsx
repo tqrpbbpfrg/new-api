@@ -140,8 +140,11 @@ const SiderBar = ({ onNavigate = () => {} }) => {
       },
     ];
 
-    // 根据配置过滤项目
+    // 签到始终显示，不受配置过滤
     const filteredItems = items.filter((item) => {
+      if (item.itemKey === 'checkin') {
+        return true; // 签到菜单始终显示
+      }
       const configVisible = isModuleVisible('personal', item.itemKey);
       return configVisible;
     });

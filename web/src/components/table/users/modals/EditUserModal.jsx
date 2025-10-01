@@ -325,12 +325,15 @@ const EditUserModal = (props) => {
                       </Col>
 
                       <Col span={24}>
-                        <Form.TagInput
+                        <Form.Select
                           field='extra_groups'
                           label={t('额外用户组')}
-                          placeholder={t('请输入额外用户组，按回车添加')}
-                          allowDuplicates={false}
+                          placeholder={t('请选择额外用户组')}
+                          optionList={groupOptions}
+                          multiple
+                          maxTagCount={3}
                           showClear
+                          filter
                           extraText={t('用户可以同时属于多个用户组')}
                         />
                       </Col>
