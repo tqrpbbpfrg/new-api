@@ -1591,6 +1591,7 @@ const EditChannelModal = (props) => {
                               ? []
                               : [{ required: true, message: t('请输入密钥') }]
                           }
+                          mode='password'
                           autoComplete='new-password'
                           onChange={(value) => handleInputChange('key', value)}
                           extraText={
@@ -1604,16 +1605,6 @@ const EditChannelModal = (props) => {
                                     )}
                                   </Text>
                                 )}
-                              {isEdit && (
-                                <Button
-                                  size='small'
-                                  type='primary'
-                                  theme='outline'
-                                  onClick={handleShow2FAModal}
-                                >
-                                  {t('查看密钥')}
-                                </Button>
-                              )}
                               {batchExtra}
                             </div>
                           }

@@ -92,6 +92,11 @@ func InitOptionMap() {
 	common.OptionMap["GitHubClientSecret"] = ""
 	common.OptionMap["TelegramBotToken"] = ""
 	common.OptionMap["TelegramBotName"] = ""
+	common.OptionMap["DiscordClientId"] = ""
+	common.OptionMap["DiscordClientSecret"] = ""
+	common.OptionMap["DiscordGuildId"] = ""
+	common.OptionMap["DiscordRequireGuild"] = strconv.FormatBool(common.DiscordRequireGuild)
+	common.OptionMap["DiscordOAuthEnabled"] = strconv.FormatBool(common.DiscordOAuthEnabled)
 	common.OptionMap["WeChatServerAddress"] = ""
 	common.OptionMap["WeChatServerToken"] = ""
 	common.OptionMap["WeChatAccountQRCodeImageURL"] = ""
@@ -228,6 +233,8 @@ func updateOptionMap(key string, value string) (err error) {
 			common.WeChatAuthEnabled = boolValue
 		case "TelegramOAuthEnabled":
 			common.TelegramOAuthEnabled = boolValue
+		case "DiscordOAuthEnabled":
+			common.DiscordOAuthEnabled = boolValue
 		case "TurnstileCheckEnabled":
 			common.TurnstileCheckEnabled = boolValue
 		case "RegisterEnabled":
@@ -364,6 +371,14 @@ func updateOptionMap(key string, value string) (err error) {
 		common.TelegramBotToken = value
 	case "TelegramBotName":
 		common.TelegramBotName = value
+	case "DiscordClientId":
+		common.DiscordClientId = value
+	case "DiscordClientSecret":
+		common.DiscordClientSecret = value
+	case "DiscordGuildId":
+		common.DiscordGuildId = value
+	case "DiscordRequireGuild":
+		common.DiscordRequireGuild = value == "true"
 	case "TurnstileSiteKey":
 		common.TurnstileSiteKey = value
 	case "TurnstileSecretKey":

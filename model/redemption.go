@@ -153,10 +153,6 @@ func Redeem(key string, userId int) (quota int, err error) {
 			redemption.UsedUserId = userId
 		} else if redemption.Type == common.RedemptionTypeGift {
 			// 礼品码：多人使用，需要检查使用限制
-			// 检查是否超过最大使用人数
-			if redemption.MaxUses > 0 && redemption.UsedCount >= redemption.MaxUses {
-				return errors.New("该礼品码已达到最大使用人数")
-			}
 			
 			// 检查每人使用次数限制
 			if redemption.MaxUsesPerUser > 0 {
@@ -171,6 +167,11 @@ func Redeem(key string, userId int) (quota int, err error) {
 				}
 			}
 			
+			// 检查是否超过最大使用次数（注意：UsedCount记录的是总使用次数，不是用户数）
+			if redemption.MaxUses > 0 && redemption.UsedCount >= redemption.MaxUses {
+				return errors.New("该礼品码已达到最大使用次数")
+			}
+			
 			// 增加用户额度
 			err = tx.Model(&User{}).Where("id = ?", userId).Update("quota", gorm.Expr("quota + ?", redemption.Quota)).Error
 			if err != nil {
@@ -181,7 +182,7 @@ func Redeem(key string, userId int) (quota int, err error) {
 			redemption.UsedCount++
 			redemption.RedeemedTime = common.GetTimestamp()
 			
-			// 如果达到最大使用人数，标记为已使用
+			// 如果达到最大使用次数，标记为已使用
 			if redemption.MaxUses > 0 && redemption.UsedCount >= redemption.MaxUses {
 				redemption.Status = common.RedemptionCodeStatusUsed
 			}
