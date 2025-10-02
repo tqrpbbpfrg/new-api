@@ -129,11 +129,19 @@ const EditTokenModal = (props) => {
     let res = await API.get(`/api/user/self/groups`);
     const { success, message, data } = res.data;
     if (success) {
+      // 添加空值检查，防止 data 为 null 或 undefined
+      if (!data || typeof data !== 'object') {
+        console.warn('[loadGroups] 未获取到有效的分组数据:', data);
+        setGroups([]);
+        return;
+      }
+      
       let localGroupOptions = Object.entries(data).map(([group, info]) => ({
         label: info.desc,
         value: group,
         ratio: info.ratio,
       }));
+      
       if (statusState?.status?.default_use_auto_group) {
         if (localGroupOptions.some((group) => group.value === 'auto')) {
           localGroupOptions.sort((a, b) => (a.value === 'auto' ? -1 : 1));
@@ -147,6 +155,7 @@ const EditTokenModal = (props) => {
       }
     } else {
       showError(t(message));
+      setGroups([]);
     }
   };
 

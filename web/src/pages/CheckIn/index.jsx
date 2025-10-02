@@ -22,7 +22,6 @@ import {
   Button,
   Calendar,
   Card,
-  Descriptions,
   Input,
   List,
   Modal,
@@ -33,7 +32,7 @@ import {
 } from '@douyinfe/semi-ui';
 import { Award, Calendar as CalendarIcon, Crown, Gift, History, Medal, TrendingUp, Trophy } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { showError, showSuccess, renderQuota } from '../../helpers';
+import { renderQuota, showError, showSuccess } from '../../helpers';
 import { CheckInService } from '../../services/checkin';
 
 const { Text } = Typography;
@@ -312,41 +311,121 @@ const CheckIn = () => {
   };
 
   // 日历渲染函数 - 在日期下方显示签到状态
-  const renderCalendarCell = ({ date }) => {
-    const dateStr = date.format('YYYY-MM-DD');
-    const checkinRecord = monthHistory.find(item => item.check_date === dateStr);
+  const renderCalendarCell = (arg) => {
+    // 兼容不同 UI 库或版本的参数签名：
+    // 1) dayjs 对象 (arg.format 存在)
+    // 2) { date: dayjsObj }
+    // 3) { value: dayjsObj }
+    // 4) 原生 Date / 字符串
+    let rawDate = arg;
+    if (arg && typeof arg === 'object' && !arg.format) {
+      rawDate = arg.date || arg.value || arg;
+    }
+
+    const pad = (n) => String(n).padStart(2, '0');
+    let dateStr = '';
+    try {
+      if (rawDate?.format) {
+        dateStr = rawDate.format('YYYY-MM-DD');
+      } else if (typeof rawDate === 'string') {
+        dateStr = rawDate.slice(0, 10);
+      } else if (rawDate instanceof Date) {
+        dateStr = `${rawDate.getFullYear()}-${pad(rawDate.getMonth() + 1)}-${pad(rawDate.getDate())}`;
+      } else if (rawDate?.toDate) {
+        const d = rawDate.toDate();
+        dateStr = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+      }
+    } catch (_) {
+      // 忽略
+    }
+
+    const checkinRecord = dateStr ? monthHistory.find(item => item.check_date === dateStr) : null;
+    // 连续状态颜色：根据连续天数区间分级（示例）
+    let bg = 'transparent';
+    let rewardColor = 'var(--semi-color-success)';
+    if (checkinRecord) {
+      const days = checkinRecord.continuous_days || checkinRecord.continuous || 1;
+      if (days >= 15) {
+        bg = 'linear-gradient(135deg,#52c41a 0%,#237804 100%)';
+        rewardColor = '#fff';
+      } else if (days >= 7) {
+        bg = 'linear-gradient(135deg,#73d13d 0%,#52c41a 100%)';
+        rewardColor = '#fff';
+      } else if (days >= 3) {
+        bg = 'linear-gradient(135deg,#b7eb8f 0%,#73d13d 100%)';
+        rewardColor = '#1f1f1f';
+      } else {
+        bg = 'linear-gradient(135deg,#f6ffed 0%,#d9f7be 100%)';
+        rewardColor = 'var(--semi-color-success)';
+      }
+    }
     
     return (
-      <div style={{ 
-        width: '100%', 
-        height: '100%', 
-        display: 'flex', 
+      <div style={{
+        width: '100%',
+        height: '100%',
+        display: 'flex',
         flexDirection: 'column',
-        alignItems: 'center', 
+        alignItems: 'center',
         justifyContent: 'center',
-        padding: '4px'
+        padding: '2px',
+        position: 'relative',
+        borderRadius: 6,
+        background: checkinRecord ? bg : 'transparent',
+        transition: 'all .2s',
+        boxShadow: checkinRecord ? '0 1px 3px rgba(0,0,0,0.15)' : 'none'
       }}>
-        {checkinRecord && (
+        {/* 空容器也显示日期号，方便确认自定义生效 */}
+        <div style={{
+          position: 'absolute',
+          top: 4,
+          left: 6,
+          fontSize: 11,
+          fontWeight: 500,
+          color: checkinRecord ? '#fff' : 'var(--semi-color-text-2)'
+        }}>
+          {dateStr ? dateStr.split('-')[2] : ''}
+        </div>
+        {checkinRecord ? (
           <div style={{
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: '2px'
+            justifyContent: 'center',
+            gap: 2,
+            width: '100%',
+            height: '100%'
           }}>
             <div style={{
-              fontSize: '20px',
-              lineHeight: '1',
-              color: '#52c41a'
-            }}>
-              ✓
-            </div>
+              fontSize: 16,
+              lineHeight: 1,
+              color: '#fff',
+              fontWeight: 700,
+              marginTop: 6
+            }}>✓</div>
             <div style={{
-              fontSize: '10px',
-              color: 'var(--semi-color-success)',
-              fontWeight: 'bold'
+              fontSize: 10,
+              fontWeight: 600,
+              color: rewardColor,
+              padding: '0 4px',
+              borderRadius: 4,
+              background: checkinRecord && rewardColor === '#fff' ? 'rgba(255,255,255,0.25)' : 'transparent'
             }}>
-              +{checkinRecord.reward}
+              {formatReward(checkinRecord.reward)}
             </div>
+          </div>
+        ) : (
+          <div style={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            opacity: 0.15,
+            fontSize: 12
+          }}>
+            {/* 空格子淡显，便于确认我们接管渲染 */}
+            ·
           </div>
         )}
       </div>
@@ -378,6 +457,22 @@ const CheckIn = () => {
     }
   };
 
+  // 奖励显示为 $xx
+  const formatReward = (reward, digits = 2) => {
+    if (reward === null || reward === undefined || isNaN(reward)) return '$0';
+    let quotaPerUnit = parseFloat(localStorage.getItem('quota_per_unit'));
+    if (!quotaPerUnit || isNaN(quotaPerUnit) || quotaPerUnit === 0) {
+      return '$' + reward;
+    }
+    const result = reward / quotaPerUnit;
+    const fixed = result.toFixed(digits);
+    if (parseFloat(fixed) === 0 && reward > 0 && result > 0) {
+      const minValue = Math.pow(10, -digits).toFixed(digits);
+      return '$' + minValue;
+    }
+    return '$' + fixed;
+  };
+
   // 历史记录表格列
   const historyColumns = [
     {
@@ -392,7 +487,7 @@ const CheckIn = () => {
       key: 'reward',
       render: (text) => (
         <Tag color="green" size="large">
-          +{text}
+          {formatReward(text)}
         </Tag>
       ),
     },
@@ -519,7 +614,11 @@ const CheckIn = () => {
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '20px' }}>
           <Calendar
             mode="month"
-            dateRender={renderCalendarCell}
+            // 使用 Semi UI 支持的自定义日期单元格渲染属性
+            dateCellRender={renderCalendarCell}
+            dateFullCellRender={renderCalendarCell}
+            // 兼容旧写法（如果仍被支持则无害）
+            // dateRender={renderCalendarCell}
             onChange={handleCalendarChange}
             style={{ width: '100%', maxWidth: '800px' }}
           />
@@ -585,7 +684,7 @@ const CheckIn = () => {
                   </div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <Text type="success" strong>+{item.total_rewards}</Text>
+                  <Text type="success" strong>{formatReward(item.total_rewards)}</Text>
                   <div style={{ fontSize: '12px', color: 'var(--semi-color-text-2)' }}>
                     总奖励
                   </div>

@@ -218,16 +218,25 @@ func DiscordAuth(c *gin.Context) {
 		return
 	}
 
-	// 验证是否需要检查服务器成员资格
+	// 验证是否需要检查服务器成员资格（登录和注册都需要检查）
 	if common.DiscordRequireGuild && common.DiscordGuildId != "" {
 		if guildMembers == nil || len(*guildMembers) == 0 {
-			common.SysLog(fmt.Sprintf("Discord OAuth 用户未加入指定服务器: DiscordID=%s, Username=%s", discordUser.ID, discordUser.Username))
+			common.SysLog(fmt.Sprintf("Discord OAuth 用户未加入指定服务器: DiscordID=%s, Username=%s, GlobalName=%s", 
+				discordUser.ID, discordUser.Username, discordUser.GlobalName))
 			c.JSON(http.StatusOK, gin.H{
 				"success": false,
-				"message": "您需要加入指定的 Discord 服务器才能登录",
+				"message": fmt.Sprintf("您需要加入指定的 Discord 服务器才能登录。Discord用户: %s", 
+					func() string {
+						if discordUser.GlobalName != "" {
+							return discordUser.GlobalName
+						}
+						return discordUser.Username
+					}()),
 			})
 			return
 		}
+		common.SysLog(fmt.Sprintf("Discord OAuth 用户已加入指定服务器: DiscordID=%s, Username=%s, GlobalName=%s", 
+			discordUser.ID, discordUser.Username, discordUser.GlobalName))
 	}
 	user := model.User{
 		DiscordId: discordUser.ID,
@@ -407,11 +416,32 @@ func DiscordBind(c *gin.Context) {
 	}
 
 	// 添加详细日志：返回数据前
-	common.SysLog(fmt.Sprintf("Discord Bind: 成功完成绑定，返回用户数据 - User ID=%d, Username=%s, Discord ID=%s", user.Id, user.Username, user.DiscordId))
+	common.SysLog(fmt.Sprintf("Discord Bind: 成功完成绑定，返回用户数据 - User ID=%d, Username=%s, Discord ID=%s, GlobalName=%s", 
+		user.Id, user.Username, user.DiscordId, 
+		func() string {
+			if discordUser.GlobalName != "" {
+				return discordUser.GlobalName
+			}
+			return discordUser.Username
+		}()))
+
+	// 构建返回的用户信息，确保包含Discord用户名
+	userData := gin.H{
+		"id":          user.Id,
+		"username":    user.Username,
+		"discord_id":  user.DiscordId,
+		"email":       user.Email,
+		"role":        user.Role,
+		"status":      user.Status,
+		"quota":       user.Quota,
+		"used_quota":  user.UsedQuota,
+		"group":       user.Group,
+		"display_name": user.DisplayName,
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "bind",
-		"data":    user,
+		"data":    userData,
 	})
 }
