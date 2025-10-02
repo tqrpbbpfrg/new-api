@@ -164,13 +164,19 @@ func UpdateGroupAvailableGroupsByJSONString(jsonStr string) error {
 			continue
 		}
 
-		// 验证可选分组是否存在
+		// 验证可选分组是否存在，但保留管理员配置的分组
 		validGroups := make([]string, 0)
 		for _, group := range availableGroups {
 			if group == "default" || GroupInUserUsableGroups(group) {
 				validGroups = append(validGroups, group)
 			} else {
-				common.SysLog("warning: available group '" + group + "' for user group '" + userGroup + "' does not exist, removing")
+				// 如果分组不在全局可用分组中，自动添加到全局可用分组
+				// 这样可以确保管理员配置的分组不会被丢失
+				common.SysLog("info: adding new available group '" + group + "' to global user usable groups")
+				userUsableGroupsMutex.Lock()
+				userUsableGroups[group] = group
+				userUsableGroupsMutex.Unlock()
+				validGroups = append(validGroups, group)
 			}
 		}
 		newGroups[userGroup] = validGroups

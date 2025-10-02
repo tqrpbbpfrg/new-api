@@ -17,15 +17,14 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React from 'react';
-import { Card, Select, Typography, Button, Switch } from '@douyinfe/semi-ui';
-import { Sparkles, Users, ToggleLeft, X, Settings } from 'lucide-react';
+import { Button, Card, Select, Switch, Typography } from '@douyinfe/semi-ui';
+import { Settings, Sparkles, ToggleLeft, Users, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { renderGroupOption, selectFilter } from '../../helpers';
-import ParameterControl from './ParameterControl';
-import ImageUrlInput from './ImageUrlInput';
 import ConfigManager from './ConfigManager';
 import CustomRequestEditor from './CustomRequestEditor';
+import ImageUrlInput from './ImageUrlInput';
+import ParameterControl from './ParameterControl';
 
 const SettingsPanel = ({
   inputs,
@@ -136,7 +135,7 @@ const SettingsPanel = ({
             onChange={(value) => onInputChange('group', value)}
             value={inputs.group}
             autoComplete='new-password'
-            optionList={groups}
+            optionList={Array.isArray(groups) ? groups : []}
             renderOptionItem={renderGroupOption}
             style={{ width: '100%' }}
             dropdownStyle={{ width: '100%', maxWidth: '100%' }}
@@ -168,7 +167,7 @@ const SettingsPanel = ({
             onChange={(value) => onInputChange('model', value)}
             value={inputs.model}
             autoComplete='new-password'
-            optionList={models}
+            optionList={Array.isArray(models) ? models : []}
             style={{ width: '100%' }}
             dropdownStyle={{ width: '100%', maxWidth: '100%' }}
             className='!rounded-lg'

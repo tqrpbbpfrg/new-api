@@ -17,40 +17,40 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useEffect, useState, useContext, useRef } from 'react';
 import {
-  API,
-  showError,
-  showSuccess,
-  timestamp2string,
-  renderGroupOption,
-  renderQuotaWithPrompt,
-  getModelCategories,
-  selectFilter,
-} from '../../../../helpers';
-import { useIsMobile } from '../../../../hooks/common/useIsMobile';
+  IconClose,
+  IconCreditCard,
+  IconKey,
+  IconLink,
+  IconSave,
+} from '@douyinfe/semi-icons';
 import {
+  Avatar,
   Button,
+  Card,
+  Col,
+  Form,
+  Row,
   SideSheet,
   Space,
   Spin,
-  Typography,
-  Card,
   Tag,
-  Avatar,
-  Form,
-  Col,
-  Row,
+  Typography,
 } from '@douyinfe/semi-ui';
-import {
-  IconCreditCard,
-  IconLink,
-  IconSave,
-  IconClose,
-  IconKey,
-} from '@douyinfe/semi-icons';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StatusContext } from '../../../../context/Status';
+import {
+  API,
+  getModelCategories,
+  renderGroupOption,
+  renderQuotaWithPrompt,
+  selectFilter,
+  showError,
+  showSuccess,
+  timestamp2string,
+} from '../../../../helpers';
+import { useIsMobile } from '../../../../hooks/common/useIsMobile';
 
 const { Text, Title } = Typography;
 
@@ -126,22 +126,24 @@ const EditTokenModal = (props) => {
   };
 
   const loadGroups = async () => {
-    let res = await API.get(`/api/user/self/groups`);
-    const { success, message, data } = res.data;
-    if (success) {
-      // 添加空值检查，防止 data 为 null 或 undefined
+    try {
+      const res = await API.get(`/api/user/self/groups`);
+      const { success, message, data } = res.data;
+      if (!success) {
+        showError(t(message));
+        setGroups([]);
+        return [];
+      }
       if (!data || typeof data !== 'object') {
         console.warn('[loadGroups] 未获取到有效的分组数据:', data);
         setGroups([]);
-        return;
+        return [];
       }
-      
       let localGroupOptions = Object.entries(data).map(([group, info]) => ({
-        label: info.desc,
+        label: info?.desc || group,
         value: group,
-        ratio: info.ratio,
+        ratio: info?.ratio,
       }));
-      
       if (statusState?.status?.default_use_auto_group) {
         if (localGroupOptions.some((group) => group.value === 'auto')) {
           localGroupOptions.sort((a, b) => (a.value === 'auto' ? -1 : 1));
@@ -150,12 +152,11 @@ const EditTokenModal = (props) => {
         }
       }
       setGroups(localGroupOptions);
-      if (statusState?.status?.default_use_auto_group && formApiRef.current) {
-        formApiRef.current.setValue('group', 'auto');
-      }
-    } else {
-      showError(t(message));
+      return localGroupOptions;
+    } catch (e) {
+      console.error('[loadGroups] 加载分组失败:', e);
       setGroups([]);
+      return [];
     }
   };
 
@@ -191,18 +192,39 @@ const EditTokenModal = (props) => {
   }, [props.editingToken.id]);
 
   useEffect(() => {
-    if (props.visiable) {
-      // 每次打开模态框时重新加载分组列表，确保获取最新的可选分组
-      loadGroups();
+    if (!props.visiable) {
+      formApiRef.current?.reset();
+      return;
+    }
+    // 打开时：先加载分组，再在编辑模式下加载令牌，避免令牌分组不在最新列表中
+    const run = async () => {
+      const loadedGroups = await loadGroups();
       if (isEdit) {
-        loadToken();
+        await loadToken();
+        // 若令牌已有分组不在最新可选列表中（例如管理员刚刚添加的新配置），则追加显示，防止下拉框空值
+        const tokenGroup = formApiRef.current?.getValue('group');
+        if (tokenGroup && !loadedGroups.some(g => g.value === tokenGroup)) {
+          const patched = [
+            ...loadedGroups,
+            { label: tokenGroup, value: tokenGroup, ratio: 1 },
+          ];
+            setGroups(patched);
+        }
       } else {
         formApiRef.current?.setValues(getInitValues());
+        // 新建时如果支持 auto 默认使用 auto，否则使用第一项
+        if (formApiRef.current) {
+          const autoOpt = loadedGroups.find(g => g.value === 'auto');
+          if (autoOpt) {
+            formApiRef.current.setValue('group', 'auto');
+          } else if (loadedGroups.length > 0) {
+            formApiRef.current.setValue('group', loadedGroups[0].value);
+          }
+        }
       }
-    } else {
-      formApiRef.current?.reset();
-    }
-  }, [props.visiable, props.editingToken.id]);
+    };
+    run();
+  }, [props.visiable, props.editingToken.id, isEdit]);
 
   const generateRandomSuffix = () => {
     const characters =

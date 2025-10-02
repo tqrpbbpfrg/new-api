@@ -115,6 +115,14 @@ func setupLogin(user *model.User, c *gin.Context) {
 		Role:        user.Role,
 		Status:      user.Status,
 		Group:       user.Group,
+		Email:            user.Email,
+		GitHubId:         user.GitHubId,
+		OidcId:           user.OidcId,
+		WeChatId:         user.WeChatId,
+		TelegramId:       user.TelegramId,
+		DiscordId:        user.DiscordId,
+		DiscordUsername:  user.DiscordUsername,
+		LinuxDOId:        user.LinuxDOId,
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"message": "",
@@ -473,6 +481,8 @@ func GetSelf(c *gin.Context) {
 		"aff_history_quota": user.AffHistoryQuota,
 		"inviter_id":        user.InviterId,
 		"linux_do_id":       user.LinuxDOId,
+		"discord_id":        user.DiscordId,
+		"discord_username":  user.DiscordUsername,
 		"setting":           user.Setting,
 		"stripe_customer":   user.StripeCustomer,
 		"sidebar_modules":   userSetting.SidebarModules, // 正确提取sidebar_modules字段

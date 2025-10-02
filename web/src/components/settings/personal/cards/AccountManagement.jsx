@@ -431,8 +431,8 @@ const AccountManagement = ({
                       </div>
                       <div className='text-sm text-gray-500 truncate'>
                         {renderAccountInfo(
-                          userState.user?.discord_id,
-                          t('Discord ID'),
+                          userState.user?.discord_username || userState.user?.discord_id,
+                          t('Discord 用户名'),
                         )}
                       </div>
                     </div>
