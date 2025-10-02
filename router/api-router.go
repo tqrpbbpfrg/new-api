@@ -258,6 +258,7 @@ func SetApiRouter(router *gin.Engine) {
 			checkinRoute.GET("/config", controller.GetCheckInConfig)
 			checkinRoute.GET("/status", middleware.UserAuth(), controller.GetUserCheckInStatus)
 			checkinRoute.GET("/history", middleware.UserAuth(), controller.GetUserCheckInHistory)
+			checkinRoute.GET("/history/paged", middleware.UserAuth(), controller.GetUserCheckInHistoryPaged)
 			checkinRoute.POST("/", middleware.UserAuth(), controller.CheckIn)
 			checkinRoute.PUT("/config", middleware.RootAuth(), controller.UpdateCheckInConfig)
 			checkinRoute.GET("/all", middleware.AdminAuth(), controller.GetAllCheckIns)

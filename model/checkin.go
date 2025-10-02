@@ -57,6 +57,71 @@ func GetUserCheckInHistory(userId int, year int, month int) ([]*CheckIn, error) 
 	return checkIns, err
 }
 
+// GetUserCheckInHistoryPaged 获取用户签到历史（分页）
+func GetUserCheckInHistoryPaged(userId int, pageInfo *common.PageInfo) ([]*CheckIn, int64, error) {
+	var checkIns []*CheckIn
+	var total int64
+	
+	err := DB.Model(&CheckIn{}).Where("user_id = ?", userId).Count(&total).Error
+	if err != nil {
+		return nil, 0, err
+	}
+	
+	err = DB.Where("user_id = ?", userId).
+		Order("created_at DESC").
+		Limit(pageInfo.GetPageSize()).
+		Offset(pageInfo.GetStartIdx()).
+		Find(&checkIns).Error
+	
+	if err != nil {
+		return nil, 0, err
+	}
+	
+	return checkIns, total, nil
+}
+
+// GetContinuousDaysAtDate 获取用户在指定日期时的连续签到天数
+func GetContinuousDaysAtDate(userId int, checkDate string) (int, error) {
+	var checkIns []CheckIn
+	
+	// 获取从指定日期往前30天的签到记录
+	targetDate, err := time.Parse("2006-01-02", checkDate)
+	if err != nil {
+		return 0, err
+	}
+	
+	startDate := targetDate.AddDate(0, 0, -30).Format("2006-01-02")
+	
+	err = DB.Where("user_id = ? AND check_date <= ? AND check_date >= ?", userId, checkDate, startDate).
+		Order("check_date DESC").
+		Find(&checkIns).Error
+	
+	if err != nil {
+		return 0, err
+	}
+	
+	if len(checkIns) == 0 {
+		return 0, nil
+	}
+	
+	// 计算连续签到天数
+	continuousDays := 0
+	expectedDate := checkDate
+	
+	for _, checkIn := range checkIns {
+		if checkIn.CheckDate == expectedDate {
+			continuousDays++
+			// 计算前一天的日期
+			t, _ := time.Parse("2006-01-02", expectedDate)
+			expectedDate = t.AddDate(0, 0, -1).Format("2006-01-02")
+		} else {
+			break
+		}
+	}
+	
+	return continuousDays, nil
+}
+
 // GetUserContinuousCheckInDays 获取用户连续签到天数
 func GetUserContinuousCheckInDays(userId int) (int, error) {
 	var checkIns []CheckIn
@@ -210,7 +275,7 @@ type CheckInLeaderboard struct {
 func GetCheckInLeaderboard(limit int) ([]*CheckInLeaderboard, error) {
 	var leaderboard []*CheckInLeaderboard
 	
-	// 使用原生SQL查询获取排行榜数据
+	// 使用兼容的SQL查询获取排行榜数据（不使用ROW_NUMBER）
 	// 查询每个用户的签到统计信息，按总签到次数排序
 	sql := `
 		SELECT 
@@ -218,12 +283,11 @@ func GetCheckInLeaderboard(limit int) ([]*CheckInLeaderboard, error) {
 			u.username,
 			COUNT(c.id) as total_checkins,
 			SUM(c.reward) as total_rewards,
-			MAX(c.check_date) as last_checkin_date,
-			ROW_NUMBER() OVER (ORDER BY COUNT(c.id) DESC) as rank
+			MAX(c.check_date) as last_checkin_date
 		FROM check_ins c
 		LEFT JOIN users u ON c.user_id = u.id
 		GROUP BY c.user_id, u.username
-		ORDER BY total_checkins DESC
+		ORDER BY total_checkins DESC, total_rewards DESC
 		LIMIT ?
 	`
 	
@@ -232,8 +296,9 @@ func GetCheckInLeaderboard(limit int) ([]*CheckInLeaderboard, error) {
 		return nil, err
 	}
 	
-	// 为每个用户计算连续签到天数
-	for _, item := range leaderboard {
+	// 手动添加排名和计算连续签到天数
+	for i, item := range leaderboard {
+		item.Rank = i + 1
 		continuousDays, err := GetUserContinuousCheckInDays(item.UserId)
 		if err == nil {
 			item.ContinuousDays = continuousDays

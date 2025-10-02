@@ -443,12 +443,12 @@ const CheckIn = () => {
 
   return (
     <div className='mt-[60px] px-2' style={{ paddingTop: '20px', paddingBottom: '20px' }}>
-      {/* 签到日历 - 整合签到状态 */}
+      {/* 签到日历 - 整合签到状态和历史 */}
       <Card 
         title={
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <CalendarIcon size={18} />
-            签到日历
+            签到日历与历史
           </div>
         }
         loading={historyLoading || loading}
@@ -516,12 +516,30 @@ const CheckIn = () => {
         )}
 
         {/* 日历 */}
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '20px' }}>
           <Calendar
             mode="month"
-            renderDate={renderCalendarCell}
+            dateRender={renderCalendarCell}
             onChange={handleCalendarChange}
             style={{ width: '100%', maxWidth: '800px' }}
+          />
+        </div>
+
+        {/* 签到历史表格 - 整合到日历卡片内 */}
+        <div style={{ marginTop: '24px', borderTop: '1px solid var(--semi-color-border)', paddingTop: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+            <History size={18} />
+            <Text strong style={{ fontSize: '16px' }}>我的签到记录</Text>
+          </div>
+          <Table
+            columns={historyColumns}
+            dataSource={pagedHistory}
+            pagination={{
+              currentPage,
+              pageSize,
+              total,
+              onPageChange: fetchPagedHistory,
+            }}
           />
         </div>
       </Card>
@@ -535,7 +553,6 @@ const CheckIn = () => {
           </div>
         }
         loading={leaderboardLoading}
-        style={{ marginBottom: '20px' }}
       >
         <List
           dataSource={leaderboard}
@@ -576,29 +593,6 @@ const CheckIn = () => {
               </div>
             </List.Item>
           )}
-        />
-      </Card>
-
-      {/* 签到历史 */}
-      <Card 
-        title={
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <History size={18} />
-            签到历史
-          </div>
-        }
-        loading={historyLoading}
-      >
-        <Table
-          columns={historyColumns}
-          dataSource={pagedHistory}
-          pagination={{
-            currentPage,
-            pageSize,
-            total,
-            onPageChange: fetchPagedHistory,
-          }}
-          style={{ marginTop: '16px' }}
         />
       </Card>
 

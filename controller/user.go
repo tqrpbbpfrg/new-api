@@ -625,13 +625,23 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 	
+	// 提前处理 extra_groups 字段，避免 JSON 解析失败
+	var extraGroupsArray []interface{}
+	if extraGroupsRaw, exists := requestBody["extra_groups"]; exists {
+		if arr, ok := extraGroupsRaw.([]interface{}); ok {
+			extraGroupsArray = arr
+			// 临时移除以避免解析冲突
+			delete(requestBody, "extra_groups")
+		}
+	}
+	
 	// 重新编码为JSON以便解析到User结构体
 	requestBodyBytes, _ := json.Marshal(requestBody)
 	var updatedUser model.User
 	if err := json.Unmarshal(requestBodyBytes, &updatedUser); err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"success": false,
-			"message": "无效的参数",
+			"message": "无效的参数: " + err.Error(),
 		})
 		return
 	}
@@ -678,21 +688,28 @@ func UpdateUser(c *gin.Context) {
 	}
 	
 	// 处理额外用户组：前端发送的是数组，需要转换为JSON字符串
-	if extraGroupsRaw, exists := requestBody["extra_groups"]; exists {
-		if extraGroupsArray, ok := extraGroupsRaw.([]interface{}); ok {
-			extraGroups := make([]string, 0, len(extraGroupsArray))
-			for _, g := range extraGroupsArray {
-				if groupStr, ok := g.(string); ok {
-					extraGroups = append(extraGroups, groupStr)
-				}
+	if len(extraGroupsArray) > 0 {
+		extraGroups := make([]string, 0, len(extraGroupsArray))
+		for _, g := range extraGroupsArray {
+			if groupStr, ok := g.(string); ok {
+				extraGroups = append(extraGroups, groupStr)
 			}
-			if err := updatedUser.SetExtraGroups(extraGroups); err != nil {
-				c.JSON(http.StatusOK, gin.H{
-					"success": false,
-					"message": "设置额外用户组失败: " + err.Error(),
-				})
-				return
-			}
+		}
+		if err := updatedUser.SetExtraGroups(extraGroups); err != nil {
+			c.JSON(http.StatusOK, gin.H{
+				"success": false,
+				"message": "设置额外用户组失败: " + err.Error(),
+			})
+			return
+		}
+	} else if extraGroupsArray != nil {
+		// 如果数组存在但为空，设置为空数组
+		if err := updatedUser.SetExtraGroups([]string{}); err != nil {
+			c.JSON(http.StatusOK, gin.H{
+				"success": false,
+				"message": "设置额外用户组失败: " + err.Error(),
+			})
+			return
 		}
 	}
 	

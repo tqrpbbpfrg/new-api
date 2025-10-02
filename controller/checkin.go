@@ -166,7 +166,7 @@ func GetUserCheckInStatus(c *gin.Context) {
 	})
 }
 
-// GetUserCheckInHistory 获取用户签到历史
+// GetUserCheckInHistory 获取用户签到历史（按月，用于日历显示）
 func GetUserCheckInHistory(c *gin.Context) {
 	userId := c.GetInt("id")
 
@@ -195,6 +195,57 @@ func GetUserCheckInHistory(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"data":    checkIns,
+	})
+}
+
+// GetUserCheckInHistoryPaged 获取用户签到历史（分页）
+func GetUserCheckInHistoryPaged(c *gin.Context) {
+	userId := c.GetInt("id")
+	
+	page, _ := strconv.Atoi(c.Query("page"))
+	pageSize, _ := strconv.Atoi(c.Query("page_size"))
+
+	if page <= 0 {
+		page = 1
+	}
+	if pageSize <= 0 || pageSize > 100 {
+		pageSize = 10
+	}
+
+	pageInfo := &common.PageInfo{
+		Page:     page,
+		PageSize: pageSize,
+	}
+
+	checkIns, total, err := model.GetUserCheckInHistoryPaged(userId, pageInfo)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": "获取签到历史失败",
+		})
+		return
+	}
+
+	// 为每条记录添加连续天数信息
+	type CheckInWithDays struct {
+		*model.CheckIn
+		ContinuousDays int `json:"continuous_days"`
+	}
+
+	result := make([]CheckInWithDays, len(checkIns))
+	for i, checkIn := range checkIns {
+		// 计算该签到时的连续天数
+		continuousDays, _ := model.GetContinuousDaysAtDate(userId, checkIn.CheckDate)
+		result[i] = CheckInWithDays{
+			CheckIn:        checkIn,
+			ContinuousDays: continuousDays,
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data":    result,
+		"total":   total,
 	})
 }
 

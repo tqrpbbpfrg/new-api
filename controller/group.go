@@ -1,7 +1,9 @@
 package controller
 
 import (
+	"fmt"
 	"net/http"
+	"one-api/common"
 	"one-api/model"
 	"one-api/setting"
 	"one-api/setting/ratio_setting"
@@ -36,29 +38,47 @@ func GetUserGroups(c *gin.Context) {
 		return
 	}
 	
-	// 获取用户的所有分组（主分组 + 额外分组）
-	allUserGroups := user.GetAllGroups()
+	// 获取用户的额外分组
+	extraGroups := user.GetExtraGroups()
 	
-	// 收集所有分组的可选分组（去重）
+	// 调试日志
+	common.SysLog(fmt.Sprintf("[GetUserGroups] User %d (%s) - Main Group: %s, Extra Groups: %v", 
+		userId, user.Username, user.Group, extraGroups))
+	
+	// 收集用户可选分组：主分组的可选分组 + 额外分组本身
 	availableGroupsSet := make(map[string]bool)
-	for _, userGroup := range allUserGroups {
-		userUsableGroups := setting.GetUserUsableGroups(userGroup)
-		for groupName := range userUsableGroups {
-			availableGroupsSet[groupName] = true
-		}
+	
+	// 1. 添加主分组的可选分组
+	mainGroupUsableGroups := setting.GetUserUsableGroups(user.Group)
+	common.SysLog(fmt.Sprintf("[GetUserGroups] User %d - Main Group '%s' has usable groups: %v", 
+		userId, user.Group, mainGroupUsableGroups))
+	for groupName := range mainGroupUsableGroups {
+		availableGroupsSet[groupName] = true
 	}
+	
+	// 2. 添加额外分组本身（不是额外分组的可选分组）
+	for _, extraGroup := range extraGroups {
+		availableGroupsSet[extraGroup] = true
+	}
+	common.SysLog(fmt.Sprintf("[GetUserGroups] User %d - Added extra groups to available set: %v", 
+		userId, extraGroups))
+	
+	// 调试日志
+	common.SysLog(fmt.Sprintf("[GetUserGroups] User %d - Final available groups set: %v", 
+		userId, availableGroupsSet))
 	
 	// 构建返回数据
 	groupRatios := ratio_setting.GetGroupRatioCopy()
+	common.SysLog(fmt.Sprintf("[GetUserGroups] User %d - Group ratios: %v", userId, groupRatios))
+	
 	for groupName := range availableGroupsSet {
-		// 从任一用户组中获取描述（优先使用主分组的描述）
+		// 先尝试从主分组的可选分组中获取描述
 		desc := ""
-		for _, userGroup := range allUserGroups {
-			userUsableGroups := setting.GetUserUsableGroups(userGroup)
-			if d, ok := userUsableGroups[groupName]; ok {
-				desc = d
-				break
-			}
+		if d, ok := mainGroupUsableGroups[groupName]; ok {
+			desc = d
+		} else {
+			// 如果不在主分组的可选分组中，使用全局描述
+			desc = setting.GetUsableGroupDescription(groupName)
 		}
 		
 		// 获取分组的 ratio，如果不存在则使用默认值
@@ -72,6 +92,9 @@ func GetUserGroups(c *gin.Context) {
 			"desc":  desc,
 		}
 	}
+	
+	// 调试日志
+	common.SysLog(fmt.Sprintf("[GetUserGroups] User %d - Final usable groups: %v", userId, usableGroups))
 	
 	// 处理 auto 分组
 	if setting.GroupInUserUsableGroups("auto") {

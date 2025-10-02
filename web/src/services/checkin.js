@@ -98,7 +98,7 @@ export class CheckInService {
    */
   static async getHistoryPaged(page = 1, pageSize = 10) {
     try {
-      const response = await API.get('/api/checkin/all', {
+      const response = await API.get('/api/checkin/history/paged', {
         params: { page, page_size: pageSize },
       });
       return response.data;

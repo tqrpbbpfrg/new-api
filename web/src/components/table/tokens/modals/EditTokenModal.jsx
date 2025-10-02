@@ -179,11 +179,12 @@ const EditTokenModal = (props) => {
       }
     }
     loadModels();
-    loadGroups();
   }, [props.editingToken.id]);
 
   useEffect(() => {
     if (props.visiable) {
+      // 每次打开模态框时重新加载分组列表，确保获取最新的可选分组
+      loadGroups();
       if (isEdit) {
         loadToken();
       } else {

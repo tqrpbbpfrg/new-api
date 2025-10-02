@@ -208,7 +208,7 @@ func DiscordAuth(c *gin.Context) {
 		})
 		return
 	}
-	discordUser, _, err := getDiscordUserInfoByCode(code, c)
+	discordUser, guildMembers, err := getDiscordUserInfoByCode(code, c)
 	if err != nil {
 		common.SysLog(fmt.Sprintf("Discord OAuth 获取用户信息失败: %v", err))
 		c.JSON(http.StatusOK, gin.H{
@@ -216,6 +216,18 @@ func DiscordAuth(c *gin.Context) {
 			"message": fmt.Sprintf("Discord 授权失败: %s", err.Error()),
 		})
 		return
+	}
+
+	// 验证是否需要检查服务器成员资格
+	if common.DiscordRequireGuild && common.DiscordGuildId != "" {
+		if guildMembers == nil || len(*guildMembers) == 0 {
+			common.SysLog(fmt.Sprintf("Discord OAuth 用户未加入指定服务器: DiscordID=%s, Username=%s", discordUser.ID, discordUser.Username))
+			c.JSON(http.StatusOK, gin.H{
+				"success": false,
+				"message": "您需要加入指定的 Discord 服务器才能登录",
+			})
+			return
+		}
 	}
 	user := model.User{
 		DiscordId: discordUser.ID,
@@ -358,10 +370,13 @@ func DiscordBind(c *gin.Context) {
 		return
 	}
 
+	// 添加详细日志：更新前
+	common.SysLog(fmt.Sprintf("Discord Bind: 准备更新用户 ID=%d, Username=%s, 绑定 Discord ID=%s", user.Id, user.Username, discordUser.ID))
+	
 	user.DiscordId = discordUser.ID
 	err = user.Update(false)
 	if err != nil {
-		common.SysLog(fmt.Sprintf("Discord Bind 更新用户失败: %v", err))
+		common.SysLog(fmt.Sprintf("Discord Bind 更新用户失败: User ID=%d, Error=%v", user.Id, err))
 		c.JSON(http.StatusOK, gin.H{
 			"success": false,
 			"message": "绑定失败，请重试",
@@ -369,21 +384,30 @@ func DiscordBind(c *gin.Context) {
 		return
 	}
 
+	// 添加详细日志：更新成功
+	common.SysLog(fmt.Sprintf("Discord Bind: 用户 ID=%d 更新成功", user.Id))
+
 	// 清理 OAuth state
 	session.Delete("oauth_state")
 	session.Delete("oauth_state_time")
 	session.Save()
 
+	// 添加详细日志：重新获取用户数据
+	common.SysLog(fmt.Sprintf("Discord Bind: 重新获取用户 ID=%d 的完整数据", user.Id))
+	
 	// 重新获取更新后的用户数据
 	err = user.FillUserById()
 	if err != nil {
-		common.SysLog(fmt.Sprintf("Discord Bind 获取更新后用户信息失败: %v", err))
+		common.SysLog(fmt.Sprintf("Discord Bind 获取更新后用户信息失败: User ID=%d, Error=%v", user.Id, err))
 		c.JSON(http.StatusOK, gin.H{
 			"success": true,
 			"message": "bind",
 		})
 		return
 	}
+
+	// 添加详细日志：返回数据前
+	common.SysLog(fmt.Sprintf("Discord Bind: 成功完成绑定，返回用户数据 - User ID=%d, Username=%s, Discord ID=%s", user.Id, user.Username, user.DiscordId))
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
