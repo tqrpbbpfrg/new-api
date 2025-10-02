@@ -181,5 +181,4 @@ func WeChatBind(c *gin.Context) {
 		"message": "bind",
 		"data":    user,
 	})
-	return
 }

@@ -605,9 +605,38 @@ func GetUserModels(c *gin.Context) {
 }
 
 func UpdateUser(c *gin.Context) {
+	var requestBody map[string]interface{}
+	err := json.NewDecoder(c.Request.Body).Decode(&requestBody)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": "无效的参数",
+		})
+		return
+	}
+	
+	// 提取用户ID
+	userId, ok := requestBody["id"].(float64)
+	if !ok || userId == 0 {
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": "无效的用户ID",
+		})
+		return
+	}
+	
+	// 重新编码为JSON以便解析到User结构体
+	requestBodyBytes, _ := json.Marshal(requestBody)
 	var updatedUser model.User
-	err := json.NewDecoder(c.Request.Body).Decode(&updatedUser)
-	if err != nil || updatedUser.Id == 0 {
+	if err := json.Unmarshal(requestBodyBytes, &updatedUser); err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": "无效的参数",
+		})
+		return
+	}
+	
+	if updatedUser.Id == 0 {
 		c.JSON(http.StatusOK, gin.H{
 			"success": false,
 			"message": "无效的参数",
@@ -647,6 +676,26 @@ func UpdateUser(c *gin.Context) {
 	if updatedUser.Password == "$I_LOVE_U" {
 		updatedUser.Password = "" // rollback to what it should be
 	}
+	
+	// 处理额外用户组：前端发送的是数组，需要转换为JSON字符串
+	if extraGroupsRaw, exists := requestBody["extra_groups"]; exists {
+		if extraGroupsArray, ok := extraGroupsRaw.([]interface{}); ok {
+			extraGroups := make([]string, 0, len(extraGroupsArray))
+			for _, g := range extraGroupsArray {
+				if groupStr, ok := g.(string); ok {
+					extraGroups = append(extraGroups, groupStr)
+				}
+			}
+			if err := updatedUser.SetExtraGroups(extraGroups); err != nil {
+				c.JSON(http.StatusOK, gin.H{
+					"success": false,
+					"message": "设置额外用户组失败: " + err.Error(),
+				})
+				return
+			}
+		}
+	}
+	
 	updatePassword := updatedUser.Password != ""
 	if err := updatedUser.Edit(updatePassword); err != nil {
 		common.ApiError(c, err)

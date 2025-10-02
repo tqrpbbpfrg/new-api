@@ -67,15 +67,39 @@ export class CheckInService {
   }
 
   /**
-   * 获取用户签到历史
+   * 获取用户签到历史（按月）
+   * @param {number} year - 年份
+   * @param {number} month - 月份
+   * @returns {Promise<Object>}
+   */
+  static async getHistory(year, month) {
+    try {
+      // 如果没有传递年月参数，使用当前年月
+      if (!year || !month) {
+        const now = new Date();
+        year = now.getFullYear();
+        month = now.getMonth() + 1;
+      }
+      const response = await API.get('/api/checkin/history', {
+        params: { year, month },
+      });
+      return response.data;
+    } catch (error) {
+      showError('获取签到历史失败');
+      throw error;
+    }
+  }
+
+  /**
+   * 获取用户签到历史（分页，用于历史记录表格）
    * @param {number} page - 页码
    * @param {number} pageSize - 每页数量
    * @returns {Promise<Object>}
    */
-  static async getHistory(page = 1, pageSize = 30) {
+  static async getHistoryPaged(page = 1, pageSize = 10) {
     try {
-      const response = await API.get('/api/checkin/history', {
-        params: { page, pageSize },
+      const response = await API.get('/api/checkin/all', {
+        params: { page, page_size: pageSize },
       });
       return response.data;
     } catch (error) {

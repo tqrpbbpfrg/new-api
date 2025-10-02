@@ -128,45 +128,23 @@ const EditUserModal = (props) => {
       payload.id = parseInt(userId);
     }
     
-    // 如果有额外用户组，单独处理
-    if (userId && payload.extra_groups) {
-      // 先更新基本信息
-      const basicPayload = { ...payload };
-      delete basicPayload.extra_groups;
-      
-      const url = `/api/user/`;
-      const res = await API.put(url, basicPayload);
-      const { success, message } = res.data;
-      if (!success) {
-        showError(message);
-        setLoading(false);
-        return;
-      }
-      
-      // 再更新额外用户组
-      const extraGroupsRes = await API.put(`/api/user/${userId}/extra-groups`, {
-        extra_groups: payload.extra_groups
-      });
-      if (!extraGroupsRes.data.success) {
-        showError(extraGroupsRes.data.message);
-        setLoading(false);
-        return;
-      }
-      
+    // 处理额外用户组：确保是数组格式
+    if (payload.extra_groups && Array.isArray(payload.extra_groups)) {
+      // Semi UI 的 Select multiple 模式返回的就是数组，直接使用
+      // 后端会通过 JSON 序列化存储
+    } else if (!payload.extra_groups) {
+      payload.extra_groups = [];
+    }
+    
+    const url = userId ? `/api/user/` : `/api/user/self`;
+    const res = await API.put(url, payload);
+    const { success, message } = res.data;
+    if (success) {
       showSuccess(t('用户信息更新成功！'));
       props.refresh();
       props.handleClose();
     } else {
-      const url = userId ? `/api/user/` : `/api/user/self`;
-      const res = await API.put(url, payload);
-      const { success, message } = res.data;
-      if (success) {
-        showSuccess(t('用户信息更新成功！'));
-        props.refresh();
-        props.handleClose();
-      } else {
-        showError(message);
-      }
+      showError(message);
     }
     setLoading(false);
   };

@@ -33,7 +33,7 @@ import {
 } from '@douyinfe/semi-ui';
 import { Award, Calendar as CalendarIcon, Crown, Gift, History, Medal, TrendingUp, Trophy } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { showError, showSuccess } from '../../helpers';
+import { showError, showSuccess, renderQuota } from '../../helpers';
 import { CheckInService } from '../../services/checkin';
 
 const { Text } = Typography;
@@ -45,13 +45,16 @@ const CheckIn = () => {
   const [leaderboardLoading, setLeaderboardLoading] = useState(false);
   const [status, setStatus] = useState(null);
   const [config, setConfig] = useState(null);
-  const [history, setHistory] = useState([]);
+  const [monthHistory, setMonthHistory] = useState([]); // 用于日历显示的月度历史
+  const [pagedHistory, setPagedHistory] = useState([]); // 用于表格显示的分页历史
   const [leaderboard, setLeaderboard] = useState([]);
   const [showVerifyModal, setShowVerifyModal] = useState(false);
   const [verifyCode, setVerifyCode] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(10);
   const [total, setTotal] = useState(0);
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
 
   // 获取签到配置
   const fetchConfig = async () => {
@@ -83,18 +86,33 @@ const CheckIn = () => {
     }
   };
 
-  // 获取签到历史
-  const fetchHistory = async (page = 1) => {
+  // 获取月度签到历史（用于日历显示）
+  const fetchMonthHistory = async (year, month) => {
     try {
       setHistoryLoading(true);
-      const response = await CheckInService.getHistory(page, pageSize);
+      const response = await CheckInService.getHistory(year, month);
       if (response.success) {
-        setHistory(response.data.items || []);
-        setTotal(response.data.total || 0);
+        setMonthHistory(response.data || []);
+      }
+    } catch (error) {
+      console.error('获取月度签到历史失败:', error);
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
+  // 获取分页签到历史（用于表格显示）
+  const fetchPagedHistory = async (page = 1) => {
+    try {
+      setHistoryLoading(true);
+      const response = await CheckInService.getHistoryPaged(page, pageSize);
+      if (response.success) {
+        setPagedHistory(response.data || []);
+        setTotal(response.total || 0);
         setCurrentPage(page);
       }
     } catch (error) {
-      console.error('获取签到历史失败:', error);
+      console.error('获取分页签到历史失败:', error);
     } finally {
       setHistoryLoading(false);
     }
@@ -156,7 +174,8 @@ const CheckIn = () => {
             if (actuallyCheckedIn) {
               // 签到确实成功了
               const reward = newStatus.today_reward || response.reward || 0;
-              showSuccess(`签到成功！获得 ${reward} 额度`);
+              const balanceText = renderQuota(reward, 2);
+              showSuccess(`签到成功！获得 ${balanceText}`);
               setShowVerifyModal(false);
               setVerifyCode('');
             } else if (newStatus.checked_in_today) {
@@ -164,7 +183,9 @@ const CheckIn = () => {
               showError('今日已签到');
             } else if (response.success) {
               // 响应成功但状态未更新，可能是延迟
-              showSuccess(`签到成功！获得 ${response.reward || 0} 额度`);
+              const reward = response.reward || 0;
+              const balanceText = renderQuota(reward, 2);
+              showSuccess(`签到成功！获得 ${balanceText}`);
               setShowVerifyModal(false);
               setVerifyCode('');
             } else {
@@ -174,12 +195,15 @@ const CheckIn = () => {
             
             // 更新所有数据
             setStatus(newStatus);
-            await fetchHistory(currentPage);
+            await fetchMonthHistory(currentYear, currentMonth);
+            await fetchPagedHistory(currentPage);
             await fetchLeaderboard();
           } else {
             // 无法获取状态，使用响应判断
             if (response.success) {
-              showSuccess(`签到成功！获得 ${response.reward || 0} 额度`);
+              const reward = response.reward || 0;
+              const balanceText = renderQuota(reward, 2);
+              showSuccess(`签到成功！获得 ${balanceText}`);
               setShowVerifyModal(false);
               setVerifyCode('');
             } else {
@@ -187,14 +211,17 @@ const CheckIn = () => {
             }
             // 尝试刷新数据
             await fetchStatus();
-            await fetchHistory(currentPage);
+            await fetchMonthHistory(currentYear, currentMonth);
+            await fetchPagedHistory(currentPage);
             await fetchLeaderboard();
           }
         } catch (verifyError) {
           console.error('验证签到状态失败:', verifyError);
           // 验证失败，根据原始响应判断
           if (response.success) {
-            showSuccess(`签到成功！获得 ${response.reward || 0} 额度`);
+            const reward = response.reward || 0;
+            const balanceText = renderQuota(reward, 2);
+            showSuccess(`签到成功！获得 ${balanceText}`);
             setShowVerifyModal(false);
             setVerifyCode('');
           } else {
@@ -202,7 +229,8 @@ const CheckIn = () => {
           }
           // 尝试刷新数据
           await fetchStatus();
-          await fetchHistory(currentPage);
+          await fetchMonthHistory(currentYear, currentMonth);
+          await fetchPagedHistory(currentPage);
           await fetchLeaderboard();
         }
       }, 200); // 增加延迟到200ms，确保数据库完全提交
@@ -226,7 +254,8 @@ const CheckIn = () => {
             if (actuallyCheckedIn) {
               // 虽然请求失败，但签到实际成功了
               const reward = newStatus.today_reward || 0;
-              showSuccess(`签到成功！获得 ${reward} 额度`);
+              const balanceText = renderQuota(reward, 2);
+              showSuccess(`签到成功！获得 ${balanceText}`);
               setShowVerifyModal(false);
               setVerifyCode('');
             } else if (newStatus.checked_in_today) {
@@ -240,7 +269,8 @@ const CheckIn = () => {
             
             // 更新所有数据
             setStatus(newStatus);
-            await fetchHistory(currentPage);
+            await fetchMonthHistory(currentYear, currentMonth);
+            await fetchPagedHistory(currentPage);
             await fetchLeaderboard();
           } else {
             // 无法验证，显示原始错误
@@ -248,7 +278,8 @@ const CheckIn = () => {
             showError(errorMsg);
             // 尝试刷新数据
             await fetchStatus();
-            await fetchHistory(currentPage);
+            await fetchMonthHistory(currentYear, currentMonth);
+            await fetchPagedHistory(currentPage);
             await fetchLeaderboard();
           }
         } catch (verifyError) {
@@ -258,7 +289,8 @@ const CheckIn = () => {
           showError(errorMsg);
           // 尝试刷新数据
           await fetchStatus();
-          await fetchHistory(currentPage);
+          await fetchMonthHistory(currentYear, currentMonth);
+          await fetchPagedHistory(currentPage);
           await fetchLeaderboard();
         }
       }, 200);
@@ -282,9 +314,7 @@ const CheckIn = () => {
   // 日历渲染函数 - 在日期下方显示签到状态
   const renderCalendarCell = ({ date }) => {
     const dateStr = date.format('YYYY-MM-DD');
-    const checkinRecord = history.find(item => 
-      new Date(item.created_at).toISOString().split('T')[0] === dateStr
-    );
+    const checkinRecord = monthHistory.find(item => item.check_date === dateStr);
     
     return (
       <div style={{ 
@@ -298,15 +328,40 @@ const CheckIn = () => {
       }}>
         {checkinRecord && (
           <div style={{
-            marginTop: '4px',
-            fontSize: '20px',
-            lineHeight: '1'
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '2px'
           }}>
-            ✓
+            <div style={{
+              fontSize: '20px',
+              lineHeight: '1',
+              color: '#52c41a'
+            }}>
+              ✓
+            </div>
+            <div style={{
+              fontSize: '10px',
+              color: 'var(--semi-color-success)',
+              fontWeight: 'bold'
+            }}>
+              +{checkinRecord.reward}
+            </div>
           </div>
         )}
       </div>
     );
+  };
+
+  // 监听日历月份变化
+  const handleCalendarChange = (date) => {
+    const year = date.year();
+    const month = date.month() + 1;
+    if (year !== currentYear || month !== currentMonth) {
+      setCurrentYear(year);
+      setCurrentMonth(month);
+      fetchMonthHistory(year, month);
+    }
   };
 
   // 获取排名图标
@@ -356,7 +411,8 @@ const CheckIn = () => {
   useEffect(() => {
     fetchConfig();
     fetchStatus();
-    fetchHistory(1);
+    fetchMonthHistory(currentYear, currentMonth);
+    fetchPagedHistory(1);
     fetchLeaderboard();
   }, []);
 
@@ -397,17 +453,16 @@ const CheckIn = () => {
         }
         loading={historyLoading || loading}
         headerExtraContent={
-          !status?.checked_in_today && (
-            <Button
-              type="primary"
-              icon={<Gift />}
-              loading={loading}
-              onClick={handleCheckIn}
-              size="large"
-            >
-              立即签到
-            </Button>
-          )
+          <Button
+            type={status?.checked_in_today ? "tertiary" : "primary"}
+            icon={<Gift />}
+            loading={loading}
+            onClick={handleCheckIn}
+            size="large"
+            disabled={status?.checked_in_today}
+          >
+            {status?.checked_in_today ? "今日已签" : "立即签到"}
+          </Button>
         }
         style={{ marginBottom: '20px' }}
       >
@@ -464,7 +519,8 @@ const CheckIn = () => {
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
           <Calendar
             mode="month"
-            renderCell={renderCalendarCell}
+            renderDate={renderCalendarCell}
+            onChange={handleCalendarChange}
             style={{ width: '100%', maxWidth: '800px' }}
           />
         </div>
@@ -535,12 +591,12 @@ const CheckIn = () => {
       >
         <Table
           columns={historyColumns}
-          dataSource={history}
+          dataSource={pagedHistory}
           pagination={{
             currentPage,
             pageSize,
             total,
-            onPageChange: fetchHistory,
+            onPageChange: fetchPagedHistory,
           }}
           style={{ marginTop: '16px' }}
         />

@@ -27,7 +27,7 @@ import {
 } from '@douyinfe/semi-ui';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { showError, showSuccess } from '../../helpers';
+import { showError, showSuccess, renderQuota } from '../../helpers';
 import { CheckInService } from '../../services/checkin';
 
 const CheckInSetting = ({ options = {}, refresh }) => {
@@ -122,7 +122,10 @@ const CheckInSetting = ({ options = {}, refresh }) => {
             min={0}
             step={100}
             suffix="额度"
-            extraText="用户签到时可能获得的最小额度奖励"
+            extraText={(values) => {
+              const balance = renderQuota(values?.minReward || 100, 2);
+              return `用户签到时可能获得的最小额度奖励 (${balance})`;
+            }}
             style={{ width: '100%' }}
           />
 
@@ -133,7 +136,10 @@ const CheckInSetting = ({ options = {}, refresh }) => {
             min={0}
             step={100}
             suffix="额度"
-            extraText="用户签到时可能获得的最大额度奖励"
+            extraText={(values) => {
+              const balance = renderQuota(values?.maxReward || 1000, 2);
+              return `用户签到时可能获得的最大额度奖励 (${balance})`;
+            }}
             style={{ width: '100%' }}
             rules={[
               {
@@ -185,7 +191,10 @@ const CheckInSetting = ({ options = {}, refresh }) => {
             min={0}
             step={10}
             suffix="额度"
-            extraText="每连续签到N天增加的额外奖励额度"
+            extraText={(values) => {
+              const balance = renderQuota(values?.continuousReward || 50, 2);
+              return `每连续签到N天增加的额外奖励额度 (${balance})`;
+            }}
             style={{ width: '100%' }}
           />
 

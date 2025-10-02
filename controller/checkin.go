@@ -150,17 +150,19 @@ func GetUserCheckInStatus(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"success":          true,
-		"checked_in_today": todayCheckIn != nil,
-		"continuous_days":  continuousDays,
-		"total_checkins":   totalCheckIns,
-		"last_checkin":     lastCheckInTime,
-		"today_reward": func() int {
-			if todayCheckIn != nil {
-				return todayCheckIn.Reward
-			}
-			return 0
-		}(),
+		"success": true,
+		"data": gin.H{
+			"checked_in_today": todayCheckIn != nil,
+			"continuous_days":  continuousDays,
+			"total_checkins":   totalCheckIns,
+			"last_checkin":     lastCheckInTime,
+			"today_reward": func() int {
+				if todayCheckIn != nil {
+					return todayCheckIn.Reward
+				}
+				return 0
+			}(),
+		},
 	})
 }
 

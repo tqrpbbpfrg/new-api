@@ -93,7 +93,7 @@ func getDiscordUserInfoByCode(code string, c *gin.Context) (*DiscordUserResponse
 
 	if res.StatusCode != http.StatusOK {
 		common.SysLog(fmt.Sprintf("Discord 授权失败: %d", res.StatusCode))
-		return nil, nil, errors.New("Discord 授权失败，请检查配置")
+		return nil, nil, errors.New("discord 授权失败，请检查配置")
 	}
 
 	var tokenResponse DiscordTokenResponse
@@ -104,7 +104,7 @@ func getDiscordUserInfoByCode(code string, c *gin.Context) (*DiscordUserResponse
 
 	if tokenResponse.AccessToken == "" {
 		common.SysLog("Discord 获取 Token 失败，请检查设置！")
-		return nil, nil, errors.New("Discord 获取 Token 失败，请检查设置！")
+		return nil, nil, errors.New("discord 获取 token 失败，请检查设置！")
 	}
 
 	// 获取用户信息
@@ -122,7 +122,7 @@ func getDiscordUserInfoByCode(code string, c *gin.Context) (*DiscordUserResponse
 
 	if userRes.StatusCode != http.StatusOK {
 		common.SysLog(fmt.Sprintf("Discord 获取用户信息失败: %d", userRes.StatusCode))
-		return nil, nil, errors.New("Discord 获取用户信息失败")
+		return nil, nil, errors.New("discord 获取用户信息失败")
 	}
 
 	var userResponse DiscordUserResponse

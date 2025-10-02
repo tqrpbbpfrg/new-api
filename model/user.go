@@ -471,6 +471,7 @@ func (user *User) Edit(updatePassword bool) error {
 		"username":     newUser.Username,
 		"display_name": newUser.DisplayName,
 		"group":        newUser.Group,
+		"extra_groups": newUser.ExtraGroups,
 		"quota":        newUser.Quota,
 		"remark":       newUser.Remark,
 	}

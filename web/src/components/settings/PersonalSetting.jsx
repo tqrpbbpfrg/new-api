@@ -126,6 +126,35 @@ const PersonalSetting = () => {
       .catch(() => setPasskeySupported(false));
   }, []);
 
+  // 监听从OAuth回调返回时的用户数据更新
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === 'user' && e.newValue) {
+        // 当localStorage中的用户数据更新时，重新获取用户数据以确保显示最新状态
+        getUserData();
+      }
+    };
+
+    // 添加storage事件监听
+    window.addEventListener('storage', handleStorageChange);
+
+    // 组件挂载时检查是否刚从OAuth回调返回
+    const checkOAuthReturn = async () => {
+      const isOAuthReturn = sessionStorage.getItem('oauth_return');
+      if (isOAuthReturn === 'true') {
+        sessionStorage.removeItem('oauth_return');
+        // 延迟一小段时间确保OAuth回调已完成用户数据更新
+        await new Promise(resolve => setTimeout(resolve, 100));
+        await getUserData();
+      }
+    };
+    checkOAuthReturn();
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
+
   useEffect(() => {
     let countdownInterval = null;
     if (disableButton && countdown > 0) {

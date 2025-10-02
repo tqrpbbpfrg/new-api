@@ -59,6 +59,8 @@ const OAuth2Callback = (props) => {
           setUserData(data);
           updateAPI();
         }
+        // 设置标记，通知PersonalSetting组件需要刷新用户数据
+        sessionStorage.setItem('oauth_return', 'true');
         showSuccess(t('绑定成功！'));
         navigate('/console/personal');
       } else {

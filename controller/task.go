@@ -87,7 +87,7 @@ func UpdateSunoTaskAll(ctx context.Context, taskChannelM map[int][]string, taskM
 	for channelId, taskIds := range taskChannelM {
 		err := updateSunoTaskAll(ctx, channelId, taskIds, taskM)
 		if err != nil {
-			logger.LogError(ctx, fmt.Sprintf("渠道 #%d 更新异步任务失败: %d", channelId, err.Error()))
+			logger.LogError(ctx, fmt.Sprintf("渠道 #%d 更新异步任务失败: %v", channelId, err))
 		}
 	}
 	return nil
@@ -123,8 +123,8 @@ func updateSunoTaskAll(ctx context.Context, channelId int, taskIds []string, tas
 		return err
 	}
 	if resp.StatusCode != http.StatusOK {
-		logger.LogError(ctx, fmt.Sprintf("Get Task status code: %d", resp.StatusCode))
-		return errors.New(fmt.Sprintf("Get Task status code: %d", resp.StatusCode))
+		logger.LogError(ctx, fmt.Sprintf("get task status code: %d", resp.StatusCode))
+		return fmt.Errorf("get task status code: %d", resp.StatusCode)
 	}
 	defer resp.Body.Close()
 	responseBody, err := io.ReadAll(resp.Body)
@@ -139,7 +139,7 @@ func updateSunoTaskAll(ctx context.Context, channelId int, taskIds []string, tas
 		return err
 	}
 	if !responseItems.IsSuccess() {
-		common.SysLog(fmt.Sprintf("渠道 #%d 未完成的任务有: %d, 成功获取到任务数: %d", channelId, len(taskIds), string(responseBody)))
+		common.SysLog(fmt.Sprintf("渠道 #%d 未完成的任务有: %d, 响应 body: %s", channelId, len(taskIds), string(responseBody)))
 		return err
 	}
 
@@ -220,10 +220,7 @@ func checkTaskNeedUpdate(oldTask *model.Task, newTask dto.SunoDataResponse) bool
 		return newData[i] < newData[j]
 	})
 
-	if string(oldData) != string(newData) {
-		return true
-	}
-	return false
+	return string(oldData) != string(newData)
 }
 
 func GetAllTask(c *gin.Context) {
