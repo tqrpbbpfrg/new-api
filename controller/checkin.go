@@ -44,11 +44,7 @@ func GetCheckInConfig(c *gin.Context) {
 		return
 	}
 
-	// 不返回真实鉴权码给前端，用占位符表示已设置
-	if config.AuthCode != "" {
-		config.AuthCode = "********"
-	}
-
+	// 直接返回真实鉴权码，不再使用占位符
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"data":    config,
@@ -92,18 +88,7 @@ func UpdateCheckInConfig(c *gin.Context) {
 		return
 	}
 
-	// 如果鉴权码是占位符，保留原有的鉴权码
-	if config.AuthCode == "********" {
-		configStr := common.OptionMap["CheckInConfig"]
-		if configStr != "" {
-			var oldConfig model.CheckInConfig
-			err := json.Unmarshal([]byte(configStr), &oldConfig)
-			if err == nil {
-				config.AuthCode = oldConfig.AuthCode
-			}
-		}
-	}
-
+	// 直接保存配置，不再处理占位符
 	configBytes, err := json.Marshal(config)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
@@ -201,8 +186,18 @@ func GetUserCheckInHistory(c *gin.Context) {
 func CheckIn(c *gin.Context) {
 	userId := c.GetInt("id")
 
-	// 获取签到配置
-	configStr := common.OptionMap["CheckInConfig"]
+	// 获取签到配置 - 从数据库直接读取，避免缓存问题
+	var option model.Option
+	err := model.DB.Where("`key` = ?", "CheckInConfig").First(&option).Error
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": "签到功能未配置",
+		})
+		return
+	}
+	
+	configStr := option.Value
 	if configStr == "" {
 		c.JSON(http.StatusOK, gin.H{
 			"success": false,
@@ -212,7 +207,7 @@ func CheckIn(c *gin.Context) {
 	}
 
 	var config model.CheckInConfig
-	err := json.Unmarshal([]byte(configStr), &config)
+	err = json.Unmarshal([]byte(configStr), &config)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"success": false,
@@ -230,13 +225,28 @@ func CheckIn(c *gin.Context) {
 		return
 	}
 
-	// 检查鉴权码
+	// 检查鉴权码（如果启用）
 	if config.AuthCodeEnabled {
 		var req struct {
 			AuthCode string `json:"authCode"`
 		}
-		err := c.ShouldBindJSON(&req)
-		if err != nil || req.AuthCode != config.AuthCode {
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusOK, gin.H{
+				"success": false,
+				"message": "请求参数解析失败",
+			})
+			return
+		}
+		
+		if req.AuthCode == "" {
+			c.JSON(http.StatusOK, gin.H{
+				"success": false,
+				"message": "请输入鉴权码",
+			})
+			return
+		}
+		
+		if req.AuthCode != config.AuthCode {
 			c.JSON(http.StatusOK, gin.H{
 				"success": false,
 				"message": "鉴权码错误",

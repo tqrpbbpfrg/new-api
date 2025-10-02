@@ -49,21 +49,27 @@ func GetUserGroups(c *gin.Context) {
 	}
 	
 	// 构建返回数据
-	for groupName, ratio := range ratio_setting.GetGroupRatioCopy() {
-		if availableGroupsSet[groupName] {
-			// 从任一用户组中获取描述（优先使用主分组的描述）
-			desc := ""
-			for _, userGroup := range allUserGroups {
-				userUsableGroups := setting.GetUserUsableGroups(userGroup)
-				if d, ok := userUsableGroups[groupName]; ok {
-					desc = d
-					break
-				}
+	groupRatios := ratio_setting.GetGroupRatioCopy()
+	for groupName := range availableGroupsSet {
+		// 从任一用户组中获取描述（优先使用主分组的描述）
+		desc := ""
+		for _, userGroup := range allUserGroups {
+			userUsableGroups := setting.GetUserUsableGroups(userGroup)
+			if d, ok := userUsableGroups[groupName]; ok {
+				desc = d
+				break
 			}
-			usableGroups[groupName] = map[string]interface{}{
-				"ratio": ratio,
-				"desc":  desc,
-			}
+		}
+		
+		// 获取分组的 ratio，如果不存在则使用默认值
+		ratio := groupRatios[groupName]
+		if ratio == 0 {
+			ratio = 1.0 // 默认比率为 1.0
+		}
+		
+		usableGroups[groupName] = map[string]interface{}{
+			"ratio": ratio,
+			"desc":  desc,
 		}
 	}
 	

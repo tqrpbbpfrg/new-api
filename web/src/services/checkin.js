@@ -96,7 +96,7 @@ export class CheckInService {
       });
       return response.data;
     } catch (error) {
-      showError('签到失败');
+      // 不在这里显示错误，让调用方处理
       throw error;
     }
   }

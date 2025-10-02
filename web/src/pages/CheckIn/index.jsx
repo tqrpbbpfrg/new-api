@@ -18,18 +18,18 @@ For commercial licensing, please contact support@quantumnous.com
 */
 
 import {
-    Avatar,
-    Button,
-    Calendar,
-    Card,
-    Descriptions,
-    Input,
-    List,
-    Modal,
-    Spin,
-    Table,
-    Tag,
-    Typography
+  Avatar,
+  Button,
+  Calendar,
+  Card,
+  Descriptions,
+  Input,
+  List,
+  Modal,
+  Spin,
+  Table,
+  Tag,
+  Typography
 } from '@douyinfe/semi-ui';
 import { Award, Calendar as CalendarIcon, Crown, Gift, History, Medal, TrendingUp, Trophy } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -136,7 +136,7 @@ const CheckIn = () => {
       setLoading(true);
       const response = await CheckInService.checkIn(code);
       if (response.success) {
-        showSuccess(`签到成功！获得 ${response.data.reward} 额度`);
+        showSuccess(`签到成功！获得 ${response.reward || response.data?.reward} 额度`);
         await fetchStatus();
         await fetchHistory(currentPage);
         await fetchLeaderboard();
@@ -146,7 +146,8 @@ const CheckIn = () => {
         showError(response.message || '签到失败');
       }
     } catch (error) {
-      showError('签到失败');
+      console.error('签到请求失败:', error);
+      showError(error.response?.data?.message || error.message || '签到失败');
     } finally {
       setLoading(false);
     }
@@ -161,29 +162,34 @@ const CheckIn = () => {
     performCheckIn(verifyCode);
   };
 
-  // 日历渲染函数
+  // 日历渲染函数 - 在日期下方显示签到状态
   const renderCalendarCell = ({ date }) => {
     const dateStr = date.format('YYYY-MM-DD');
-    const isCheckedIn = history.some(item => 
-      new Date(item.created_at).format('YYYY-MM-DD') === dateStr
+    const checkinRecord = history.find(item => 
+      new Date(item.created_at).toISOString().split('T')[0] === dateStr
     );
     
-    if (isCheckedIn) {
-      return (
-        <div style={{ 
-          width: '100%', 
-          height: '100%', 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'center',
-          backgroundColor: 'var(--semi-color-primary-light-default)',
-          borderRadius: '4px'
-        }}>
-          <Gift size={16} style={{ color: 'var(--semi-color-primary)' }} />
-        </div>
-      );
-    }
-    return null;
+    return (
+      <div style={{ 
+        width: '100%', 
+        height: '100%', 
+        display: 'flex', 
+        flexDirection: 'column',
+        alignItems: 'center', 
+        justifyContent: 'center',
+        padding: '4px'
+      }}>
+        {checkinRecord && (
+          <div style={{
+            marginTop: '4px',
+            fontSize: '20px',
+            lineHeight: '1'
+          }}>
+            ✓
+          </div>
+        )}
+      </div>
+    );
   };
 
   // 获取排名图标
@@ -264,92 +270,15 @@ const CheckIn = () => {
 
   return (
     <div className='mt-[60px] px-2' style={{ paddingTop: '20px', paddingBottom: '20px' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', marginBottom: '20px' }}>
-        {/* 签到状态卡片 */}
-        <Card title="签到状态" loading={loading}>
-          {status && (
-            <Descriptions>
-              <Descriptions.Item itemKey="今日签到">
-                {status.checked_in_today ? (
-                  <Tag color="green">已签到</Tag>
-                ) : (
-                  <Tag color="orange">未签到</Tag>
-                )}
-              </Descriptions.Item>
-              <Descriptions.Item itemKey="连续签到">
-                <Tag color="blue" size="large">
-                  {status.continuous_days} 天
-                </Tag>
-              </Descriptions.Item>
-              <Descriptions.Item itemKey="总签到次数">
-                <Text strong>{status.total_checkins} 次</Text>
-              </Descriptions.Item>
-              <Descriptions.Item itemKey="上次签到时间">
-                <Text type="tertiary">
-                  {status.last_checkin ? new Date(status.last_checkin).toLocaleString() : '从未签到'}
-                </Text>
-              </Descriptions.Item>
-            </Descriptions>
-          )}
-        </Card>
-
-        {/* 签到排行榜 */}
-        <Card 
-          title={
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <TrendingUp size={18} />
-              签到排行榜
-            </div>
-          }
-          loading={leaderboardLoading}
-        >
-          <List
-            dataSource={leaderboard}
-            renderItem={(item) => (
-              <List.Item
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  padding: '8px 0',
-                  borderBottom: '1px solid var(--semi-color-border)'
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '100%' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: '80px' }}>
-                    {getRankIcon(item.rank)}
-                    <Text strong>#{item.rank}</Text>
-                  </div>
-                  <Avatar size="small" style={{ backgroundColor: 'var(--semi-color-primary)' }}>
-                    {item.username ? item.username.charAt(0).toUpperCase() : 'U'}
-                  </Avatar>
-                  <div style={{ flex: 1 }}>
-                    <Text strong>{item.username || `用户${item.user_id}`}</Text>
-                    <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
-                      <Tag size="small" color="blue">
-                        {item.total_checkins}次
-                      </Tag>
-                      <Tag size="small" color="green">
-                        连续{item.continuous_days}天
-                      </Tag>
-                    </div>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <Text type="success" strong>+{item.total_rewards}</Text>
-                    <div style={{ fontSize: '12px', color: 'var(--semi-color-text-2)' }}>
-                      总奖励
-                    </div>
-                  </div>
-                </div>
-              </List.Item>
-            )}
-          />
-        </Card>
-      </div>
-
-      {/* 签到日历 - 居中显示，签到按钮在右上角 */}
+      {/* 签到日历 - 整合签到状态 */}
       <Card 
-        title="签到日历" 
-        loading={historyLoading}
+        title={
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <CalendarIcon size={18} />
+            签到日历
+          </div>
+        }
+        loading={historyLoading || loading}
         headerExtraContent={
           !status?.checked_in_today && (
             <Button
@@ -365,13 +294,116 @@ const CheckIn = () => {
         }
         style={{ marginBottom: '20px' }}
       >
+        {/* 签到状态信息栏 */}
+        {status && (
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'center',
+            gap: '32px',
+            padding: '16px',
+            backgroundColor: 'var(--semi-color-fill-0)',
+            borderRadius: '8px',
+            marginBottom: '20px',
+            flexWrap: 'wrap'
+          }}>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '12px', color: 'var(--semi-color-text-2)', marginBottom: '4px' }}>
+                今日状态
+              </div>
+              {status.checked_in_today ? (
+                <Tag color="green" size="large">✓ 已签到</Tag>
+              ) : (
+                <Tag color="orange" size="large">未签到</Tag>
+              )}
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '12px', color: 'var(--semi-color-text-2)', marginBottom: '4px' }}>
+                连续签到
+              </div>
+              <Text strong style={{ fontSize: '18px', color: 'var(--semi-color-primary)' }}>
+                {status.continuous_days} 天
+              </Text>
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '12px', color: 'var(--semi-color-text-2)', marginBottom: '4px' }}>
+                累计签到
+              </div>
+              <Text strong style={{ fontSize: '18px' }}>
+                {status.total_checkins} 次
+              </Text>
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '12px', color: 'var(--semi-color-text-2)', marginBottom: '4px' }}>
+                上次签到
+              </div>
+              <Text type="tertiary" style={{ fontSize: '12px' }}>
+                {status.last_checkin ? new Date(status.last_checkin).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '从未'}
+              </Text>
+            </div>
+          </div>
+        )}
+
+        {/* 日历 */}
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
           <Calendar
             mode="month"
             renderCell={renderCalendarCell}
-            style={{ width: '600px' }}
+            style={{ width: '100%', maxWidth: '800px' }}
           />
         </div>
+      </Card>
+
+      {/* 签到排行榜 */}
+      <Card 
+        title={
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <TrendingUp size={18} />
+            签到排行榜
+          </div>
+        }
+        loading={leaderboardLoading}
+        style={{ marginBottom: '20px' }}
+      >
+        <List
+          dataSource={leaderboard}
+          renderItem={(item) => (
+            <List.Item
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                padding: '8px 0',
+                borderBottom: '1px solid var(--semi-color-border)'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '100%' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: '80px' }}>
+                  {getRankIcon(item.rank)}
+                  <Text strong>#{item.rank}</Text>
+                </div>
+                <Avatar size="small" style={{ backgroundColor: 'var(--semi-color-primary)' }}>
+                  {item.username ? item.username.charAt(0).toUpperCase() : 'U'}
+                </Avatar>
+                <div style={{ flex: 1 }}>
+                  <Text strong>{item.username || `用户${item.user_id}`}</Text>
+                  <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                    <Tag size="small" color="blue">
+                      {item.total_checkins}次
+                    </Tag>
+                    <Tag size="small" color="green">
+                      连续{item.continuous_days}天
+                    </Tag>
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <Text type="success" strong>+{item.total_rewards}</Text>
+                  <div style={{ fontSize: '12px', color: 'var(--semi-color-text-2)' }}>
+                    总奖励
+                  </div>
+                </div>
+              </div>
+            </List.Item>
+          )}
+        />
       </Card>
 
       {/* 签到历史 */}
