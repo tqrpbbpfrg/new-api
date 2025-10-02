@@ -52,6 +52,13 @@ const OAuth2Callback = (props) => {
       }
 
       if (message === 'bind') {
+        // 绑定成功，更新用户上下文
+        if (data) {
+          userDispatch({ type: 'login', payload: data });
+          localStorage.setItem('user', JSON.stringify(data));
+          setUserData(data);
+          updateAPI();
+        }
         showSuccess(t('绑定成功！'));
         navigate('/console/personal');
       } else {

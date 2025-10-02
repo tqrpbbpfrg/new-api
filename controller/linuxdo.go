@@ -72,9 +72,21 @@ func LinuxDoBind(c *gin.Context) {
 		return
 	}
 
+	// 重新获取更新后的用户数据
+	err = user.FillUserById()
+	if err != nil {
+		common.SysLog(fmt.Sprintf("LinuxDO Bind 获取更新后用户信息失败: %v", err))
+		c.JSON(http.StatusOK, gin.H{
+			"success": true,
+			"message": "bind",
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "bind",
+		"data":    user,
 	})
 }
 
@@ -219,30 +231,30 @@ func LinuxdoOAuth(c *gin.Context) {
 			})
 			return
 		}
-		} else {
-			if common.RegisterEnabled {
-				if linuxdoUser.TrustLevel >= common.LinuxDOMinimumTrustLevel {
-					user.Username = "linuxdo_" + strconv.Itoa(model.GetMaxUserId()+1)
-					user.DisplayName = linuxdoUser.Name
-					user.Role = common.RoleCommonUser
-					user.Status = common.UserStatusEnabled
-					
-					// 根据注册方式设置默认用户组
-					user.Group = setting.GetDefaultUserGroupForMethod("linuxdo")
+	} else {
+		if common.RegisterEnabled {
+			if linuxdoUser.TrustLevel >= common.LinuxDOMinimumTrustLevel {
+				user.Username = "linuxdo_" + strconv.Itoa(model.GetMaxUserId()+1)
+				user.DisplayName = linuxdoUser.Name
+				user.Role = common.RoleCommonUser
+				user.Status = common.UserStatusEnabled
 
-					affCode := session.Get("aff")
-					inviterId := 0
-					if affCode != nil {
-						inviterId, _ = model.GetUserIdByAffCode(affCode.(string))
-					}
+				// 根据注册方式设置默认用户组
+				user.Group = setting.GetDefaultUserGroupForMethod("linuxdo")
 
-					if err := user.Insert(inviterId); err != nil {
-						c.JSON(http.StatusOK, gin.H{
-							"success": false,
-							"message": err.Error(),
-						})
-						return
-					}
+				affCode := session.Get("aff")
+				inviterId := 0
+				if affCode != nil {
+					inviterId, _ = model.GetUserIdByAffCode(affCode.(string))
+				}
+
+				if err := user.Insert(inviterId); err != nil {
+					c.JSON(http.StatusOK, gin.H{
+						"success": false,
+						"message": err.Error(),
+					})
+					return
+				}
 			} else {
 				c.JSON(http.StatusOK, gin.H{
 					"success": false,

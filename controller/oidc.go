@@ -239,9 +239,19 @@ func OidcBind(c *gin.Context) {
 		common.ApiError(c, err)
 		return
 	}
+	// 重新获取更新后的用户数据
+	err = user.FillUserById()
+	if err != nil {
+		common.SysLog(fmt.Sprintf("OIDC Bind 获取更新后用户信息失败: %v", err))
+		c.JSON(http.StatusOK, gin.H{
+			"success": true,
+			"message": "bind",
+		})
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "bind",
+		"data":    user,
 	})
-	return
 }

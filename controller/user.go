@@ -215,13 +215,13 @@ func Register(c *gin.Context) {
 	if common.EmailVerificationEnabled {
 		cleanUser.Email = user.Email
 	}
-	
+
 	// 根据注册方式设置默认用户组
 	defaultGroup := setting.GetDefaultUserGroupForMethod("email")
 	cleanUser.Group = defaultGroup
-	
+
 	// 额外用户组由管理员在用户管理中手动配置，注册时不自动分配
-	
+
 	if err := cleanUser.Insert(inviterId); err != nil {
 		common.ApiError(c, err)
 		return
@@ -462,8 +462,8 @@ func GetSelf(c *gin.Context) {
 		"wechat_id":         user.WeChatId,
 		"telegram_id":       user.TelegramId,
 		"group":             user.Group,
-		"extra_groups":      user.GetExtraGroups(),     // 新增额外用户组字段
-		"all_groups":        user.GetAllGroups(),       // 新增所有用户组字段
+		"extra_groups":      user.GetExtraGroups(), // 新增额外用户组字段
+		"all_groups":        user.GetAllGroups(),   // 新增所有用户组字段
 		"quota":             user.Quota,
 		"used_quota":        user.UsedQuota,
 		"request_count":     user.RequestCount,
@@ -1023,11 +1023,23 @@ func EmailBind(c *gin.Context) {
 		common.ApiError(c, err)
 		return
 	}
+
+	// 重新获取更新后的用户数据
+	err = user.FillUserById()
+	if err != nil {
+		common.SysLog(fmt.Sprintf("Email Bind 获取更新后用户信息失败: %v", err))
+		c.JSON(http.StatusOK, gin.H{
+			"success": true,
+			"message": "bind",
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
-		"message": "",
+		"message": "bind",
+		"data":    user,
 	})
-	return
 }
 
 type topUpRequest struct {

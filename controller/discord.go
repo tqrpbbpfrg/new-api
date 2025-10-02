@@ -374,8 +374,20 @@ func DiscordBind(c *gin.Context) {
 	session.Delete("oauth_state_time")
 	session.Save()
 
+	// 重新获取更新后的用户数据
+	err = user.FillUserById()
+	if err != nil {
+		common.SysLog(fmt.Sprintf("Discord Bind 获取更新后用户信息失败: %v", err))
+		c.JSON(http.StatusOK, gin.H{
+			"success": true,
+			"message": "bind",
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "bind",
+		"data":    user,
 	})
 }
