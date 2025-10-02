@@ -33,6 +33,10 @@ import {
  * Check if redemption code is expired
  */
 export const isExpired = (record) => {
+  if (!record || typeof record !== 'object') {
+    return false;
+  }
+  
   return (
     record.status === REDEMPTION_STATUS.UNUSED &&
     record.expired_time !== 0 &&
@@ -44,6 +48,9 @@ export const isExpired = (record) => {
  * Render timestamp
  */
 const renderTimestamp = (timestamp) => {
+  if (!timestamp) {
+    return <>-</>;
+  }
   return <>{timestamp2string(timestamp)}</>;
 };
 
@@ -51,6 +58,14 @@ const renderTimestamp = (timestamp) => {
  * Render redemption code status
  */
 const renderStatus = (status, record, t) => {
+  if (!record || typeof record !== 'object') {
+    return (
+      <Tag color='black' shape='circle'>
+        {t('未知状态')}
+      </Tag>
+    );
+  }
+
   if (isExpired(record)) {
     return (
       <Tag color='orange' shape='circle'>
@@ -79,6 +94,14 @@ const renderStatus = (status, record, t) => {
  * Render redemption code type
  */
 const renderType = (type, record, t) => {
+  if (!record || typeof record !== 'object') {
+    return (
+      <Tag color='black' shape='circle'>
+        {t('未知类型')}
+      </Tag>
+    );
+  }
+
   const typeConfig = REDEMPTION_TYPE_MAP[type];
   if (typeConfig) {
     return (
@@ -99,22 +122,26 @@ const renderType = (type, record, t) => {
  * Render gift code info
  */
 const renderGiftInfo = (record, t) => {
+  if (!record || typeof record !== 'object') {
+    return null;
+  }
+
   if (record.type === REDEMPTION_TYPE.GIFT) {
     return (
       <div>
         <div>
           <Tag size='small' color='blue'>
-            {t('使用人数')}: {record.max_uses}
+            {t('使用人数')}: {record.max_uses || 0}
           </Tag>
         </div>
         <div style={{ marginTop: 4 }}>
           <Tag size='small' color='purple'>
-            {t('每人次数')}: {record.max_uses_per_user}
+            {t('每人次数')}: {record.max_uses_per_user || 0}
           </Tag>
         </div>
         <div style={{ marginTop: 4 }}>
           <Tag size='small' color='green'>
-            {t('已使用')}: {record.used_count}/{record.max_uses}
+            {t('已使用')}: {record.used_count || 0}/{record.max_uses || 0}
           </Tag>
         </div>
       </div>
@@ -143,19 +170,21 @@ export const getRedemptionsGroupedColumns = ({
       dataIndex: 'name',
       key: 'name',
       render: (text, record) => {
-        const isExpanded = expandedGroups[text];
+        const groupName = text || '未命名分组';
+        const groupCount = record.count || 0;
+        const isExpanded = expandedGroups[groupName];
         return (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <Button
               type='tertiary'
               icon={isExpanded ? <IconChevronDown /> : <IconChevronRight />}
-              onClick={() => toggleGroupExpansion(text)}
+              onClick={() => toggleGroupExpansion(groupName)}
               size='small'
               style={{ padding: 2 }}
             />
-            <span>{text}</span>
+            <span>{groupName}</span>
             <Tag size='small' color='blue'>
-              {record.count} {t('个')}
+              {groupCount} {t('个')}
             </Tag>
           </div>
         );
@@ -167,14 +196,15 @@ export const getRedemptionsGroupedColumns = ({
       fixed: 'right',
       width: 150,
       render: (text, record) => {
+        const groupName = record.name || '未命名分组';
         return (
           <Space>
             <Button
               type='tertiary'
               size='small'
-              onClick={() => toggleGroupExpansion(record.name)}
+              onClick={() => toggleGroupExpansion(groupName)}
             >
-              {expandedGroups[record.name] ? t('收起') : t('展开')}
+              {expandedGroups[groupName] ? t('收起') : t('展开')}
             </Button>
           </Space>
         );
@@ -224,10 +254,11 @@ export const getRedemptionsSubColumns = ({
       dataIndex: 'quota',
       width: 120,
       render: (text) => {
+        const quota = parseInt(text) || 0;
         return (
           <div>
             <Tag color='grey' shape='circle'>
-              {renderQuota(parseInt(text))}
+              {renderQuota(quota)}
             </Tag>
           </div>
         );
@@ -272,6 +303,10 @@ export const getRedemptionsSubColumns = ({
       fixed: 'right',
       width: 205,
       render: (text, record) => {
+        if (!record || typeof record !== 'object') {
+          return null;
+        }
+
         // Create dropdown menu items for more operations
         const moreMenuItems = [
           {
@@ -308,7 +343,7 @@ export const getRedemptionsSubColumns = ({
         return (
           <Space>
             <Popover
-              content={record.key}
+              content={record.key || ''}
               style={{ padding: 20 }}
               position='top'
             >
@@ -319,7 +354,7 @@ export const getRedemptionsSubColumns = ({
             <Button
               size='small'
               onClick={async () => {
-                await copyText(record.key);
+                await copyText(record.key || '');
               }}
             >
               {t('复制')}

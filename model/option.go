@@ -236,6 +236,8 @@ func updateOptionMap(key string, value string) (err error) {
 			common.TelegramOAuthEnabled = boolValue
 		case "DiscordOAuthEnabled":
 			common.DiscordOAuthEnabled = boolValue
+		case "DiscordRequireGuild":
+			common.DiscordRequireGuild = boolValue
 		case "TurnstileCheckEnabled":
 			common.TurnstileCheckEnabled = boolValue
 		case "RegisterEnabled":
@@ -378,8 +380,6 @@ func updateOptionMap(key string, value string) (err error) {
 		common.DiscordClientSecret = value
 	case "DiscordGuildId":
 		common.DiscordGuildId = value
-	case "DiscordRequireGuild":
-		common.DiscordRequireGuild = value == "true"
 	case "TurnstileSiteKey":
 		common.TurnstileSiteKey = value
 	case "TurnstileSecretKey":

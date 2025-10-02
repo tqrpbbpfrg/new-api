@@ -138,17 +138,14 @@ func getDiscordUserInfoByCode(code string, c *gin.Context) (*DiscordUserResponse
 		common.SysLog(fmt.Sprintf("Discord OAuth: 开始检查用户是否加入服务器 %s", common.DiscordGuildId))
 		guildReq, err := http.NewRequest("GET", fmt.Sprintf("https://discord.com/api/users/@me/guilds/%s/member", common.DiscordGuildId), nil)
 		if err != nil {
-			return nil, nil, err
+			common.SysLog(fmt.Sprintf("Discord OAuth: 创建服务器检查请求失败: %v", err))
+			return nil, nil, errors.New("无法创建服务器检查请求，请稍后重试")
 		}
 		guildReq.Header.Set("Authorization", fmt.Sprintf("%s %s", tokenResponse.TokenType, tokenResponse.AccessToken))
 		guildRes, err := client.Do(guildReq)
 
 		if err != nil {
-			common.SysLog(err.Error())
-			// 如果获取服务器信息失败，但不是必需的，继续处理
-			if !common.DiscordRequireGuild {
-				return &userResponse, nil, nil
-			}
+			common.SysLog(fmt.Sprintf("Discord OAuth: 无法连接到Discord服务器检查API: %v", err))
 			return nil, nil, errors.New("无法获取 Discord 服务器信息，请稍后重试")
 		}
 		defer guildRes.Body.Close()
@@ -157,18 +154,15 @@ func getDiscordUserInfoByCode(code string, c *gin.Context) (*DiscordUserResponse
 			var guildMember DiscordGuildMember
 			err = json.NewDecoder(guildRes.Body).Decode(&guildMember)
 			if err != nil {
-				// 解析失败但不是必需的，继续处理
-				if !common.DiscordRequireGuild {
-					return &userResponse, nil, nil
-				}
-				return nil, nil, err
+				common.SysLog(fmt.Sprintf("Discord OAuth: 解析服务器成员信息失败: %v", err))
+				return nil, nil, errors.New("解析服务器成员信息失败，请稍后重试")
 			}
 			members := []DiscordGuildMember{guildMember}
 			guildMembers = &members
 			common.SysLog(fmt.Sprintf("Discord OAuth: 用户已加入服务器 %s", common.DiscordGuildId))
-		} else if common.DiscordRequireGuild {
-			// 如果需要服务器验证但没有加入服务器
-			common.SysLog(fmt.Sprintf("用户未加入指定的 Discord 服务器: %s", userResponse.Username))
+		} else {
+			// 状态码不是200，说明用户未加入服务器或其他错误
+			common.SysLog(fmt.Sprintf("Discord OAuth: 用户未加入指定的 Discord 服务器 (状态码: %d): %s", guildRes.StatusCode, userResponse.Username))
 			return nil, nil, errors.New("您需要加入指定的 Discord 服务器才能继续")
 		}
 	}
@@ -221,14 +215,15 @@ func DiscordAuth(c *gin.Context) {
 		return
 	}
 
-	// 验证是否需要检查服务器成员资格（登录和注册都需要检查）
+	// 验证服务器成员资格（已在getDiscordUserInfoByCode中检查过）
+	// 如果能执行到这里，说明用户已经通过了服务器检查（如果启用了的话）
 	if common.DiscordRequireGuild && common.DiscordGuildId != "" {
 		if guildMembers == nil || len(*guildMembers) == 0 {
-			common.SysLog(fmt.Sprintf("Discord OAuth 用户未加入指定服务器: DiscordID=%s, Username=%s, GlobalName=%s", 
+			common.SysLog(fmt.Sprintf("Discord OAuth 用户未加入指定服务器: DiscordID=%s, Username=%s, GlobalName=%s",
 				discordUser.ID, discordUser.Username, discordUser.GlobalName))
 			c.JSON(http.StatusOK, gin.H{
 				"success": false,
-				"message": fmt.Sprintf("您需要加入指定的 Discord 服务器才能登录。Discord用户: %s", 
+				"message": fmt.Sprintf("您需要加入指定的 Discord 服务器才能登录。Discord用户: %s",
 					func() string {
 						if discordUser.GlobalName != "" {
 							return discordUser.GlobalName
@@ -238,7 +233,7 @@ func DiscordAuth(c *gin.Context) {
 			})
 			return
 		}
-		common.SysLog(fmt.Sprintf("Discord OAuth 用户已加入指定服务器: DiscordID=%s, Username=%s, GlobalName=%s", 
+		common.SysLog(fmt.Sprintf("Discord OAuth 用户服务器验证通过: DiscordID=%s, Username=%s, GlobalName=%s",
 			discordUser.ID, discordUser.Username, discordUser.GlobalName))
 	}
 	user := model.User{

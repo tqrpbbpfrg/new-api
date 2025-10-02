@@ -150,54 +150,80 @@ const RedemptionsTable = (redemptionsData) => {
 
   // Render grouped table
   const renderGroupedTable = () => {
+    // Check if redemptions is valid array
+    if (!Array.isArray(redemptions)) {
+      return (
+        <Empty
+          image={<IllustrationNoResult style={{ width: 150, height: 150 }} />}
+          darkModeImage={
+            <IllustrationNoResultDark style={{ width: 150, height: 150 }} />
+          }
+          description={t('数据加载失败')}
+          style={{ padding: 30 }}
+        />
+      );
+    }
+
     return (
       <div>
-        {redemptions.map((group) => (
-          <Card
-            key={group.name}
-            style={{ marginBottom: 16 }}
-            title={
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Button
-                  type='tertiary'
-                  icon={expandedGroups[group.name] ? <IconChevronDown /> : <IconChevronRight />}
-                  onClick={() => toggleGroupExpansion(group.name)}
+        {redemptions.map((group, index) => {
+          // Validate group object structure
+          if (!group || typeof group !== 'object') {
+            console.warn(`Invalid group object at index ${index}:`, group);
+            return null;
+          }
+
+          const groupName = group.name || `未命名分组${index + 1}`;
+          const groupCount = group.count || 0;
+          const groupRedemptions = Array.isArray(group.redemptions) ? group.redemptions : [];
+          
+          return (
+            <Card
+              key={groupName}
+              style={{ marginBottom: 16 }}
+              title={
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Button
+                    type='tertiary'
+                    icon={expandedGroups[groupName] ? <IconChevronDown /> : <IconChevronRight />}
+                    onClick={() => toggleGroupExpansion(groupName)}
+                    size='small'
+                    style={{ padding: 2 }}
+                  />
+                  <span>{groupName}</span>
+                  <Tag size='small' color='blue'>
+                    {groupCount} {t('个')}
+                  </Tag>
+                </div>
+              }
+              headerExtraContent={
+                <Space>
+                  <Button
+                    type='tertiary'
+                    size='small'
+                    onClick={() => toggleGroupExpansion(groupName)}
+                  >
+                    {expandedGroups[groupName] ? t('收起') : t('展开')}
+                  </Button>
+                </Space>
+              }
+            >
+              {expandedGroups[groupName] && (
+                <CardTable
+                  columns={subColumns}
+                  dataSource={groupRedemptions}
+                  scroll={compactMode ? undefined : { x: 'max-content' }}
+                  pagination={false}
+                  loading={loading}
+                  rowSelection={rowSelection}
+                  onRow={handleRow}
                   size='small'
-                  style={{ padding: 2 }}
+                  style={{ marginTop: 16 }}
                 />
-                <span>{group.name}</span>
-                <Tag size='small' color='blue'>
-                  {group.count} {t('个')}
-                </Tag>
-              </div>
-            }
-            headerExtraContent={
-              <Space>
-                <Button
-                  type='tertiary'
-                  size='small'
-                  onClick={() => toggleGroupExpansion(group.name)}
-                >
-                  {expandedGroups[group.name] ? t('收起') : t('展开')}
-                </Button>
-              </Space>
-            }
-          >
-            {expandedGroups[group.name] && (
-              <CardTable
-                columns={subColumns}
-                dataSource={group.redemptions}
-                scroll={compactMode ? undefined : { x: 'max-content' }}
-                pagination={false}
-                loading={loading}
-                rowSelection={rowSelection}
-                onRow={handleRow}
-                size='small'
-                style={{ marginTop: 16 }}
-              />
-            )}
-          </Card>
-        ))}
+              )}
+            </Card>
+          );
+        })}
       </div>
     );
   };
