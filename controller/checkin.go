@@ -137,11 +137,25 @@ func GetUserCheckInStatus(c *gin.Context) {
 		return
 	}
 
+	// 获取累计签到次数
+	var totalCheckIns int64
+	model.DB.Model(&model.CheckIn{}).Where("user_id = ?", userId).Count(&totalCheckIns)
+
+	// 获取最后签到时间
+	var lastCheckIn model.CheckIn
+	var lastCheckInTime *time.Time
+	err = model.DB.Where("user_id = ?", userId).Order("created_at DESC").First(&lastCheckIn).Error
+	if err == nil {
+		lastCheckInTime = &lastCheckIn.CreatedAt
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"success":         true,
-		"checked_in":      todayCheckIn != nil,
-		"continuous_days": continuousDays,
-		"today_reward":    func() int {
+		"success":          true,
+		"checked_in_today": todayCheckIn != nil,
+		"continuous_days":  continuousDays,
+		"total_checkins":   totalCheckIns,
+		"last_checkin":     lastCheckInTime,
+		"today_reward": func() int {
 			if todayCheckIn != nil {
 				return todayCheckIn.Reward
 			}

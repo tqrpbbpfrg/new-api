@@ -250,13 +250,27 @@ export async function onOIDCClicked(auth_url, client_id, openInNewTab = false) {
 export async function onGitHubOAuthClicked(github_client_id) {
   const state = await getOAuthState();
   if (!state) return;
-  window.location.href = `https://github.com/login/oauth/authorize?client_id=${github_client_id}&state=${state}&scope=user:email`;
+
+  // 使用URL和URLSearchParams构建，确保移动端浏览器兼容性
+  const authUrl = new URL('https://github.com/login/oauth/authorize');
+  authUrl.searchParams.set('client_id', github_client_id);
+  authUrl.searchParams.set('state', state);
+  authUrl.searchParams.set('scope', 'user:email'); // 单个scope不会有+号问题，但为了一致性也使用标准方法
+
+  window.location.href = authUrl.toString();
 }
 
 export async function onLinuxDOOAuthClicked(linuxdo_client_id) {
   const state = await getOAuthState();
   if (!state) return;
-  window.location.href = `https://connect.linux.do/oauth2/authorize?response_type=code&client_id=${linuxdo_client_id}&state=${state}`;
+
+  // 使用URL和URLSearchParams构建，确保移动端浏览器兼容性
+  const authUrl = new URL('https://connect.linux.do/oauth2/authorize');
+  authUrl.searchParams.set('response_type', 'code');
+  authUrl.searchParams.set('client_id', linuxdo_client_id);
+  authUrl.searchParams.set('state', state);
+
+  window.location.href = authUrl.toString();
 }
 
 export async function onDiscordOAuthClicked(discord_client_id) {
@@ -276,16 +290,18 @@ export async function onDiscordOAuthClicked(discord_client_id) {
   sessionStorage.setItem('oauth_from', from);
 
   // Discord OAuth2 授权URL
-  const authUrl =
-    `https://discord.com/api/oauth2/authorize?` +
-    `client_id=${discord_client_id}&` +
-    `redirect_uri=${encodeURIComponent(redirectUri)}&` +
-    `response_type=code&` +
-    `state=${state}&` +
-    `scope=identify+email+guilds`;
+  // 使用URL和URLSearchParams构建，确保移动端浏览器兼容性
+  // 避免手动拼接URL导致的编码问题
+  const authUrl = new URL('https://discord.com/api/oauth2/authorize');
+  authUrl.searchParams.set('client_id', discord_client_id);
+  authUrl.searchParams.set('redirect_uri', redirectUri);
+  authUrl.searchParams.set('response_type', 'code');
+  authUrl.searchParams.set('state', state);
+  authUrl.searchParams.set('scope', 'identify email guilds'); // 使用空格分隔，由URLSearchParams自动正确编码
 
   console.log('Discord OAuth redirect URI:', redirectUri);
-  window.location.href = authUrl;
+  console.log('Discord OAuth full URL:', authUrl.toString());
+  window.location.href = authUrl.toString();
 }
 
 let channelModels = undefined;

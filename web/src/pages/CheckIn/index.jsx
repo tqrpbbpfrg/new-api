@@ -132,24 +132,141 @@ const CheckIn = () => {
 
   // 执行签到
   const performCheckIn = async (code) => {
+    // 记录签到前的状态
+    const beforeStatus = status;
+    
     try {
       setLoading(true);
       const response = await CheckInService.checkIn(code);
-      if (response.success) {
-        showSuccess(`签到成功！获得 ${response.reward || response.data?.reward} 额度`);
-        await fetchStatus();
-        await fetchHistory(currentPage);
-        await fetchLeaderboard();
-        setShowVerifyModal(false);
-        setVerifyCode('');
-      } else {
-        showError(response.message || '签到失败');
-      }
+      
+      // 无论响应如何，都延迟后重新验证状态
+      setTimeout(async () => {
+        try {
+          // 重新获取最新状态
+          const statusResponse = await CheckInService.getUserStatus();
+          
+          if (statusResponse.success) {
+            const newStatus = statusResponse.data;
+            
+            // 通过对比状态判断签到是否真正成功
+            const actuallyCheckedIn = newStatus.checked_in_today && 
+              (!beforeStatus?.checked_in_today || 
+               newStatus.total_checkins > (beforeStatus?.total_checkins || 0));
+            
+            if (actuallyCheckedIn) {
+              // 签到确实成功了
+              const reward = newStatus.today_reward || response.reward || 0;
+              showSuccess(`签到成功！获得 ${reward} 额度`);
+              setShowVerifyModal(false);
+              setVerifyCode('');
+            } else if (newStatus.checked_in_today) {
+              // 今天已经签到过了
+              showError('今日已签到');
+            } else if (response.success) {
+              // 响应成功但状态未更新，可能是延迟
+              showSuccess(`签到成功！获得 ${response.reward || 0} 额度`);
+              setShowVerifyModal(false);
+              setVerifyCode('');
+            } else {
+              // 确实失败了
+              showError(response.message || '签到失败');
+            }
+            
+            // 更新所有数据
+            setStatus(newStatus);
+            await fetchHistory(currentPage);
+            await fetchLeaderboard();
+          } else {
+            // 无法获取状态，使用响应判断
+            if (response.success) {
+              showSuccess(`签到成功！获得 ${response.reward || 0} 额度`);
+              setShowVerifyModal(false);
+              setVerifyCode('');
+            } else {
+              showError(response.message || '签到失败');
+            }
+            // 尝试刷新数据
+            await fetchStatus();
+            await fetchHistory(currentPage);
+            await fetchLeaderboard();
+          }
+        } catch (verifyError) {
+          console.error('验证签到状态失败:', verifyError);
+          // 验证失败，根据原始响应判断
+          if (response.success) {
+            showSuccess(`签到成功！获得 ${response.reward || 0} 额度`);
+            setShowVerifyModal(false);
+            setVerifyCode('');
+          } else {
+            showError(response.message || '签到失败');
+          }
+          // 尝试刷新数据
+          await fetchStatus();
+          await fetchHistory(currentPage);
+          await fetchLeaderboard();
+        }
+      }, 200); // 增加延迟到200ms，确保数据库完全提交
+      
     } catch (error) {
       console.error('签到请求失败:', error);
-      showError(error.response?.data?.message || error.message || '签到失败');
+      
+      // 请求失败时，延迟后通过状态验证实际结果
+      setTimeout(async () => {
+        try {
+          const statusResponse = await CheckInService.getUserStatus();
+          
+          if (statusResponse.success) {
+            const newStatus = statusResponse.data;
+            
+            // 判断是否真的签到成功了
+            const actuallyCheckedIn = newStatus.checked_in_today && 
+              (!beforeStatus?.checked_in_today || 
+               newStatus.total_checkins > (beforeStatus?.total_checkins || 0));
+            
+            if (actuallyCheckedIn) {
+              // 虽然请求失败，但签到实际成功了
+              const reward = newStatus.today_reward || 0;
+              showSuccess(`签到成功！获得 ${reward} 额度`);
+              setShowVerifyModal(false);
+              setVerifyCode('');
+            } else if (newStatus.checked_in_today) {
+              // 今天已经签到过了
+              showError('今日已签到');
+            } else {
+              // 确实失败了
+              const errorMsg = error.response?.data?.message || error.message || '签到失败';
+              showError(errorMsg);
+            }
+            
+            // 更新所有数据
+            setStatus(newStatus);
+            await fetchHistory(currentPage);
+            await fetchLeaderboard();
+          } else {
+            // 无法验证，显示原始错误
+            const errorMsg = error.response?.data?.message || error.message || '签到失败';
+            showError(errorMsg);
+            // 尝试刷新数据
+            await fetchStatus();
+            await fetchHistory(currentPage);
+            await fetchLeaderboard();
+          }
+        } catch (verifyError) {
+          console.error('验证签到状态失败:', verifyError);
+          // 验证也失败了，显示原始错误
+          const errorMsg = error.response?.data?.message || error.message || '签到失败';
+          showError(errorMsg);
+          // 尝试刷新数据
+          await fetchStatus();
+          await fetchHistory(currentPage);
+          await fetchLeaderboard();
+        }
+      }, 200);
     } finally {
-      setLoading(false);
+      // 延迟关闭加载状态，等待验证完成
+      setTimeout(() => {
+        setLoading(false);
+      }, 300);
     }
   };
 
