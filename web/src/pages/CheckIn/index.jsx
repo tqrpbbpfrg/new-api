@@ -91,7 +91,9 @@ const CheckIn = () => {
       setHistoryLoading(true);
       const response = await CheckInService.getHistory(year, month);
       if (response.success) {
-        setMonthHistory(response.data || []);
+        const historyData = response.data || [];
+        console.log(`[签到日历] 获取 ${year}-${month} 月历史数据:`, historyData);
+        setMonthHistory(historyData);
       }
     } catch (error) {
       console.error('获取月度签到历史失败:', error);
@@ -311,40 +313,58 @@ const CheckIn = () => {
   };
 
   // 日历渲染函数 - 在日期下方显示签到状态
-  const renderCalendarCell = (arg) => {
-    // 兼容不同 UI 库或版本的参数签名：
-    // 1) dayjs 对象 (arg.format 存在)
-    // 2) { date: dayjsObj }
-    // 3) { value: dayjsObj }
-    // 4) 原生 Date / 字符串
-    let rawDate = arg;
-    if (arg && typeof arg === 'object' && !arg.format) {
-      rawDate = arg.date || arg.value || arg;
-    }
-
+  const renderCalendarCell = (dateValue, dateObj) => {
+    // Semi UI Calendar 的 dateCellRender 接收两个参数：
+    // dateValue: dayjs 对象
+    // dateObj: { dateString, dateInstance, ... }
+    
     const pad = (n) => String(n).padStart(2, '0');
     let dateStr = '';
+    
     try {
-      if (rawDate?.format) {
-        dateStr = rawDate.format('YYYY-MM-DD');
-      } else if (typeof rawDate === 'string') {
-        dateStr = rawDate.slice(0, 10);
-      } else if (rawDate instanceof Date) {
-        dateStr = `${rawDate.getFullYear()}-${pad(rawDate.getMonth() + 1)}-${pad(rawDate.getDate())}`;
-      } else if (rawDate?.toDate) {
-        const d = rawDate.toDate();
+      // 优先使用 dateValue (dayjs 对象)
+      if (dateValue && dateValue.format) {
+        dateStr = dateValue.format('YYYY-MM-DD');
+      }
+      // 备用：使用 dateObj
+      else if (dateObj && dateObj.dateString) {
+        dateStr = dateObj.dateString;
+      }
+      // 再备用：尝试从 dateValue 提取
+      else if (dateValue instanceof Date) {
+        dateStr = `${dateValue.getFullYear()}-${pad(dateValue.getMonth() + 1)}-${pad(dateValue.getDate())}`;
+      }
+      // 最后备用：如果 dateValue 有 toDate 方法
+      else if (dateValue && dateValue.toDate) {
+        const d = dateValue.toDate();
         dateStr = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
       }
-    } catch (_) {
-      // 忽略
+    } catch (error) {
+      console.error('[签到日历] 日期解析错误:', error, dateValue);
+      return null;
     }
 
-    const checkinRecord = dateStr ? monthHistory.find(item => item.check_date === dateStr) : null;
-    // 连续状态颜色：根据连续天数区间分级（示例）
+    if (!dateStr) {
+      return null;
+    }
+
+    // 查找该日期的签到记录
+    const checkinRecord = monthHistory.find(item => item.check_date === dateStr);
+    
+    // 调试：记录找到的签到记录
+    if (checkinRecord) {
+      console.log(`[签到日历] ${dateStr} 找到签到记录:`, checkinRecord);
+    }
+    
+    // 根据连续天数设置背景颜色
     let bg = 'transparent';
     let rewardColor = 'var(--semi-color-success)';
+    let textColor = 'var(--semi-color-text-2)';
+    
     if (checkinRecord) {
-      const days = checkinRecord.continuous_days || checkinRecord.continuous || 1;
+      const days = checkinRecord.continuous || checkinRecord.continuous_days || 1;
+      textColor = '#fff';
+      
       if (days >= 15) {
         bg = 'linear-gradient(135deg,#52c41a 0%,#237804 100%)';
         rewardColor = '#fff';
@@ -368,66 +388,57 @@ const CheckIn = () => {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '2px',
+        padding: '4px',
         position: 'relative',
         borderRadius: 6,
-        background: checkinRecord ? bg : 'transparent',
+        background: bg,
         transition: 'all .2s',
-        boxShadow: checkinRecord ? '0 1px 3px rgba(0,0,0,0.15)' : 'none'
+        boxShadow: checkinRecord ? '0 1px 3px rgba(0,0,0,0.15)' : 'none',
+        minHeight: '60px'
       }}>
-        {/* 空容器也显示日期号，方便确认自定义生效 */}
+        {/* 日期号码 */}
         <div style={{
           position: 'absolute',
           top: 4,
           left: 6,
           fontSize: 11,
           fontWeight: 500,
-          color: checkinRecord ? '#fff' : 'var(--semi-color-text-2)'
+          color: textColor
         }}>
-          {dateStr ? dateStr.split('-')[2] : ''}
+          {dateStr.split('-')[2]}
         </div>
+        
         {checkinRecord ? (
           <div style={{
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: 2,
+            gap: 4,
             width: '100%',
-            height: '100%'
+            height: '100%',
+            paddingTop: '8px'
           }}>
+            {/* 签到对勾 */}
             <div style={{
-              fontSize: 16,
+              fontSize: 18,
               lineHeight: 1,
               color: '#fff',
-              fontWeight: 700,
-              marginTop: 6
+              fontWeight: 700
             }}>✓</div>
+            {/* 奖励额度 */}
             <div style={{
               fontSize: 10,
               fontWeight: 600,
               color: rewardColor,
-              padding: '0 4px',
+              padding: '2px 6px',
               borderRadius: 4,
-              background: checkinRecord && rewardColor === '#fff' ? 'rgba(255,255,255,0.25)' : 'transparent'
+              background: rewardColor === '#fff' ? 'rgba(255,255,255,0.25)' : 'transparent'
             }}>
               {formatReward(checkinRecord.reward)}
             </div>
           </div>
-        ) : (
-          <div style={{
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            opacity: 0.15,
-            fontSize: 12
-          }}>
-            {/* 空格子淡显，便于确认我们接管渲染 */}
-            ·
-          </div>
-        )}
+        ) : null}
       </div>
     );
   };

@@ -290,14 +290,12 @@ export async function onDiscordOAuthClicked(discord_client_id) {
   sessionStorage.setItem('oauth_from', from);
 
   // Discord OAuth2 授权URL
-  // 使用URL和URLSearchParams构建，确保移动端浏览器兼容性
-  // 避免手动拼接URL导致的编码问题
   const authUrl = new URL('https://discord.com/api/oauth2/authorize');
   authUrl.searchParams.set('client_id', discord_client_id);
   authUrl.searchParams.set('redirect_uri', redirectUri);
   authUrl.searchParams.set('response_type', 'code');
   authUrl.searchParams.set('state', state);
-  authUrl.searchParams.set('scope', 'identify email guilds'); // 使用空格分隔，由URLSearchParams自动正确编码
+  authUrl.searchParams.set('scope', 'identify email guilds guilds.members.read'); // 使用空格分隔，由URLSearchParams自动正确编码
 
   console.log('Discord OAuth redirect URI:', redirectUri);
   console.log('Discord OAuth full URL:', authUrl.toString());

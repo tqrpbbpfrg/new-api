@@ -192,6 +192,7 @@ func GetUserCheckInHistory(c *gin.Context) {
 		return
 	}
 
+	// 返回包含连续天数的签到历史数据
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"data":    checkIns,

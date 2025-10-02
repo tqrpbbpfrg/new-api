@@ -41,20 +41,40 @@ func GetUserCheckInToday(userId int) (*CheckIn, error) {
 	return &checkIn, err
 }
 
+// CheckInWithContinuous 带连续天数的签到记录
+type CheckInWithContinuous struct {
+	*CheckIn
+	Continuous int `json:"continuous"` // 该签到时的连续天数
+}
+
 // GetUserCheckInHistory 获取用户签到历史（按月）
-func GetUserCheckInHistory(userId int, year int, month int) ([]*CheckIn, error) {
+func GetUserCheckInHistory(userId int, year int, month int) ([]*CheckInWithContinuous, error) {
 	var checkIns []*CheckIn
 	startDate := time.Date(year, time.Month(month), 1, 0, 0, 0, 0, time.Local)
 	endDate := startDate.AddDate(0, 1, 0)
 	
-	err := DB.Where("user_id = ? AND check_date >= ? AND check_date < ?", 
-		userId, 
-		startDate.Format("2006-01-02"), 
+	err := DB.Where("user_id = ? AND check_date >= ? AND check_date < ?",
+		userId,
+		startDate.Format("2006-01-02"),
 		endDate.Format("2006-01-02")).
 		Order("check_date ASC").
 		Find(&checkIns).Error
 	
-	return checkIns, err
+	if err != nil {
+		return nil, err
+	}
+	
+	// 为每条记录添加连续天数信息
+	result := make([]*CheckInWithContinuous, len(checkIns))
+	for i, checkIn := range checkIns {
+		continuousDays, _ := GetContinuousDaysAtDate(userId, checkIn.CheckDate)
+		result[i] = &CheckInWithContinuous{
+			CheckIn:    checkIn,
+			Continuous: continuousDays,
+		}
+	}
+	
+	return result, nil
 }
 
 // GetUserCheckInHistoryPaged 获取用户签到历史（分页）
