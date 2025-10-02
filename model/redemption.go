@@ -27,6 +27,7 @@ type Redemption struct {
 	MaxUses        int            `json:"max_uses" gorm:"default:1"`          // 最大使用人数（礼品码用）
 	MaxUsesPerUser int            `json:"max_uses_per_user" gorm:"default:1"` // 每人最大使用次数（礼品码用）
 	UsedCount      int            `json:"used_count" gorm:"default:0"`        // 已使用次数（礼品码用）
+	UsedUserCount  int            `json:"used_user_count" gorm:"default:0"`   // 已使用该码的用户数量（礼品码用）
 }
 
 func GetAllRedemptions(startIdx int, num int) (redemptions []*Redemption, total int64, err error) {
@@ -204,7 +205,7 @@ func Redeem(key string, userId int) (quota int, err error) {
 		if err != nil {
 			return errors.New("无效的兑换码")
 		}
-		// 状态预检：普通兑换码直接要求必须为启用；礼品码允许根据 used_count 与 max_uses 再判定
+		// 状态预检：普通兑换码直接要求必须为启用；礼品码允许根据 used_user_count 与 max_uses 再判定
 		if redemption.Type == common.RedemptionTypeNormal {
 			if redemption.Status != common.RedemptionCodeStatusEnabled {
 				// 普通兑换码任何非启用状态都视为已使用或不可用
@@ -213,13 +214,13 @@ func Redeem(key string, userId int) (quota int, err error) {
 		} else if redemption.Type == common.RedemptionTypeGift {
 			// 对礼品码：
 			//  1. 如果被禁用直接报错
-			//  2. 如果已达到最大使用次数，提示达到最大使用次数
-			//  3. 否则允许继续使用（保持启用状态直到达到最大使用次数）
+			//  2. 如果已达到最大使用人数，提示达到最大使用人数
+			//  3. 否则允许继续使用（保持启用状态直到达到最大使用人数）
 			if redemption.Status == common.RedemptionCodeStatusDisabled {
 				return errors.New("该礼品码已被禁用")
 			}
-			if redemption.MaxUses > 0 && redemption.UsedCount >= redemption.MaxUses {
-				return errors.New("该礼品码已达到最大使用次数")
+			if redemption.MaxUses > 0 && redemption.UsedUserCount >= redemption.MaxUses {
+				return errors.New("该礼品码已达到最大使用人数")
 			}
 		} else {
 			return errors.New("未知的兑换码类型")
@@ -254,9 +255,18 @@ func Redeem(key string, userId int) (quota int, err error) {
 				}
 			}
 
-			// 检查是否超过最大使用次数（注意：UsedCount记录的是总使用次数，不是用户数）
-			if redemption.MaxUses > 0 && redemption.UsedCount >= redemption.MaxUses {
-				return errors.New("该礼品码已达到最大使用次数")
+			// 检查该用户是否是第一次使用此礼品码
+			var firstTimeUser bool
+			var userUsageCount int64
+			err = tx.Model(&Log{}).Where("user_id = ? AND type = ? AND content LIKE ?", userId, LogTypeTopup, fmt.Sprintf("%%礼品码ID %d%%", redemption.Id)).Count(&userUsageCount).Error
+			if err != nil {
+				return err
+			}
+			firstTimeUser = (userUsageCount == 0)
+
+			// 检查是否超过最大使用人数
+			if redemption.MaxUses > 0 && redemption.UsedUserCount >= redemption.MaxUses && firstTimeUser {
+				return errors.New("该礼品码已达到最大使用人数")
 			}
 
 			// 增加用户额度
@@ -268,12 +278,17 @@ func Redeem(key string, userId int) (quota int, err error) {
 			// 更新礼品码使用信息
 			redemption.UsedCount++
 			redemption.RedeemedTime = common.GetTimestamp()
+			
+			// 如果是第一次使用此礼品码的用户，增加使用用户数
+			if firstTimeUser {
+				redemption.UsedUserCount++
+			}
 
-			// 如果达到最大使用次数，标记为已使用；否则保持启用状态
-			if redemption.MaxUses > 0 && redemption.UsedCount >= redemption.MaxUses {
+			// 如果达到最大使用人数，标记为已使用；否则保持启用状态
+			if redemption.MaxUses > 0 && redemption.UsedUserCount >= redemption.MaxUses {
 				redemption.Status = common.RedemptionCodeStatusUsed
 			} else {
-				// 确保礼品码在未达到最大使用次数时保持启用状态
+				// 确保礼品码在未达到最大使用人数时保持启用状态
 				redemption.Status = common.RedemptionCodeStatusEnabled
 			}
 		} else { // 已在前面类型预检处理未知类型，这里理论上不会走到
@@ -312,7 +327,7 @@ func (redemption *Redemption) SelectUpdate() error {
 // Update Make sure your token's fields is completed, because this will update non-zero values
 func (redemption *Redemption) Update() error {
 	var err error
-	err = DB.Model(redemption).Select("name", "status", "quota", "redeemed_time", "expired_time", "type", "max_uses", "max_uses_per_user", "used_count").Updates(redemption).Error
+	err = DB.Model(redemption).Select("name", "status", "quota", "redeemed_time", "expired_time", "type", "max_uses", "max_uses_per_user", "used_count", "used_user_count").Updates(redemption).Error
 	return err
 }
 

@@ -109,20 +109,20 @@ func setupLogin(user *model.User, c *gin.Context) {
 		return
 	}
 	cleanUser := model.User{
-		Id:          user.Id,
-		Username:    user.Username,
-		DisplayName: user.DisplayName,
-		Role:        user.Role,
-		Status:      user.Status,
-		Group:       user.Group,
-		Email:            user.Email,
-		GitHubId:         user.GitHubId,
-		OidcId:           user.OidcId,
-		WeChatId:         user.WeChatId,
-		TelegramId:       user.TelegramId,
-		DiscordId:        user.DiscordId,
-		DiscordUsername:  user.DiscordUsername,
-		LinuxDOId:        user.LinuxDOId,
+		Id:              user.Id,
+		Username:        user.Username,
+		DisplayName:     user.DisplayName,
+		Role:            user.Role,
+		Status:          user.Status,
+		Group:           user.Group,
+		Email:           user.Email,
+		GitHubId:        user.GitHubId,
+		OidcId:          user.OidcId,
+		WeChatId:        user.WeChatId,
+		TelegramId:      user.TelegramId,
+		DiscordId:       user.DiscordId,
+		DiscordUsername: user.DiscordUsername,
+		LinuxDOId:       user.LinuxDOId,
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"message": "",
@@ -227,8 +227,7 @@ func Register(c *gin.Context) {
 	// 根据注册方式设置默认用户组
 	defaultGroup := setting.GetDefaultUserGroupForMethod("email")
 	cleanUser.Group = defaultGroup
-
-	// 额外用户组由管理员在用户管理中手动配置，注册时不自动分配
+	// 注意：额外用户组仅允许管理员在用户管理中手动配置，不在注册流程中自动分配
 
 	if err := cleanUser.Insert(inviterId); err != nil {
 		common.ApiError(c, err)
@@ -283,7 +282,6 @@ func Register(c *gin.Context) {
 		"success": true,
 		"message": "",
 	})
-	return
 }
 
 func GetAllUsers(c *gin.Context) {
@@ -298,7 +296,6 @@ func GetAllUsers(c *gin.Context) {
 	pageInfo.SetItems(users)
 
 	common.ApiSuccess(c, pageInfo)
-	return
 }
 
 func SearchUsers(c *gin.Context) {
@@ -314,7 +311,6 @@ func SearchUsers(c *gin.Context) {
 	pageInfo.SetTotal(int(total))
 	pageInfo.SetItems(users)
 	common.ApiSuccess(c, pageInfo)
-	return
 }
 
 func GetUser(c *gin.Context) {
@@ -341,7 +337,7 @@ func GetUser(c *gin.Context) {
 		"message": "",
 		"data":    user,
 	})
-	return
+
 }
 
 func GenerateAccessToken(c *gin.Context) {
@@ -382,7 +378,7 @@ func GenerateAccessToken(c *gin.Context) {
 		"message": "",
 		"data":    user.AccessToken,
 	})
-	return
+
 }
 
 type TransferAffQuotaRequest struct {
@@ -437,7 +433,6 @@ func GetAffCode(c *gin.Context) {
 		"message": "",
 		"data":    user.AffCode,
 	})
-	return
 }
 
 func GetSelf(c *gin.Context) {
@@ -494,7 +489,6 @@ func GetSelf(c *gin.Context) {
 		"message": "",
 		"data":    responseData,
 	})
-	return
 }
 
 // 计算用户权限的辅助函数
@@ -611,7 +605,6 @@ func GetUserModels(c *gin.Context) {
 		"message": "",
 		"data":    models,
 	})
-	return
 }
 
 func UpdateUser(c *gin.Context) {
@@ -624,7 +617,7 @@ func UpdateUser(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	// 提取用户ID
 	userId, ok := requestBody["id"].(float64)
 	if !ok || userId == 0 {
@@ -634,7 +627,7 @@ func UpdateUser(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	// 提前处理 extra_groups 字段，避免 JSON 解析失败
 	var extraGroupsArray []interface{}
 	if extraGroupsRaw, exists := requestBody["extra_groups"]; exists {
@@ -644,7 +637,7 @@ func UpdateUser(c *gin.Context) {
 			delete(requestBody, "extra_groups")
 		}
 	}
-	
+
 	// 重新编码为JSON以便解析到User结构体
 	requestBodyBytes, _ := json.Marshal(requestBody)
 	var updatedUser model.User
@@ -655,7 +648,7 @@ func UpdateUser(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	if updatedUser.Id == 0 {
 		c.JSON(http.StatusOK, gin.H{
 			"success": false,
@@ -696,7 +689,7 @@ func UpdateUser(c *gin.Context) {
 	if updatedUser.Password == "$I_LOVE_U" {
 		updatedUser.Password = "" // rollback to what it should be
 	}
-	
+
 	// 处理额外用户组：前端发送的是数组，需要转换为JSON字符串
 	if len(extraGroupsArray) > 0 {
 		extraGroups := make([]string, 0, len(extraGroupsArray))
@@ -722,7 +715,7 @@ func UpdateUser(c *gin.Context) {
 			return
 		}
 	}
-	
+
 	updatePassword := updatedUser.Password != ""
 	if err := updatedUser.Edit(updatePassword); err != nil {
 		common.ApiError(c, err)
@@ -735,7 +728,6 @@ func UpdateUser(c *gin.Context) {
 		"success": true,
 		"message": "",
 	})
-	return
 }
 
 func UpdateSelf(c *gin.Context) {
@@ -837,7 +829,6 @@ func UpdateSelf(c *gin.Context) {
 		"success": true,
 		"message": "",
 	})
-	return
 }
 
 func checkUpdatePassword(originalPassword string, newPassword string, userId int) (updatePassword bool, err error) {
@@ -907,7 +898,6 @@ func DeleteSelf(c *gin.Context) {
 		"success": true,
 		"message": "",
 	})
-	return
 }
 
 func CreateUser(c *gin.Context) {
@@ -955,7 +945,6 @@ func CreateUser(c *gin.Context) {
 		"success": true,
 		"message": "",
 	})
-	return
 }
 
 type ManageRequest struct {
@@ -1069,7 +1058,6 @@ func ManageUser(c *gin.Context) {
 		"message": "",
 		"data":    clearUser,
 	})
-	return
 }
 
 func EmailBind(c *gin.Context) {

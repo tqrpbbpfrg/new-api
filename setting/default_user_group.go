@@ -89,24 +89,42 @@ func UpdateDefaultUserGroupsByJSONString(jsonStr string) error {
 
 		// 检查用户组是否存在（除了default组）
 		if group != "default" && !GroupInUserUsableGroups(group) {
-			common.SysLog("warning: user group '" + group + "' for method '" + method + "' does not exist, using default")
-			newGroups[method] = "default"
+			// 不再回退为 default，而是自动加入 userUsableGroups，便于初始化后新增分组直接生效
+			common.SysLog("info: user group '" + group + "' for method '" + method + "' does not exist in user usable groups, auto registering it")
+			userUsableGroupsMutex.Lock()
+			// 仅当仍不存在时写入，描述暂用组名本身
+			if _, exists := userUsableGroups[group]; !exists {
+				userUsableGroups[group] = group
+			}
+			userUsableGroupsMutex.Unlock()
 		}
 	}
 
 	defaultUserGroups = newGroups
+
+	// 更新配置后同步用户组，确保所有配置的用户组都已注册
+	go ValidateAndRegisterUserGroups(newGroups)
+
 	return nil
 }
 
 // GetDefaultUserGroupForMethod 获取指定注册方式的默认用户组
 func GetDefaultUserGroupForMethod(method string) string {
+	// 读取当前映射（只持有读锁期间不做升级操作）
 	defaultUserGroupsMutex.RLock()
-	defer defaultUserGroupsMutex.RUnlock()
+	group, ok := defaultUserGroups[method]
+	defaultUserGroupsMutex.RUnlock()
 
-	if group, ok := defaultUserGroups[method]; ok {
-		return group
+	if !ok || group == "" {
+		return "default"
 	}
-	return "default"
+
+	if group != "default" && !GroupInUserUsableGroups(group) {
+		// 初始化后新增 / 修改的组，运行期第一次被引用时自动注册
+		common.SysLog("info: auto-registering missing user group '" + group + "' for method '" + method + "'")
+		EnsureUserGroupExists(group)
+	}
+	return group
 }
 
 // SetDefaultUserGroupForMethod 设置指定注册方式的默认用户组
@@ -183,16 +201,61 @@ func UpdateGroupAvailableGroupsByJSONString(jsonStr string) error {
 	}
 
 	groupAvailableGroups = newGroups
+
+	// 更新配置后同步可选分组，确保所有配置的用户组都已注册
+	go func() {
+		allGroups := make([]string, 0)
+		for _, groups := range newGroups {
+			allGroups = append(allGroups, groups...)
+		}
+		EnsureUserGroupsExist(allGroups)
+	}()
+
 	return nil
 }
 
 // GetAvailableGroupsForUserGroup 获取指定用户组的可选分组列表
 func GetAvailableGroupsForUserGroup(userGroup string) []string {
 	groupAvailableGroupsMutex.RLock()
-	defer groupAvailableGroupsMutex.RUnlock()
+	groups, ok := groupAvailableGroups[userGroup]
+	groupAvailableGroupsMutex.RUnlock()
 
-	if groups, ok := groupAvailableGroups[userGroup]; ok {
-		return groups
+	if ok {
+		// 验证所有配置的可选分组是否存在，如果不存在则尝试自动注册
+		validGroups := make([]string, 0, len(groups))
+		needsRegistration := false
+
+		for _, group := range groups {
+			if group == "" {
+				continue
+			}
+
+			if group == "default" || GroupInUserUsableGroups(group) {
+				validGroups = append(validGroups, group)
+			} else {
+				// 标记需要注册新分组
+				needsRegistration = true
+				validGroups = append(validGroups, group)
+			}
+		}
+
+		// 如果有需要注册的分组，获取写锁进行批量注册
+		if needsRegistration {
+			groupAvailableGroupsMutex.Lock()
+			userUsableGroupsMutex.Lock()
+
+			for _, group := range groups {
+				if group != "" && group != "default" && !GroupInUserUsableGroups(group) {
+					common.SysLog("info: auto-registering available group '" + group + "' for user group '" + userGroup + "'")
+					userUsableGroups[group] = group // 使用组名作为描述
+				}
+			}
+
+			userUsableGroupsMutex.Unlock()
+			groupAvailableGroupsMutex.Unlock()
+		}
+
+		return validGroups
 	}
 
 	// 如果没有配置，返回默认的可选分组
@@ -261,25 +324,78 @@ func UpdateDefaultExtraUserGroupsByJSONString(jsonStr string) error {
 			if group == "default" || GroupInUserUsableGroups(group) {
 				validGroups = append(validGroups, group)
 			} else {
-				common.SysLog("warning: extra user group '" + group + "' for method '" + method + "' does not exist, removing")
+				// 自动注册缺失的分组，避免需要严格顺序
+				common.SysLog("info: extra user group '" + group + "' for method '" + method + "' does not exist in user usable groups, auto registering it")
+				userUsableGroupsMutex.Lock()
+				if _, exists := userUsableGroups[group]; !exists {
+					userUsableGroups[group] = group
+				}
+				userUsableGroupsMutex.Unlock()
+				validGroups = append(validGroups, group)
 			}
 		}
 		newGroups[method] = validGroups
 	}
 
 	defaultExtraUserGroups = newGroups
+
+	// 更新配置后同步额外用户组，确保所有配置的用户组都已注册
+	go func() {
+		allGroups := make([]string, 0)
+		for _, groups := range newGroups {
+			allGroups = append(allGroups, groups...)
+		}
+		EnsureUserGroupsExist(allGroups)
+	}()
+
 	return nil
 }
 
 // GetDefaultExtraUserGroupsForMethod 获取指定注册方式的默认额外用户组
 func GetDefaultExtraUserGroupsForMethod(method string) []string {
 	defaultExtraUserGroupsMutex.RLock()
-	defer defaultExtraUserGroupsMutex.RUnlock()
+	groups, ok := defaultExtraUserGroups[method]
+	defaultExtraUserGroupsMutex.RUnlock()
 
-	if groups, ok := defaultExtraUserGroups[method]; ok {
-		return groups
+	if !ok {
+		return []string{}
 	}
-	return []string{}
+
+	// 验证所有配置的额外用户组是否存在，如果不存在则尝试自动注册
+	validGroups := make([]string, 0, len(groups))
+	needsRegistration := false
+
+	for _, group := range groups {
+		if group == "" {
+			continue
+		}
+
+		if group == "default" || GroupInUserUsableGroups(group) {
+			validGroups = append(validGroups, group)
+		} else {
+			// 标记需要注册新分组
+			needsRegistration = true
+			validGroups = append(validGroups, group)
+		}
+	}
+
+	// 如果有需要注册的分组，获取写锁进行批量注册
+	if needsRegistration {
+		defaultExtraUserGroupsMutex.Lock()
+		userUsableGroupsMutex.Lock()
+
+		for _, group := range groups {
+			if group != "" && group != "default" && !GroupInUserUsableGroups(group) {
+				common.SysLog("info: auto-registering extra user group '" + group + "' for method '" + method + "'")
+				userUsableGroups[group] = group // 使用组名作为描述
+			}
+		}
+
+		userUsableGroupsMutex.Unlock()
+		defaultExtraUserGroupsMutex.Unlock()
+	}
+
+	return validGroups
 }
 
 // SetDefaultExtraUserGroupsForMethod 设置指定注册方式的默认额外用户组
@@ -288,4 +404,108 @@ func SetDefaultExtraUserGroupsForMethod(method string, groups []string) {
 	defer defaultExtraUserGroupsMutex.Unlock()
 
 	defaultExtraUserGroups[method] = groups
+}
+
+// EnsureUserGroupExists 确保用户组存在，如果不存在则自动注册
+// 这个函数提供了统一的用户组自动注册机制
+func EnsureUserGroupExists(groupName string) bool {
+	if groupName == "" || groupName == "default" {
+		return true
+	}
+
+	if GroupInUserUsableGroups(groupName) {
+		return true
+	}
+
+	// 自动注册缺失的用户组
+	common.SysLog("info: auto-registering user group '" + groupName + "'")
+	userUsableGroupsMutex.Lock()
+	defer userUsableGroupsMutex.Unlock()
+
+	// 双重检查，防止并发问题
+	if _, exists := userUsableGroups[groupName]; !exists {
+		userUsableGroups[groupName] = groupName // 使用组名作为描述
+		common.SysLog("success: user group '" + groupName + "' has been auto-registered")
+		return true
+	}
+
+	return true
+}
+
+// EnsureUserGroupsExist 批量确保多个用户组存在
+func EnsureUserGroupsExist(groupNames []string) {
+	if len(groupNames) == 0 {
+		return
+	}
+
+	needsRegistration := make([]string, 0)
+
+	// 检查哪些分组需要注册
+	for _, groupName := range groupNames {
+		if groupName != "" && groupName != "default" && !GroupInUserUsableGroups(groupName) {
+			needsRegistration = append(needsRegistration, groupName)
+		}
+	}
+
+	// 批量注册缺失的分组
+	if len(needsRegistration) > 0 {
+		userUsableGroupsMutex.Lock()
+		defer userUsableGroupsMutex.Unlock()
+
+		for _, groupName := range needsRegistration {
+			if _, exists := userUsableGroups[groupName]; !exists {
+				userUsableGroups[groupName] = groupName
+				common.SysLog("info: auto-registered user group '" + groupName + "'")
+			}
+		}
+	}
+}
+
+// ValidateAndRegisterUserGroups 验证并注册用户组配置
+// 这个函数用于在更新配置时确保所有引用的用户组都存在
+func ValidateAndRegisterUserGroups(configGroups map[string]string) {
+	// 收集所有需要验证的用户组
+	allGroups := make(map[string]bool)
+	for _, group := range configGroups {
+		if group != "" && group != "default" {
+			allGroups[group] = true
+		}
+	}
+
+	// 批量注册缺失的用户组
+	if len(allGroups) > 0 {
+		groupsToRegister := make([]string, 0, len(allGroups))
+		for group := range allGroups {
+			groupsToRegister = append(groupsToRegister, group)
+		}
+		EnsureUserGroupsExist(groupsToRegister)
+	}
+}
+
+// SyncUserGroupConfigurations 同步用户组配置，确保所有配置的用户组都已注册
+// 这个函数会在系统启动或配置更新时调用，确保所有用户组配置的一致性
+func SyncUserGroupConfigurations() {
+	common.SysLog("info: synchronizing user group configurations")
+
+	// 1. 同步默认用户组配置
+	defaultGroups := GetDefaultUserGroupsCopy()
+	ValidateAndRegisterUserGroups(defaultGroups)
+
+	// 2. 同步默认额外用户组配置
+	extraGroups := GetDefaultExtraUserGroupsCopy()
+	allExtraGroups := make([]string, 0)
+	for _, groups := range extraGroups {
+		allExtraGroups = append(allExtraGroups, groups...)
+	}
+	EnsureUserGroupsExist(allExtraGroups)
+
+	// 3. 同步用户组可选分组配置
+	availableGroups := GetGroupAvailableGroupsCopy()
+	allAvailableGroups := make([]string, 0)
+	for _, groups := range availableGroups {
+		allAvailableGroups = append(allAvailableGroups, groups...)
+	}
+	EnsureUserGroupsExist(allAvailableGroups)
+
+	common.SysLog("success: user group configurations synchronized")
 }

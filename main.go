@@ -14,6 +14,7 @@ import (
 	"one-api/model"
 	"one-api/router"
 	"one-api/service"
+	"one-api/setting"
 	"one-api/setting/ratio_setting"
 	"os"
 	"strconv"
@@ -220,6 +221,9 @@ func InitResources() error {
 
 	// 初始化模型
 	model.GetPricing()
+
+	// 同步用户组配置，确保所有配置的用户组都已注册
+	setting.SyncUserGroupConfigurations()
 
 	// Initialize SQL Database
 	err = model.InitLogDB()

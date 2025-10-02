@@ -74,6 +74,29 @@ const renderStatus = (status, record, t) => {
     );
   }
 
+  // 对于礼品码，显示"已用：xx/xx"格式
+  if (record.type === REDEMPTION_TYPE.GIFT) {
+    const usedUserCount = record.used_user_count || 0;
+    const maxUses = record.max_uses || 0;
+    
+    // 如果礼品码已达到最大使用人数，显示为已使用状态
+    if (maxUses > 0 && usedUserCount >= maxUses) {
+      return (
+        <Tag color='grey' shape='circle'>
+          {t('已用')}: {usedUserCount}/{maxUses}
+        </Tag>
+      );
+    }
+    
+    // 否则显示为启用状态，但包含使用情况
+    return (
+      <Tag color='green' shape='circle'>
+        {t('已用')}: {usedUserCount}/{maxUses}
+      </Tag>
+    );
+  }
+
+  // 对于普通兑换码，使用原有逻辑
   const statusConfig = REDEMPTION_STATUS_MAP[status];
   if (statusConfig) {
     return (
@@ -141,7 +164,12 @@ const renderGiftInfo = (record, t) => {
         </div>
         <div style={{ marginTop: 4 }}>
           <Tag size='small' color='green'>
-            {t('已使用')}: {record.used_count || 0}/{record.max_uses || 0}
+            {t('已使用次数')}: {record.used_count || 0}
+          </Tag>
+        </div>
+        <div style={{ marginTop: 4 }}>
+          <Tag size='small' color='orange'>
+            {t('使用用户数')}: {record.used_user_count || 0}/{record.max_uses || 0}
           </Tag>
         </div>
       </div>
