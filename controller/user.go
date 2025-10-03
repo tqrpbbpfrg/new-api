@@ -292,8 +292,42 @@ func GetAllUsers(c *gin.Context) {
 		return
 	}
 
+	// 转换用户列表，解析 extra_groups 为数组格式
+	userList := make([]map[string]interface{}, len(users))
+	for i, user := range users {
+		userList[i] = map[string]interface{}{
+			"id":                user.Id,
+			"username":          user.Username,
+			"display_name":      user.DisplayName,
+			"role":              user.Role,
+			"status":            user.Status,
+			"email":             user.Email,
+			"github_id":         user.GitHubId,
+			"oidc_id":           user.OidcId,
+			"wechat_id":         user.WeChatId,
+			"telegram_id":       user.TelegramId,
+			"discord_id":        user.DiscordId,
+			"discord_username":  user.DiscordUsername,
+			"quota":             user.Quota,
+			"used_quota":        user.UsedQuota,
+			"request_count":     user.RequestCount,
+			"group":             user.Group,
+			"extra_groups":      user.GetExtraGroups(), // 解析为数组
+			"all_groups":        user.GetAllGroups(),   // 添加所有用户组
+			"aff_code":          user.AffCode,
+			"aff_count":         user.AffCount,
+			"aff_quota":         user.AffQuota,
+			"aff_history_quota": user.AffHistoryQuota,
+			"inviter_id":        user.InviterId,
+			"linux_do_id":       user.LinuxDOId,
+			"remark":            user.Remark,
+			"stripe_customer":   user.StripeCustomer,
+			"DeletedAt":         user.DeletedAt,
+		}
+	}
+
 	pageInfo.SetTotal(int(total))
-	pageInfo.SetItems(users)
+	pageInfo.SetItems(userList)
 
 	common.ApiSuccess(c, pageInfo)
 }
@@ -308,8 +342,42 @@ func SearchUsers(c *gin.Context) {
 		return
 	}
 
+	// 转换用户列表，解析 extra_groups 为数组格式
+	userList := make([]map[string]interface{}, len(users))
+	for i, user := range users {
+		userList[i] = map[string]interface{}{
+			"id":                user.Id,
+			"username":          user.Username,
+			"display_name":      user.DisplayName,
+			"role":              user.Role,
+			"status":            user.Status,
+			"email":             user.Email,
+			"github_id":         user.GitHubId,
+			"oidc_id":           user.OidcId,
+			"wechat_id":         user.WeChatId,
+			"telegram_id":       user.TelegramId,
+			"discord_id":        user.DiscordId,
+			"discord_username":  user.DiscordUsername,
+			"quota":             user.Quota,
+			"used_quota":        user.UsedQuota,
+			"request_count":     user.RequestCount,
+			"group":             user.Group,
+			"extra_groups":      user.GetExtraGroups(), // 解析为数组
+			"all_groups":        user.GetAllGroups(),   // 添加所有用户组
+			"aff_code":          user.AffCode,
+			"aff_count":         user.AffCount,
+			"aff_quota":         user.AffQuota,
+			"aff_history_quota": user.AffHistoryQuota,
+			"inviter_id":        user.InviterId,
+			"linux_do_id":       user.LinuxDOId,
+			"remark":            user.Remark,
+			"stripe_customer":   user.StripeCustomer,
+			"DeletedAt":         user.DeletedAt,
+		}
+	}
+
 	pageInfo.SetTotal(int(total))
-	pageInfo.SetItems(users)
+	pageInfo.SetItems(userList)
 	common.ApiSuccess(c, pageInfo)
 }
 
@@ -332,10 +400,41 @@ func GetUser(c *gin.Context) {
 		})
 		return
 	}
+	
+	// 构建返回数据，包含解析后的 extra_groups
+	responseData := map[string]interface{}{
+		"id":                user.Id,
+		"username":          user.Username,
+		"display_name":      user.DisplayName,
+		"password":          user.Password,
+		"role":              user.Role,
+		"status":            user.Status,
+		"email":             user.Email,
+		"github_id":         user.GitHubId,
+		"oidc_id":           user.OidcId,
+		"wechat_id":         user.WeChatId,
+		"telegram_id":       user.TelegramId,
+		"discord_id":        user.DiscordId,
+		"discord_username":  user.DiscordUsername,
+		"quota":             user.Quota,
+		"used_quota":        user.UsedQuota,
+		"request_count":     user.RequestCount,
+		"group":             user.Group,
+		"extra_groups":      user.GetExtraGroups(), // 返回解析后的数组
+		"aff_code":          user.AffCode,
+		"aff_count":         user.AffCount,
+		"aff_quota":         user.AffQuota,
+		"aff_history_quota": user.AffHistoryQuota,
+		"inviter_id":        user.InviterId,
+		"linux_do_id":       user.LinuxDOId,
+		"remark":            user.Remark,
+		"stripe_customer":   user.StripeCustomer,
+	}
+	
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "",
-		"data":    user,
+		"data":    responseData,
 	})
 
 }
@@ -1191,10 +1290,6 @@ type UpdateUserSettingRequest struct {
 	RecordIpLog                bool    `json:"record_ip_log"`
 }
 
-type UpdateUserExtraGroupsRequest struct {
-	ExtraGroups []string `json:"extra_groups" binding:"required"`
-}
-
 func UpdateUserSetting(c *gin.Context) {
 	var req UpdateUserSettingRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -1327,95 +1422,5 @@ func UpdateUserSetting(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "设置已更新",
-	})
-}
-
-// UpdateUserExtraGroups 更新用户的额外用户组
-func UpdateUserExtraGroups(c *gin.Context) {
-	userId, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"success": false,
-			"message": "无效的用户ID",
-		})
-		return
-	}
-
-	// 检查权限
-	myRole := c.GetInt("role")
-	targetUser, err := model.GetUserById(userId, false)
-	if err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"success": false,
-			"message": "用户不存在",
-		})
-		return
-	}
-
-	if myRole <= targetUser.Role && myRole != common.RoleRootUser {
-		c.JSON(http.StatusOK, gin.H{
-			"success": false,
-			"message": "无权修改同权限等级或更高权限等级用户的额外用户组",
-		})
-		return
-	}
-
-	var req UpdateUserExtraGroupsRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"success": false,
-			"message": "无效的参数",
-		})
-		return
-	}
-
-	// 验证所有额外用户组是否存在
-	validGroups := make([]string, 0)
-	for _, group := range req.ExtraGroups {
-		if group == "default" || setting.GroupInUserUsableGroups(group) {
-			validGroups = append(validGroups, group)
-		} else {
-			common.SysLog("warning: extra user group '" + group + "' does not exist, removing")
-		}
-	}
-
-	// 获取用户并更新额外用户组
-	user, err := model.GetUserById(userId, true)
-	if err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"success": false,
-			"message": "获取用户信息失败",
-		})
-		return
-	}
-
-	// 设置额外用户组
-	if err := user.SetExtraGroups(validGroups); err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"success": false,
-			"message": "设置额外用户组失败: " + err.Error(),
-		})
-		return
-	}
-
-	// 更新用户信息
-	if err := user.Update(false); err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"success": false,
-			"message": "更新用户信息失败: " + err.Error(),
-		})
-		return
-	}
-
-	// 记录日志
-	model.RecordLog(userId, model.LogTypeManage, fmt.Sprintf("管理员更新了用户的额外用户组: %v", validGroups))
-
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"message": "额外用户组更新成功",
-		"data": map[string]interface{}{
-			"extra_groups": validGroups,
-			"all_groups":   user.GetAllGroups(),
-		},
 	})
 }

@@ -356,89 +356,181 @@ const CheckIn = () => {
       console.log(`[签到日历] ${dateStr} 找到签到记录:`, checkinRecord);
     }
     
-    // 根据连续天数设置背景颜色
-    let bg = 'transparent';
-    let rewardColor = 'var(--semi-color-success)';
-    let textColor = 'var(--semi-color-text-2)';
+    // 判断是否为今天
+    const today = new Date();
+    const isToday = dateStr === today.getFullYear() + '-' +
+                   String(today.getMonth() + 1).padStart(2, '0') + '-' +
+                   String(today.getDate()).padStart(2, '0');
     
+    // 根据连续天数设置样式
+    let cardStyle = {
+      width: '100%',
+      height: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '8px 4px',
+      position: 'relative',
+      borderRadius: '12px',
+      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+      cursor: 'pointer',
+      minHeight: '70px',
+      boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+      border: '1px solid rgba(0,0,0,0.05)',
+      background: '#ffffff'
+    };
+    
+    let dateStyle = {
+      fontSize: '14px',
+      fontWeight: 600,
+      marginBottom: '4px',
+      color: 'var(--semi-color-text-0)',
+      transition: 'color 0.2s'
+    };
+    
+    let iconContainerStyle = {
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: '4px',
+      width: '100%',
+      flex: 1
+    };
+    
+    let iconStyle = {
+      fontSize: '20px',
+      lineHeight: 1,
+      transition: 'transform 0.2s'
+    };
+    
+    let rewardStyle = {
+      fontSize: '10px',
+      fontWeight: 600,
+      padding: '2px 6px',
+      borderRadius: '8px',
+      transition: 'all 0.2s'
+    };
+    
+    // 如果是今天，添加特殊样式
+    if (isToday) {
+      cardStyle.border = '2px solid var(--semi-color-primary)';
+      cardStyle.boxShadow = '0 0 0 2px rgba(var(--semi-color-primary-rgb), 0.2)';
+    }
+    
+    // 根据签到状态设置样式
     if (checkinRecord) {
       const days = checkinRecord.continuous || checkinRecord.continuous_days || 1;
-      textColor = '#fff';
       
+      // 根据连续天数设置不同的颜色方案
       if (days >= 15) {
-        bg = 'linear-gradient(135deg,#52c41a 0%,#237804 100%)';
-        rewardColor = '#fff';
+        // 钻石级别 - 深紫色渐变
+        cardStyle.background = 'linear-gradient(135deg, #722ed1 0%, #531dab 100%)';
+        cardStyle.boxShadow = '0 4px 12px rgba(114, 46, 209, 0.3)';
+        dateStyle.color = '#ffffff';
+        iconStyle.color = '#ffffff';
+        rewardStyle.background = 'rgba(255, 255, 255, 0.2)';
+        rewardStyle.color = '#ffffff';
       } else if (days >= 7) {
-        bg = 'linear-gradient(135deg,#73d13d 0%,#52c41a 100%)';
-        rewardColor = '#fff';
+        // 黄金级别 - 金色渐变
+        cardStyle.background = 'linear-gradient(135deg, #faad14 0%, #d48806 100%)';
+        cardStyle.boxShadow = '0 4px 12px rgba(250, 173, 20, 0.3)';
+        dateStyle.color = '#ffffff';
+        iconStyle.color = '#ffffff';
+        rewardStyle.background = 'rgba(255, 255, 255, 0.2)';
+        rewardStyle.color = '#ffffff';
       } else if (days >= 3) {
-        bg = 'linear-gradient(135deg,#b7eb8f 0%,#73d13d 100%)';
-        rewardColor = '#1f1f1f';
+        // 白银级别 - 蓝色渐变
+        cardStyle.background = 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)';
+        cardStyle.boxShadow = '0 4px 12px rgba(24, 144, 255, 0.3)';
+        dateStyle.color = '#ffffff';
+        iconStyle.color = '#ffffff';
+        rewardStyle.background = 'rgba(255, 255, 255, 0.2)';
+        rewardStyle.color = '#ffffff';
       } else {
-        bg = 'linear-gradient(135deg,#f6ffed 0%,#d9f7be 100%)';
-        rewardColor = 'var(--semi-color-success)';
+        // 青铜级别 - 绿色渐变
+        cardStyle.background = 'linear-gradient(135deg, #52c41a 0%, #389e0d 100%)';
+        cardStyle.boxShadow = '0 4px 12px rgba(82, 196, 26, 0.3)';
+        dateStyle.color = '#ffffff';
+        iconStyle.color = '#ffffff';
+        rewardStyle.background = 'rgba(255, 255, 255, 0.2)';
+        rewardStyle.color = '#ffffff';
+      }
+    } else {
+      // 未签到的日期
+      if (isToday) {
+        // 今天的特殊样式
+        cardStyle.background = 'linear-gradient(135deg, #f0f5ff 0%, #e6f4ff 100%)';
+        dateStyle.color = 'var(--semi-color-primary)';
+      } else {
+        // 普通未签到日期
+        cardStyle.background = '#fafafa';
+        dateStyle.color = 'var(--semi-color-text-2)';
       }
     }
     
     return (
-      <div style={{
-        width: '100%',
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '4px',
-        position: 'relative',
-        borderRadius: 6,
-        background: bg,
-        transition: 'all .2s',
-        boxShadow: checkinRecord ? '0 1px 3px rgba(0,0,0,0.15)' : 'none',
-        minHeight: '60px'
-      }}>
+      <div
+        style={cardStyle}
+        onMouseEnter={(e) => {
+          if (checkinRecord) {
+            e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)';
+            e.currentTarget.style.boxShadow = cardStyle.boxShadow.replace('0.3', '0.4');
+          } else {
+            e.currentTarget.style.transform = 'translateY(-1px)';
+            e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+          }
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'translateY(0) scale(1)';
+          if (checkinRecord) {
+            e.currentTarget.style.boxShadow = cardStyle.boxShadow.replace('0.4', '0.3');
+          } else {
+            e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.05)';
+          }
+        }}
+      >
         {/* 日期号码 */}
-        <div style={{
-          position: 'absolute',
-          top: 4,
-          left: 6,
-          fontSize: 11,
-          fontWeight: 500,
-          color: textColor
-        }}>
+        <div style={dateStyle}>
           {dateStr.split('-')[2]}
         </div>
         
         {checkinRecord ? (
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 4,
-            width: '100%',
-            height: '100%',
-            paddingTop: '8px'
-          }}>
-            {/* 签到对勾 */}
-            <div style={{
-              fontSize: 18,
-              lineHeight: 1,
-              color: '#fff',
-              fontWeight: 700
-            }}>✓</div>
+          <div style={iconContainerStyle}>
+            {/* 签到图标 - 使用更精美的图标 */}
+            <div style={iconStyle}>
+              {checkinRecord.continuous >= 15 ? '💎' :
+               checkinRecord.continuous >= 7 ? '🏆' :
+               checkinRecord.continuous >= 3 ? '🥈' : '🥉'}
+            </div>
             {/* 奖励额度 */}
-            <div style={{
-              fontSize: 10,
-              fontWeight: 600,
-              color: rewardColor,
-              padding: '2px 6px',
-              borderRadius: 4,
-              background: rewardColor === '#fff' ? 'rgba(255,255,255,0.25)' : 'transparent'
-            }}>
+            <div style={rewardStyle}>
               {formatReward(checkinRecord.reward)}
             </div>
           </div>
-        ) : null}
+        ) : (
+          <div style={iconContainerStyle}>
+            {/* 未签到状态显示 */}
+            {isToday ? (
+              <div style={{
+                fontSize: '16px',
+                color: 'var(--semi-color-primary)',
+                opacity: 0.7
+              }}>
+                🔓
+              </div>
+            ) : (
+              <div style={{
+                fontSize: '16px',
+                color: 'var(--semi-color-text-3)',
+                opacity: 0.5
+              }}>
+                🔒
+              </div>
+            )}
+          </div>
+        )}
       </div>
     );
   };
@@ -633,6 +725,81 @@ const CheckIn = () => {
             onChange={handleCalendarChange}
             style={{ width: '100%', maxWidth: '800px' }}
           />
+        </div>
+
+        {/* 签到级别图例 */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          marginBottom: '20px',
+          padding: '12px',
+          backgroundColor: 'var(--semi-color-fill-0)',
+          borderRadius: '8px',
+          flexWrap: 'wrap',
+          gap: '16px'
+        }}>
+          <Text type="tertiary" style={{ fontSize: '12px', marginRight: '8px' }}>签到级别：</Text>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{
+              width: '16px',
+              height: '16px',
+              borderRadius: '4px',
+              background: 'linear-gradient(135deg, #52c41a 0%, #389e0d 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '10px',
+              color: '#fff'
+            }}>🥉</div>
+            <Text type="tertiary" style={{ fontSize: '12px' }}>青铜(1-2天)</Text>
+          </div>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{
+              width: '16px',
+              height: '16px',
+              borderRadius: '4px',
+              background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '10px',
+              color: '#fff'
+            }}>🥈</div>
+            <Text type="tertiary" style={{ fontSize: '12px' }}>白银(3-6天)</Text>
+          </div>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{
+              width: '16px',
+              height: '16px',
+              borderRadius: '4px',
+              background: 'linear-gradient(135deg, #faad14 0%, #d48806 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '10px',
+              color: '#fff'
+            }}>🏆</div>
+            <Text type="tertiary" style={{ fontSize: '12px' }}>黄金(7-14天)</Text>
+          </div>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{
+              width: '16px',
+              height: '16px',
+              borderRadius: '4px',
+              background: 'linear-gradient(135deg, #722ed1 0%, #531dab 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '10px',
+              color: '#fff'
+            }}>💎</div>
+            <Text type="tertiary" style={{ fontSize: '12px' }}>钻石(15天+)</Text>
+          </div>
         </div>
 
         {/* 签到历史表格 - 整合到日历卡片内 */}
