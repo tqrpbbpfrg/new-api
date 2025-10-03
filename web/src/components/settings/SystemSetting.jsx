@@ -185,6 +185,8 @@ const SystemSetting = () => {
           case 'EmailAliasRestrictionEnabled':
           case 'SMTPSSLEnabled':
           case 'LinuxDOOAuthEnabled':
+          case 'DiscordOAuthEnabled':
+          case 'DiscordRequireGuild':
           case 'oidc.enabled':
           case 'passkey.enabled':
           case 'passkey.allow_insecure_origin':
