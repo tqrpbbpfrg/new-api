@@ -18,14 +18,16 @@ func GetCheckInConfig(c *gin.Context) {
 	if configStr == "" {
 		// 返回默认配置
 		defaultConfig := model.CheckInConfig{
-			Enabled:           false,
-			MinReward:         100,
-			MaxReward:         0,
-			AuthCodeEnabled:   false,
-			AuthCode:          "",
-			ContinuousEnabled: false,
-			ContinuousReward:  50,
-			ContinuousDays:    7,
+			Enabled:            false,
+			MinReward:          100,
+			MaxReward:          0,
+			AuthCodeEnabled:    false,
+			AuthCode:           "",
+			ContinuousEnabled:  false,
+			ContinuousReward:   50,
+			ContinuousDays:     7,
+			LeaderboardEnabled: true, // 默认启用排行榜
+			CalendarEnabled:    true, // 默认启用签到日历
 		}
 		c.JSON(http.StatusOK, gin.H{
 			"success": true,

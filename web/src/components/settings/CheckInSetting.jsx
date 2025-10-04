@@ -41,7 +41,9 @@ const CheckInSetting = ({ options = {}, refresh }) => {
     authCode: '',
     continuousEnabled: false,
     continuousReward: 50,
-    continuousDays: 7
+    continuousDays: 7,
+    leaderboardEnabled: true,
+    calendarEnabled: true
   });
 
   const formApiRef = React.useRef();
@@ -208,6 +210,22 @@ const CheckInSetting = ({ options = {}, refresh }) => {
             suffix="天"
             extraText="每连续签到此天数增加一次额外奖励"
             style={{ width: '100%' }}
+          />
+
+          <Divider margin="12px" />
+
+          <Form.Switch
+            field="calendarEnabled"
+            label="启用签到日历"
+            initValue={true}
+            extraText="开启后用户可以查看签到日历，显示每日签到状态和历史记录"
+          />
+
+          <Form.Switch
+            field="leaderboardEnabled"
+            label="启用签到排行榜"
+            initValue={true}
+            extraText="开启后用户可以查看签到排行榜，显示签到次数最多的用户"
           />
 
           <Space style={{ marginTop: 24 }}>

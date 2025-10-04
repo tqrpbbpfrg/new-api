@@ -121,6 +121,11 @@ const CheckIn = () => {
 
   // 获取签到排行榜
   const fetchLeaderboard = async () => {
+    // 如果排行榜被禁用，则不获取数据
+    if (config && !config.leaderboardEnabled) {
+      return;
+    }
+    
     try {
       setLeaderboardLoading(true);
       const response = await CheckInService.getLeaderboard(10);
@@ -198,7 +203,9 @@ const CheckIn = () => {
             setStatus(newStatus);
             await fetchMonthHistory(currentYear, currentMonth);
             await fetchPagedHistory(currentPage);
-            await fetchLeaderboard();
+            if (config.leaderboardEnabled) {
+              await fetchLeaderboard();
+            }
           } else {
             // 无法获取状态，使用响应判断
             if (response.success) {
@@ -232,7 +239,9 @@ const CheckIn = () => {
           await fetchStatus();
           await fetchMonthHistory(currentYear, currentMonth);
           await fetchPagedHistory(currentPage);
-          await fetchLeaderboard();
+          if (config.leaderboardEnabled) {
+            await fetchLeaderboard();
+          }
         }
       }, 200); // 增加延迟到200ms，确保数据库完全提交
       
@@ -272,7 +281,9 @@ const CheckIn = () => {
             setStatus(newStatus);
             await fetchMonthHistory(currentYear, currentMonth);
             await fetchPagedHistory(currentPage);
-            await fetchLeaderboard();
+            if (config.leaderboardEnabled) {
+              await fetchLeaderboard();
+            }
           } else {
             // 无法验证，显示原始错误
             const errorMsg = error.response?.data?.message || error.message || '签到失败';
@@ -281,7 +292,9 @@ const CheckIn = () => {
             await fetchStatus();
             await fetchMonthHistory(currentYear, currentMonth);
             await fetchPagedHistory(currentPage);
-            await fetchLeaderboard();
+            if (config.leaderboardEnabled) {
+              await fetchLeaderboard();
+            }
           }
         } catch (verifyError) {
           console.error('验证签到状态失败:', verifyError);
@@ -292,7 +305,9 @@ const CheckIn = () => {
           await fetchStatus();
           await fetchMonthHistory(currentYear, currentMonth);
           await fetchPagedHistory(currentPage);
-          await fetchLeaderboard();
+          if (config.leaderboardEnabled) {
+            await fetchLeaderboard();
+          }
         }
       }, 200);
     } finally {
@@ -611,8 +626,16 @@ const CheckIn = () => {
     fetchStatus();
     fetchMonthHistory(currentYear, currentMonth);
     fetchPagedHistory(1);
-    fetchLeaderboard();
   }, []);
+
+  // 当配置加载完成后，根据配置决定是否获取排行榜数据
+  useEffect(() => {
+    if (config) {
+      if (config.leaderboardEnabled) {
+        fetchLeaderboard();
+      }
+    }
+  }, [config]);
 
   if (configLoading || !config) {
     return (
@@ -641,15 +664,15 @@ const CheckIn = () => {
 
   return (
     <div className='mt-[60px] px-2' style={{ paddingTop: '20px', paddingBottom: '20px' }}>
-      {/* 签到日历 - 整合签到状态和历史 */}
-      <Card 
+      {/* 签到状态卡片 - 始终显示 */}
+      <Card
         title={
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <CalendarIcon size={18} />
-            签到日历与历史
+            <Gift size={18} />
+            签到状态
           </div>
         }
-        loading={historyLoading || loading}
+        loading={loading}
         headerExtraContent={
           <Button
             type={status?.checked_in_today ? "tertiary" : "primary"}
@@ -666,14 +689,13 @@ const CheckIn = () => {
       >
         {/* 签到状态信息栏 */}
         {status && (
-          <div style={{ 
-            display: 'flex', 
+          <div style={{
+            display: 'flex',
             justifyContent: 'center',
             gap: '32px',
             padding: '16px',
             backgroundColor: 'var(--semi-color-fill-0)',
             borderRadius: '8px',
-            marginBottom: '20px',
             flexWrap: 'wrap'
           }}>
             <div style={{ textAlign: 'center' }}>
@@ -712,7 +734,20 @@ const CheckIn = () => {
             </div>
           </div>
         )}
+      </Card>
 
+      {/* 签到日历 - 根据配置决定是否显示 */}
+      {config.calendarEnabled && (
+        <Card
+          title={
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <CalendarIcon size={18} />
+              签到日历与历史
+            </div>
+          }
+          loading={historyLoading}
+          style={{ marginBottom: '20px' }}
+        >
         {/* 日历 */}
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '20px' }}>
           <Calendar
@@ -819,59 +854,62 @@ const CheckIn = () => {
             }}
           />
         </div>
-      </Card>
+        </Card>
+      )}
 
-      {/* 签到排行榜 */}
-      <Card 
-        title={
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <TrendingUp size={18} />
-            签到排行榜
-          </div>
-        }
-        loading={leaderboardLoading}
-      >
-        <List
-          dataSource={leaderboard}
-          renderItem={(item) => (
-            <List.Item
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                padding: '8px 0',
-                borderBottom: '1px solid var(--semi-color-border)'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '100%' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: '80px' }}>
-                  {getRankIcon(item.rank)}
-                  <Text strong>#{item.rank}</Text>
-                </div>
-                <Avatar size="small" style={{ backgroundColor: 'var(--semi-color-primary)' }}>
-                  {item.username ? item.username.charAt(0).toUpperCase() : 'U'}
-                </Avatar>
-                <div style={{ flex: 1 }}>
-                  <Text strong>{item.username || `用户${item.user_id}`}</Text>
-                  <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
-                    <Tag size="small" color="blue">
-                      {item.total_checkins}次
-                    </Tag>
-                    <Tag size="small" color="green">
-                      连续{item.continuous_days}天
-                    </Tag>
+      {/* 签到排行榜 - 根据配置决定是否显示 */}
+      {config.leaderboardEnabled && (
+        <Card
+          title={
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <TrendingUp size={18} />
+              签到排行榜
+            </div>
+          }
+          loading={leaderboardLoading}
+        >
+          <List
+            dataSource={leaderboard}
+            renderItem={(item) => (
+              <List.Item
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: '8px 0',
+                  borderBottom: '1px solid var(--semi-color-border)'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '100%' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: '80px' }}>
+                    {getRankIcon(item.rank)}
+                    <Text strong>#{item.rank}</Text>
+                  </div>
+                  <Avatar size="small" style={{ backgroundColor: 'var(--semi-color-primary)' }}>
+                    {item.username ? item.username.charAt(0).toUpperCase() : 'U'}
+                  </Avatar>
+                  <div style={{ flex: 1 }}>
+                    <Text strong>{item.username || `用户${item.user_id}`}</Text>
+                    <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                      <Tag size="small" color="blue">
+                        {item.total_checkins}次
+                      </Tag>
+                      <Tag size="small" color="green">
+                        连续{item.continuous_days}天
+                      </Tag>
+                    </div>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <Text type="success" strong>{formatReward(item.total_rewards)}</Text>
+                    <div style={{ fontSize: '12px', color: 'var(--semi-color-text-2)' }}>
+                      总奖励
+                    </div>
                   </div>
                 </div>
-                <div style={{ textAlign: 'right' }}>
-                  <Text type="success" strong>{formatReward(item.total_rewards)}</Text>
-                  <div style={{ fontSize: '12px', color: 'var(--semi-color-text-2)' }}>
-                    总奖励
-                  </div>
-                </div>
-              </div>
-            </List.Item>
-          )}
-        />
-      </Card>
+              </List.Item>
+            )}
+          />
+        </Card>
+      )}
 
       {/* 鉴权码弹窗 */}
       <Modal

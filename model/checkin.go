@@ -28,6 +28,8 @@ type CheckInConfig struct {
 	ContinuousEnabled bool   `json:"continuousEnabled"`  // 是否启用连续签到奖励
 	ContinuousReward  int    `json:"continuousReward"`   // 每连续签到N天增加的奖励
 	ContinuousDays    int    `json:"continuousDays"`     // 连续签到天数阈值
+	LeaderboardEnabled bool  `json:"leaderboardEnabled"` // 是否启用签到排行榜
+	CalendarEnabled   bool   `json:"calendarEnabled"`   // 是否启用签到日历
 }
 
 // GetUserCheckInToday 获取用户今日签到记录
