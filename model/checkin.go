@@ -20,14 +20,16 @@ type CheckIn struct {
 
 // CheckInConfig 签到配置（存储在option表中）
 type CheckInConfig struct {
-	Enabled           bool   `json:"enabled"`            // 是否启用签到功能
-	MinReward         int    `json:"minReward"`          // 最小签到奖励
-	MaxReward         int    `json:"maxReward"`          // 最大签到奖励（0表示固定奖励）
-	AuthCodeEnabled   bool   `json:"authCodeEnabled"`    // 是否启用鉴权码
-	AuthCode          string `json:"authCode"`           // 鉴权码
-	ContinuousEnabled bool   `json:"continuousEnabled"`  // 是否启用连续签到奖励
-	ContinuousReward  int    `json:"continuousReward"`   // 每连续签到N天增加的奖励
-	ContinuousDays    int    `json:"continuousDays"`     // 连续签到天数阈值
+	Enabled           bool   `json:"enabled"`           // 是否启用签到功能
+	MinReward         int    `json:"minReward"`         // 最小签到奖励
+	MaxReward         int    `json:"maxReward"`         // 最大签到奖励（0表示固定奖励）
+	AuthCodeEnabled   bool   `json:"authCodeEnabled"`   // 是否启用鉴权码
+	AuthCode          string `json:"authCode"`          // 鉴权码
+	ContinuousEnabled bool   `json:"continuousEnabled"` // 是否启用连续签到奖励
+	ContinuousReward  int    `json:"continuousReward"`  // 每连续签到N天增加的奖励
+	ContinuousDays    int    `json:"continuousDays"`    // 连续签到天数阈值
+	ShowLeaderboard   bool   `json:"showLeaderboard"`   // 是否显示签到排行榜
+	ShowCalendar      bool   `json:"showCalendar"`      // 是否显示签到日历
 }
 
 // GetUserCheckInToday 获取用户今日签到记录
@@ -52,18 +54,18 @@ func GetUserCheckInHistory(userId int, year int, month int) ([]*CheckInWithConti
 	var checkIns []*CheckIn
 	startDate := time.Date(year, time.Month(month), 1, 0, 0, 0, 0, time.Local)
 	endDate := startDate.AddDate(0, 1, 0)
-	
+
 	err := DB.Where("user_id = ? AND check_date >= ? AND check_date < ?",
 		userId,
 		startDate.Format("2006-01-02"),
 		endDate.Format("2006-01-02")).
 		Order("check_date ASC").
 		Find(&checkIns).Error
-	
+
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// 为每条记录添加连续天数信息
 	result := make([]*CheckInWithContinuous, len(checkIns))
 	for i, checkIn := range checkIns {
@@ -73,7 +75,7 @@ func GetUserCheckInHistory(userId int, year int, month int) ([]*CheckInWithConti
 			Continuous: continuousDays,
 		}
 	}
-	
+
 	return result, nil
 }
 
@@ -81,53 +83,53 @@ func GetUserCheckInHistory(userId int, year int, month int) ([]*CheckInWithConti
 func GetUserCheckInHistoryPaged(userId int, pageInfo *common.PageInfo) ([]*CheckIn, int64, error) {
 	var checkIns []*CheckIn
 	var total int64
-	
+
 	err := DB.Model(&CheckIn{}).Where("user_id = ?", userId).Count(&total).Error
 	if err != nil {
 		return nil, 0, err
 	}
-	
+
 	err = DB.Where("user_id = ?", userId).
 		Order("created_at DESC").
 		Limit(pageInfo.GetPageSize()).
 		Offset(pageInfo.GetStartIdx()).
 		Find(&checkIns).Error
-	
+
 	if err != nil {
 		return nil, 0, err
 	}
-	
+
 	return checkIns, total, nil
 }
 
 // GetContinuousDaysAtDate 获取用户在指定日期时的连续签到天数
 func GetContinuousDaysAtDate(userId int, checkDate string) (int, error) {
 	var checkIns []CheckIn
-	
+
 	// 获取从指定日期往前30天的签到记录
 	targetDate, err := time.Parse("2006-01-02", checkDate)
 	if err != nil {
 		return 0, err
 	}
-	
+
 	startDate := targetDate.AddDate(0, 0, -30).Format("2006-01-02")
-	
+
 	err = DB.Where("user_id = ? AND check_date <= ? AND check_date >= ?", userId, checkDate, startDate).
 		Order("check_date DESC").
 		Find(&checkIns).Error
-	
+
 	if err != nil {
 		return 0, err
 	}
-	
+
 	if len(checkIns) == 0 {
 		return 0, nil
 	}
-	
+
 	// 计算连续签到天数
 	continuousDays := 0
 	expectedDate := checkDate
-	
+
 	for _, checkIn := range checkIns {
 		if checkIn.CheckDate == expectedDate {
 			continuousDays++
@@ -138,7 +140,7 @@ func GetContinuousDaysAtDate(userId int, checkDate string) (int, error) {
 			break
 		}
 	}
-	
+
 	return continuousDays, nil
 }
 
@@ -150,27 +152,27 @@ func GetUserContinuousCheckInDays(userId int) (int, error) {
 	err := DB.Where("user_id = ? AND check_date >= ?", userId, startDate).
 		Order("check_date DESC").
 		Find(&checkIns).Error
-	
+
 	if err != nil {
 		return 0, err
 	}
-	
+
 	if len(checkIns) == 0 {
 		return 0, nil
 	}
-	
+
 	// 计算连续签到天数
 	continuousDays := 0
 	today := time.Now().Format("2006-01-02")
 	yesterday := time.Now().AddDate(0, 0, -1).Format("2006-01-02")
-	
+
 	// 检查今天或昨天是否签到
 	if len(checkIns) > 0 {
 		lastCheckDate := checkIns[0].CheckDate
 		if lastCheckDate != today && lastCheckDate != yesterday {
 			return 0, nil
 		}
-		
+
 		// 从最近的签到日期开始往前计算
 		expectedDate := lastCheckDate
 		for _, checkIn := range checkIns {
@@ -184,14 +186,14 @@ func GetUserContinuousCheckInDays(userId int) (int, error) {
 			}
 		}
 	}
-	
+
 	return continuousDays, nil
 }
 
 // CreateCheckIn 创建签到记录
 func CreateCheckIn(userId int, reward int) error {
 	today := time.Now().Format("2006-01-02")
-	
+
 	// 检查今天是否已签到
 	existing, err := GetUserCheckInToday(userId)
 	if err != nil {
@@ -200,14 +202,14 @@ func CreateCheckIn(userId int, reward int) error {
 	if existing != nil {
 		return errors.New("今日已签到")
 	}
-	
+
 	checkIn := &CheckIn{
 		UserId:    userId,
 		CheckDate: today,
 		Reward:    reward,
 		CreatedAt: time.Now(),
 	}
-	
+
 	// 开始事务
 	tx := DB.Begin()
 	if tx.Error != nil {
@@ -218,28 +220,28 @@ func CreateCheckIn(userId int, reward int) error {
 			tx.Rollback()
 		}
 	}()
-	
+
 	// 创建签到记录
 	if err := tx.Create(checkIn).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
-	
+
 	// 增加用户额度
 	if err := tx.Model(&User{}).Where("id = ?", userId).
 		Update("quota", gorm.Expr("quota + ?", reward)).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
-	
+
 	// 提交事务
 	if err := tx.Commit().Error; err != nil {
 		return err
 	}
-	
+
 	// 记录日志
 	RecordLog(userId, LogTypeSystem, "每日签到获得 "+logger.LogQuota(reward))
-	
+
 	return nil
 }
 
@@ -247,7 +249,7 @@ func CreateCheckIn(userId int, reward int) error {
 func GetAllCheckIns(pageInfo *common.PageInfo) ([]*CheckIn, int64, error) {
 	var checkIns []*CheckIn
 	var total int64
-	
+
 	tx := DB.Begin()
 	if tx.Error != nil {
 		return nil, 0, tx.Error
@@ -257,13 +259,13 @@ func GetAllCheckIns(pageInfo *common.PageInfo) ([]*CheckIn, int64, error) {
 			tx.Rollback()
 		}
 	}()
-	
+
 	err := tx.Model(&CheckIn{}).Count(&total).Error
 	if err != nil {
 		tx.Rollback()
 		return nil, 0, err
 	}
-	
+
 	err = tx.Order("id desc").
 		Limit(pageInfo.GetPageSize()).
 		Offset(pageInfo.GetStartIdx()).
@@ -272,11 +274,11 @@ func GetAllCheckIns(pageInfo *common.PageInfo) ([]*CheckIn, int64, error) {
 		tx.Rollback()
 		return nil, 0, err
 	}
-	
+
 	if err = tx.Commit().Error; err != nil {
 		return nil, 0, err
 	}
-	
+
 	return checkIns, total, nil
 }
 
@@ -294,7 +296,7 @@ type CheckInLeaderboard struct {
 // GetCheckInLeaderboard 获取签到排行榜
 func GetCheckInLeaderboard(limit int) ([]*CheckInLeaderboard, error) {
 	var leaderboard []*CheckInLeaderboard
-	
+
 	// 使用兼容的SQL查询获取排行榜数据（不使用ROW_NUMBER）
 	// 查询每个用户的签到统计信息，按总签到次数排序
 	sql := `
@@ -310,12 +312,12 @@ func GetCheckInLeaderboard(limit int) ([]*CheckInLeaderboard, error) {
 		ORDER BY total_checkins DESC, total_rewards DESC
 		LIMIT ?
 	`
-	
+
 	err := DB.Raw(sql, limit).Scan(&leaderboard).Error
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// 手动添加排名和计算连续签到天数
 	for i, item := range leaderboard {
 		item.Rank = i + 1
@@ -324,6 +326,6 @@ func GetCheckInLeaderboard(limit int) ([]*CheckInLeaderboard, error) {
 			item.ContinuousDays = continuousDays
 		}
 	}
-	
+
 	return leaderboard, nil
 }

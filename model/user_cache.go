@@ -5,6 +5,7 @@ import (
 	"one-api/common"
 	"one-api/constant"
 	"one-api/dto"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -39,6 +40,13 @@ func (user *UserBase) GetSetting() dto.UserSetting {
 		if err != nil {
 			common.SysLog("failed to unmarshal setting: " + err.Error())
 		}
+		// 如果旧数据中未包含 record_ip_log 字段，则默认开启以便显示 IP
+		if !strings.Contains(user.Setting, "\"record_ip_log\"") {
+			setting.RecordIpLog = true
+		}
+	} else {
+		// 没有任何设置时，默认开启记录 IP
+		setting.RecordIpLog = true
 	}
 	return setting
 }

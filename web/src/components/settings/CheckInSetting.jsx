@@ -27,7 +27,7 @@ import {
 } from '@douyinfe/semi-ui';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { showError, showSuccess, renderQuota } from '../../helpers';
+import { renderQuota, showError, showSuccess } from '../../helpers';
 import { CheckInService } from '../../services/checkin';
 
 const CheckInSetting = ({ options = {}, refresh }) => {
@@ -41,7 +41,9 @@ const CheckInSetting = ({ options = {}, refresh }) => {
     authCode: '',
     continuousEnabled: false,
     continuousReward: 50,
-    continuousDays: 7
+    continuousDays: 7,
+    showLeaderboard: true,
+    showCalendar: true,
   });
 
   const formApiRef = React.useRef();
@@ -208,6 +210,22 @@ const CheckInSetting = ({ options = {}, refresh }) => {
             suffix="天"
             extraText="每连续签到此天数增加一次额外奖励"
             style={{ width: '100%' }}
+          />
+
+          <Divider margin="12px" />
+
+          <Form.Switch
+            field="showCalendar"
+            label="显示签到日历"
+            initValue={true}
+            extraText="关闭后用户仅能看到签到记录表和状态，不显示日历图"
+          />
+
+          <Form.Switch
+            field="showLeaderboard"
+            label="显示签到排行榜"
+            initValue={true}
+            extraText="关闭后隐藏排行榜组件及相关请求"
           />
 
           <Space style={{ marginTop: 24 }}>

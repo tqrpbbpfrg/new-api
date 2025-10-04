@@ -26,6 +26,8 @@ func GetCheckInConfig(c *gin.Context) {
 			ContinuousEnabled: false,
 			ContinuousReward:  50,
 			ContinuousDays:    7,
+			ShowLeaderboard:   true,
+			ShowCalendar:      true,
 		}
 		c.JSON(http.StatusOK, gin.H{
 			"success": true,
@@ -35,6 +37,9 @@ func GetCheckInConfig(c *gin.Context) {
 	}
 
 	var config model.CheckInConfig
+	// 先填充默认，以便兼容旧数据（旧数据缺失新字段时使用默认 true）
+	config.ShowLeaderboard = true
+	config.ShowCalendar = true
 	err := json.Unmarshal([]byte(configStr), &config)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
@@ -202,7 +207,7 @@ func GetUserCheckInHistory(c *gin.Context) {
 // GetUserCheckInHistoryPaged 获取用户签到历史（分页）
 func GetUserCheckInHistoryPaged(c *gin.Context) {
 	userId := c.GetInt("id")
-	
+
 	page, _ := strconv.Atoi(c.Query("page"))
 	pageSize, _ := strconv.Atoi(c.Query("page_size"))
 
@@ -264,7 +269,7 @@ func CheckIn(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	configStr := option.Value
 	if configStr == "" {
 		c.JSON(http.StatusOK, gin.H{
@@ -305,7 +310,7 @@ func CheckIn(c *gin.Context) {
 			})
 			return
 		}
-		
+
 		if req.AuthCode == "" {
 			c.JSON(http.StatusOK, gin.H{
 				"success": false,
@@ -313,7 +318,7 @@ func CheckIn(c *gin.Context) {
 			})
 			return
 		}
-		
+
 		if req.AuthCode != config.AuthCode {
 			c.JSON(http.StatusOK, gin.H{
 				"success": false,

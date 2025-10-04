@@ -9,6 +9,7 @@ import (
 	"one-api/logger"
 	"strconv"
 	"strings"
+	stdstrings "strings"
 
 	"github.com/bytedance/gopkg/util/gopool"
 	"gorm.io/gorm"
@@ -81,6 +82,11 @@ func (user *User) GetSetting() dto.UserSetting {
 		if err != nil {
 			common.SysLog("failed to unmarshal setting: " + err.Error())
 		}
+		if !stdstrings.Contains(user.Setting, "\"record_ip_log\"") {
+			setting.RecordIpLog = true
+		}
+	} else {
+		setting.RecordIpLog = true
 	}
 	return setting
 }
@@ -245,14 +251,14 @@ func SearchUsers(keyword string, group string, startIdx int, num int) ([]*User, 
 	// 尝试将关键字转换为整数ID
 	keywordInt, err := strconv.Atoi(keyword)
 	keywordPattern := "%" + keyword + "%"
-	
+
 	if err == nil {
 		// 如果是数字，同时搜索ID和其他字段
 		likeCondition = "id = ? OR " + likeCondition
 		if group != "" {
 			query = query.Where("("+likeCondition+") AND "+commonGroupCol+" = ?",
-				keywordInt, keywordPattern, keywordPattern, keywordPattern, 
-				keywordPattern, keywordPattern, keywordPattern, keywordPattern, 
+				keywordInt, keywordPattern, keywordPattern, keywordPattern,
+				keywordPattern, keywordPattern, keywordPattern, keywordPattern,
 				keywordPattern, keywordPattern, group)
 		} else {
 			query = query.Where(likeCondition,
@@ -949,7 +955,7 @@ func (user *User) GetExtraGroups() []string {
 	if user.ExtraGroups == "" {
 		return []string{}
 	}
-	
+
 	var extraGroups []string
 	err := json.Unmarshal([]byte(user.ExtraGroups), &extraGroups)
 	if err != nil {
@@ -965,7 +971,7 @@ func (user *User) SetExtraGroups(groups []string) error {
 		user.ExtraGroups = ""
 		return nil
 	}
-	
+
 	groupsBytes, err := json.Marshal(groups)
 	if err != nil {
 		return err
@@ -977,14 +983,14 @@ func (user *User) SetExtraGroups(groups []string) error {
 // AddExtraGroup 添加一个额外用户组
 func (user *User) AddExtraGroup(group string) error {
 	extraGroups := user.GetExtraGroups()
-	
+
 	// 检查是否已存在
 	for _, existingGroup := range extraGroups {
 		if existingGroup == group {
 			return nil // 已存在，无需添加
 		}
 	}
-	
+
 	extraGroups = append(extraGroups, group)
 	return user.SetExtraGroups(extraGroups)
 }
@@ -992,7 +998,7 @@ func (user *User) AddExtraGroup(group string) error {
 // RemoveExtraGroup 移除一个额外用户组
 func (user *User) RemoveExtraGroup(group string) error {
 	extraGroups := user.GetExtraGroups()
-	
+
 	// 查找并移除
 	for i, existingGroup := range extraGroups {
 		if existingGroup == group {
@@ -1000,7 +1006,7 @@ func (user *User) RemoveExtraGroup(group string) error {
 			return user.SetExtraGroups(extraGroups)
 		}
 	}
-	
+
 	return nil // 不存在，无需移除
 }
 
@@ -1008,7 +1014,7 @@ func (user *User) RemoveExtraGroup(group string) error {
 func (user *User) GetAllGroups() []string {
 	groups := []string{user.Group}
 	extraGroups := user.GetExtraGroups()
-	
+
 	// 去重添加额外用户组
 	for _, extraGroup := range extraGroups {
 		found := false
@@ -1022,6 +1028,6 @@ func (user *User) GetAllGroups() []string {
 			groups = append(groups, extraGroup)
 		}
 	}
-	
+
 	return groups
 }

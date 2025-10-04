@@ -18,17 +18,17 @@ For commercial licensing, please contact support@quantumnous.com
 */
 
 import {
-  Avatar,
-  Button,
-  Calendar,
-  Card,
-  Input,
-  List,
-  Modal,
-  Spin,
-  Table,
-  Tag,
-  Typography
+    Avatar,
+    Button,
+    Calendar,
+    Card,
+    Input,
+    List,
+    Modal,
+    Spin,
+    Table,
+    Tag,
+    Typography
 } from '@douyinfe/semi-ui';
 import { Award, Calendar as CalendarIcon, Crown, Gift, History, Medal, TrendingUp, Trophy } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -515,11 +515,21 @@ const CheckIn = () => {
   ];
 
   useEffect(() => {
-    fetchConfig();
-    fetchStatus();
-    fetchMonthHistory(currentYear, currentMonth);
-    fetchPagedHistory(1);
-    fetchLeaderboard();
+    (async () => {
+      await fetchConfig();
+      await fetchStatus();
+      // 等获取 config 后再根据开关决定是否加载日历/排行榜数据
+      setTimeout(() => {
+        const cfg = config || {};
+        if (cfg.showCalendar !== false) {
+          fetchMonthHistory(currentYear, currentMonth);
+        }
+        fetchPagedHistory(1);
+        if (cfg.showLeaderboard !== false) {
+          fetchLeaderboard();
+        }
+      }, 0);
+    })();
   }, []);
 
   if (configLoading || !config) {
@@ -554,7 +564,7 @@ const CheckIn = () => {
         title={
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <CalendarIcon size={18} />
-            签到日历与历史
+            {config?.showCalendar === false ? '签到历史' : '签到日历与历史'}
           </div>
         }
         loading={historyLoading || loading}
@@ -621,19 +631,17 @@ const CheckIn = () => {
           </div>
         )}
 
-        {/* 日历 */}
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '20px' }}>
-          <Calendar
-            mode="month"
-            // 使用 Semi UI 支持的自定义日期单元格渲染属性
-            dateCellRender={renderCalendarCell}
-            dateFullCellRender={renderCalendarCell}
-            // 兼容旧写法（如果仍被支持则无害）
-            // dateRender={renderCalendarCell}
-            onChange={handleCalendarChange}
-            style={{ width: '100%', maxWidth: '800px' }}
-          />
-        </div>
+        {config?.showCalendar !== false && (
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '20px' }}>
+            <Calendar
+              mode="month"
+              dateCellRender={renderCalendarCell}
+              dateFullCellRender={renderCalendarCell}
+              onChange={handleCalendarChange}
+              style={{ width: '100%', maxWidth: '800px' }}
+            />
+          </div>
+        )}
 
         {/* 签到历史表格 - 整合到日历卡片内 */}
         <div style={{ marginTop: '24px', borderTop: '1px solid var(--semi-color-border)', paddingTop: '20px' }}>
@@ -655,6 +663,7 @@ const CheckIn = () => {
       </Card>
 
       {/* 签到排行榜 */}
+      {config?.showLeaderboard !== false && (
       <Card 
         title={
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -704,7 +713,7 @@ const CheckIn = () => {
             </List.Item>
           )}
         />
-      </Card>
+  </Card>) }
 
       {/* 鉴权码弹窗 */}
       <Modal

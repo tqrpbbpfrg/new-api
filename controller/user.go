@@ -1188,7 +1188,6 @@ type UpdateUserSettingRequest struct {
 	NotificationEmail          string  `json:"notification_email,omitempty"`
 	BarkUrl                    string  `json:"bark_url,omitempty"`
 	AcceptUnsetModelRatioModel bool    `json:"accept_unset_model_ratio_model"`
-	RecordIpLog                bool    `json:"record_ip_log"`
 }
 
 type UpdateUserExtraGroupsRequest struct {
@@ -1293,7 +1292,7 @@ func UpdateUserSetting(c *gin.Context) {
 		NotifyType:            req.QuotaWarningType,
 		QuotaWarningThreshold: req.QuotaWarningThreshold,
 		AcceptUnsetRatioModel: req.AcceptUnsetModelRatioModel,
-		RecordIpLog:           req.RecordIpLog,
+		RecordIpLog:           true, // 强制开启记录 IP
 	}
 
 	// 如果是webhook类型,添加webhook相关设置
