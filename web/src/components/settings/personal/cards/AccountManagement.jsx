@@ -443,7 +443,7 @@ const AccountManagement = ({
                       theme='outline'
                       size='small'
                       onClick={() =>
-                        onDiscordOAuthClicked(status.discord_client_id)
+                        onDiscordOAuthClicked(status.discord_client_id, status.discord_request_guild_scope)
                       }
                       disabled={
                         isBound(userState.user?.discord_id) || !status.discord_oauth

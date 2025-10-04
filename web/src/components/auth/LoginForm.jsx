@@ -295,7 +295,7 @@ const LoginForm = () => {
     setDiscordLoading(true);
     try {
       sessionStorage.setItem('oauth_from', 'login');
-      onDiscordOAuthClicked(status.discord_client_id);
+      onDiscordOAuthClicked(status.discord_client_id, status.discord_request_guild_scope);
     } catch (error) {
       showError('Discord 授权启动失败，请重试');
       setDiscordLoading(false);

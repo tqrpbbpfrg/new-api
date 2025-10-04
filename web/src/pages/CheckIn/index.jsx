@@ -121,11 +121,6 @@ const CheckIn = () => {
 
   // 获取签到排行榜
   const fetchLeaderboard = async () => {
-    // 如果排行榜被禁用，则不获取数据
-    if (config && !config.leaderboardEnabled) {
-      return;
-    }
-    
     try {
       setLeaderboardLoading(true);
       const response = await CheckInService.getLeaderboard(10);
@@ -203,9 +198,7 @@ const CheckIn = () => {
             setStatus(newStatus);
             await fetchMonthHistory(currentYear, currentMonth);
             await fetchPagedHistory(currentPage);
-            if (config.leaderboardEnabled) {
-              await fetchLeaderboard();
-            }
+            await fetchLeaderboard();
           } else {
             // 无法获取状态，使用响应判断
             if (response.success) {
@@ -239,9 +232,7 @@ const CheckIn = () => {
           await fetchStatus();
           await fetchMonthHistory(currentYear, currentMonth);
           await fetchPagedHistory(currentPage);
-          if (config.leaderboardEnabled) {
-            await fetchLeaderboard();
-          }
+          await fetchLeaderboard();
         }
       }, 200); // 增加延迟到200ms，确保数据库完全提交
       
@@ -281,9 +272,7 @@ const CheckIn = () => {
             setStatus(newStatus);
             await fetchMonthHistory(currentYear, currentMonth);
             await fetchPagedHistory(currentPage);
-            if (config.leaderboardEnabled) {
-              await fetchLeaderboard();
-            }
+            await fetchLeaderboard();
           } else {
             // 无法验证，显示原始错误
             const errorMsg = error.response?.data?.message || error.message || '签到失败';
@@ -292,9 +281,7 @@ const CheckIn = () => {
             await fetchStatus();
             await fetchMonthHistory(currentYear, currentMonth);
             await fetchPagedHistory(currentPage);
-            if (config.leaderboardEnabled) {
-              await fetchLeaderboard();
-            }
+            await fetchLeaderboard();
           }
         } catch (verifyError) {
           console.error('验证签到状态失败:', verifyError);
@@ -305,9 +292,7 @@ const CheckIn = () => {
           await fetchStatus();
           await fetchMonthHistory(currentYear, currentMonth);
           await fetchPagedHistory(currentPage);
-          if (config.leaderboardEnabled) {
-            await fetchLeaderboard();
-          }
+          await fetchLeaderboard();
         }
       }, 200);
     } finally {
@@ -371,181 +356,89 @@ const CheckIn = () => {
       console.log(`[签到日历] ${dateStr} 找到签到记录:`, checkinRecord);
     }
     
-    // 判断是否为今天
-    const today = new Date();
-    const isToday = dateStr === today.getFullYear() + '-' +
-                   String(today.getMonth() + 1).padStart(2, '0') + '-' +
-                   String(today.getDate()).padStart(2, '0');
+    // 根据连续天数设置背景颜色
+    let bg = 'transparent';
+    let rewardColor = 'var(--semi-color-success)';
+    let textColor = 'var(--semi-color-text-2)';
     
-    // 根据连续天数设置样式
-    let cardStyle = {
-      width: '100%',
-      height: '100%',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '8px 4px',
-      position: 'relative',
-      borderRadius: '12px',
-      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-      cursor: 'pointer',
-      minHeight: '70px',
-      boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-      border: '1px solid rgba(0,0,0,0.05)',
-      background: '#ffffff'
-    };
-    
-    let dateStyle = {
-      fontSize: '14px',
-      fontWeight: 600,
-      marginBottom: '4px',
-      color: 'var(--semi-color-text-0)',
-      transition: 'color 0.2s'
-    };
-    
-    let iconContainerStyle = {
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: '4px',
-      width: '100%',
-      flex: 1
-    };
-    
-    let iconStyle = {
-      fontSize: '20px',
-      lineHeight: 1,
-      transition: 'transform 0.2s'
-    };
-    
-    let rewardStyle = {
-      fontSize: '10px',
-      fontWeight: 600,
-      padding: '2px 6px',
-      borderRadius: '8px',
-      transition: 'all 0.2s'
-    };
-    
-    // 如果是今天，添加特殊样式
-    if (isToday) {
-      cardStyle.border = '2px solid var(--semi-color-primary)';
-      cardStyle.boxShadow = '0 0 0 2px rgba(var(--semi-color-primary-rgb), 0.2)';
-    }
-    
-    // 根据签到状态设置样式
     if (checkinRecord) {
       const days = checkinRecord.continuous || checkinRecord.continuous_days || 1;
+      textColor = '#fff';
       
-      // 根据连续天数设置不同的颜色方案
       if (days >= 15) {
-        // 钻石级别 - 深紫色渐变
-        cardStyle.background = 'linear-gradient(135deg, #722ed1 0%, #531dab 100%)';
-        cardStyle.boxShadow = '0 4px 12px rgba(114, 46, 209, 0.3)';
-        dateStyle.color = '#ffffff';
-        iconStyle.color = '#ffffff';
-        rewardStyle.background = 'rgba(255, 255, 255, 0.2)';
-        rewardStyle.color = '#ffffff';
+        bg = 'linear-gradient(135deg,#52c41a 0%,#237804 100%)';
+        rewardColor = '#fff';
       } else if (days >= 7) {
-        // 黄金级别 - 金色渐变
-        cardStyle.background = 'linear-gradient(135deg, #faad14 0%, #d48806 100%)';
-        cardStyle.boxShadow = '0 4px 12px rgba(250, 173, 20, 0.3)';
-        dateStyle.color = '#ffffff';
-        iconStyle.color = '#ffffff';
-        rewardStyle.background = 'rgba(255, 255, 255, 0.2)';
-        rewardStyle.color = '#ffffff';
+        bg = 'linear-gradient(135deg,#73d13d 0%,#52c41a 100%)';
+        rewardColor = '#fff';
       } else if (days >= 3) {
-        // 白银级别 - 蓝色渐变
-        cardStyle.background = 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)';
-        cardStyle.boxShadow = '0 4px 12px rgba(24, 144, 255, 0.3)';
-        dateStyle.color = '#ffffff';
-        iconStyle.color = '#ffffff';
-        rewardStyle.background = 'rgba(255, 255, 255, 0.2)';
-        rewardStyle.color = '#ffffff';
+        bg = 'linear-gradient(135deg,#b7eb8f 0%,#73d13d 100%)';
+        rewardColor = '#1f1f1f';
       } else {
-        // 青铜级别 - 绿色渐变
-        cardStyle.background = 'linear-gradient(135deg, #52c41a 0%, #389e0d 100%)';
-        cardStyle.boxShadow = '0 4px 12px rgba(82, 196, 26, 0.3)';
-        dateStyle.color = '#ffffff';
-        iconStyle.color = '#ffffff';
-        rewardStyle.background = 'rgba(255, 255, 255, 0.2)';
-        rewardStyle.color = '#ffffff';
-      }
-    } else {
-      // 未签到的日期
-      if (isToday) {
-        // 今天的特殊样式
-        cardStyle.background = 'linear-gradient(135deg, #f0f5ff 0%, #e6f4ff 100%)';
-        dateStyle.color = 'var(--semi-color-primary)';
-      } else {
-        // 普通未签到日期
-        cardStyle.background = '#fafafa';
-        dateStyle.color = 'var(--semi-color-text-2)';
+        bg = 'linear-gradient(135deg,#f6ffed 0%,#d9f7be 100%)';
+        rewardColor = 'var(--semi-color-success)';
       }
     }
     
     return (
-      <div
-        style={cardStyle}
-        onMouseEnter={(e) => {
-          if (checkinRecord) {
-            e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)';
-            e.currentTarget.style.boxShadow = cardStyle.boxShadow.replace('0.3', '0.4');
-          } else {
-            e.currentTarget.style.transform = 'translateY(-1px)';
-            e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
-          }
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'translateY(0) scale(1)';
-          if (checkinRecord) {
-            e.currentTarget.style.boxShadow = cardStyle.boxShadow.replace('0.4', '0.3');
-          } else {
-            e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.05)';
-          }
-        }}
-      >
+      <div style={{
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '4px',
+        position: 'relative',
+        borderRadius: 6,
+        background: bg,
+        transition: 'all .2s',
+        boxShadow: checkinRecord ? '0 1px 3px rgba(0,0,0,0.15)' : 'none',
+        minHeight: '60px'
+      }}>
         {/* 日期号码 */}
-        <div style={dateStyle}>
+        <div style={{
+          position: 'absolute',
+          top: 4,
+          left: 6,
+          fontSize: 11,
+          fontWeight: 500,
+          color: textColor
+        }}>
           {dateStr.split('-')[2]}
         </div>
         
         {checkinRecord ? (
-          <div style={iconContainerStyle}>
-            {/* 签到图标 - 使用更精美的图标 */}
-            <div style={iconStyle}>
-              {checkinRecord.continuous >= 15 ? '💎' :
-               checkinRecord.continuous >= 7 ? '🏆' :
-               checkinRecord.continuous >= 3 ? '🥈' : '🥉'}
-            </div>
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 4,
+            width: '100%',
+            height: '100%',
+            paddingTop: '8px'
+          }}>
+            {/* 签到对勾 */}
+            <div style={{
+              fontSize: 18,
+              lineHeight: 1,
+              color: '#fff',
+              fontWeight: 700
+            }}>✓</div>
             {/* 奖励额度 */}
-            <div style={rewardStyle}>
+            <div style={{
+              fontSize: 10,
+              fontWeight: 600,
+              color: rewardColor,
+              padding: '2px 6px',
+              borderRadius: 4,
+              background: rewardColor === '#fff' ? 'rgba(255,255,255,0.25)' : 'transparent'
+            }}>
               {formatReward(checkinRecord.reward)}
             </div>
           </div>
-        ) : (
-          <div style={iconContainerStyle}>
-            {/* 未签到状态显示 */}
-            {isToday ? (
-              <div style={{
-                fontSize: '16px',
-                color: 'var(--semi-color-primary)',
-                opacity: 0.7
-              }}>
-                🔓
-              </div>
-            ) : (
-              <div style={{
-                fontSize: '16px',
-                color: 'var(--semi-color-text-3)',
-                opacity: 0.5
-              }}>
-                🔒
-              </div>
-            )}
-          </div>
-        )}
+        ) : null}
       </div>
     );
   };
@@ -626,16 +519,8 @@ const CheckIn = () => {
     fetchStatus();
     fetchMonthHistory(currentYear, currentMonth);
     fetchPagedHistory(1);
+    fetchLeaderboard();
   }, []);
-
-  // 当配置加载完成后，根据配置决定是否获取排行榜数据
-  useEffect(() => {
-    if (config) {
-      if (config.leaderboardEnabled) {
-        fetchLeaderboard();
-      }
-    }
-  }, [config]);
 
   if (configLoading || !config) {
     return (
@@ -664,15 +549,15 @@ const CheckIn = () => {
 
   return (
     <div className='mt-[60px] px-2' style={{ paddingTop: '20px', paddingBottom: '20px' }}>
-      {/* 签到状态卡片 - 始终显示 */}
-      <Card
+      {/* 签到日历 - 整合签到状态和历史 */}
+      <Card 
         title={
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Gift size={18} />
-            签到状态
+            <CalendarIcon size={18} />
+            签到日历与历史
           </div>
         }
-        loading={loading}
+        loading={historyLoading || loading}
         headerExtraContent={
           <Button
             type={status?.checked_in_today ? "tertiary" : "primary"}
@@ -689,13 +574,14 @@ const CheckIn = () => {
       >
         {/* 签到状态信息栏 */}
         {status && (
-          <div style={{
-            display: 'flex',
+          <div style={{ 
+            display: 'flex', 
             justifyContent: 'center',
             gap: '32px',
             padding: '16px',
             backgroundColor: 'var(--semi-color-fill-0)',
             borderRadius: '8px',
+            marginBottom: '20px',
             flexWrap: 'wrap'
           }}>
             <div style={{ textAlign: 'center' }}>
@@ -734,20 +620,7 @@ const CheckIn = () => {
             </div>
           </div>
         )}
-      </Card>
 
-      {/* 签到日历 - 根据配置决定是否显示 */}
-      {config.calendarEnabled && (
-        <Card
-          title={
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <CalendarIcon size={18} />
-              签到日历与历史
-            </div>
-          }
-          loading={historyLoading}
-          style={{ marginBottom: '20px' }}
-        >
         {/* 日历 */}
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '20px' }}>
           <Calendar
@@ -760,81 +633,6 @@ const CheckIn = () => {
             onChange={handleCalendarChange}
             style={{ width: '100%', maxWidth: '800px' }}
           />
-        </div>
-
-        {/* 签到级别图例 */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          marginBottom: '20px',
-          padding: '12px',
-          backgroundColor: 'var(--semi-color-fill-0)',
-          borderRadius: '8px',
-          flexWrap: 'wrap',
-          gap: '16px'
-        }}>
-          <Text type="tertiary" style={{ fontSize: '12px', marginRight: '8px' }}>签到级别：</Text>
-          
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <div style={{
-              width: '16px',
-              height: '16px',
-              borderRadius: '4px',
-              background: 'linear-gradient(135deg, #52c41a 0%, #389e0d 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '10px',
-              color: '#fff'
-            }}>🥉</div>
-            <Text type="tertiary" style={{ fontSize: '12px' }}>青铜(1-2天)</Text>
-          </div>
-          
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <div style={{
-              width: '16px',
-              height: '16px',
-              borderRadius: '4px',
-              background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '10px',
-              color: '#fff'
-            }}>🥈</div>
-            <Text type="tertiary" style={{ fontSize: '12px' }}>白银(3-6天)</Text>
-          </div>
-          
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <div style={{
-              width: '16px',
-              height: '16px',
-              borderRadius: '4px',
-              background: 'linear-gradient(135deg, #faad14 0%, #d48806 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '10px',
-              color: '#fff'
-            }}>🏆</div>
-            <Text type="tertiary" style={{ fontSize: '12px' }}>黄金(7-14天)</Text>
-          </div>
-          
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <div style={{
-              width: '16px',
-              height: '16px',
-              borderRadius: '4px',
-              background: 'linear-gradient(135deg, #722ed1 0%, #531dab 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '10px',
-              color: '#fff'
-            }}>💎</div>
-            <Text type="tertiary" style={{ fontSize: '12px' }}>钻石(15天+)</Text>
-          </div>
         </div>
 
         {/* 签到历史表格 - 整合到日历卡片内 */}
@@ -854,62 +652,59 @@ const CheckIn = () => {
             }}
           />
         </div>
-        </Card>
-      )}
+      </Card>
 
-      {/* 签到排行榜 - 根据配置决定是否显示 */}
-      {config.leaderboardEnabled && (
-        <Card
-          title={
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <TrendingUp size={18} />
-              签到排行榜
-            </div>
-          }
-          loading={leaderboardLoading}
-        >
-          <List
-            dataSource={leaderboard}
-            renderItem={(item) => (
-              <List.Item
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  padding: '8px 0',
-                  borderBottom: '1px solid var(--semi-color-border)'
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '100%' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: '80px' }}>
-                    {getRankIcon(item.rank)}
-                    <Text strong>#{item.rank}</Text>
-                  </div>
-                  <Avatar size="small" style={{ backgroundColor: 'var(--semi-color-primary)' }}>
-                    {item.username ? item.username.charAt(0).toUpperCase() : 'U'}
-                  </Avatar>
-                  <div style={{ flex: 1 }}>
-                    <Text strong>{item.username || `用户${item.user_id}`}</Text>
-                    <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
-                      <Tag size="small" color="blue">
-                        {item.total_checkins}次
-                      </Tag>
-                      <Tag size="small" color="green">
-                        连续{item.continuous_days}天
-                      </Tag>
-                    </div>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <Text type="success" strong>{formatReward(item.total_rewards)}</Text>
-                    <div style={{ fontSize: '12px', color: 'var(--semi-color-text-2)' }}>
-                      总奖励
-                    </div>
+      {/* 签到排行榜 */}
+      <Card 
+        title={
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <TrendingUp size={18} />
+            签到排行榜
+          </div>
+        }
+        loading={leaderboardLoading}
+      >
+        <List
+          dataSource={leaderboard}
+          renderItem={(item) => (
+            <List.Item
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                padding: '8px 0',
+                borderBottom: '1px solid var(--semi-color-border)'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '100%' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: '80px' }}>
+                  {getRankIcon(item.rank)}
+                  <Text strong>#{item.rank}</Text>
+                </div>
+                <Avatar size="small" style={{ backgroundColor: 'var(--semi-color-primary)' }}>
+                  {item.username ? item.username.charAt(0).toUpperCase() : 'U'}
+                </Avatar>
+                <div style={{ flex: 1 }}>
+                  <Text strong>{item.username || `用户${item.user_id}`}</Text>
+                  <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                    <Tag size="small" color="blue">
+                      {item.total_checkins}次
+                    </Tag>
+                    <Tag size="small" color="green">
+                      连续{item.continuous_days}天
+                    </Tag>
                   </div>
                 </div>
-              </List.Item>
-            )}
-          />
-        </Card>
-      )}
+                <div style={{ textAlign: 'right' }}>
+                  <Text type="success" strong>{formatReward(item.total_rewards)}</Text>
+                  <div style={{ fontSize: '12px', color: 'var(--semi-color-text-2)' }}>
+                    总奖励
+                  </div>
+                </div>
+              </div>
+            </List.Item>
+          )}
+        />
+      </Card>
 
       {/* 鉴权码弹窗 */}
       <Modal

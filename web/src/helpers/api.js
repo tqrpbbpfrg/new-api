@@ -273,7 +273,7 @@ export async function onLinuxDOOAuthClicked(linuxdo_client_id) {
   window.location.href = authUrl.toString();
 }
 
-export async function onDiscordOAuthClicked(discord_client_id) {
+export async function onDiscordOAuthClicked(discord_client_id, requestGuildScope = true) {
   const state = await getOAuthState();
   if (!state) {
     console.error('Failed to get OAuth state');
@@ -295,9 +295,16 @@ export async function onDiscordOAuthClicked(discord_client_id) {
   authUrl.searchParams.set('redirect_uri', redirectUri);
   authUrl.searchParams.set('response_type', 'code');
   authUrl.searchParams.set('state', state);
-  authUrl.searchParams.set('scope', 'identify email guilds guilds.members.read'); // 使用空格分隔，由URLSearchParams自动正确编码
+  
+  // 根据配置决定scope
+  let scope = 'identify email';
+  if (requestGuildScope) {
+    scope += ' guilds guilds.members.read';
+  }
+  authUrl.searchParams.set('scope', scope); // 使用空格分隔，由URLSearchParams自动正确编码
 
   console.log('Discord OAuth redirect URI:', redirectUri);
+  console.log('Discord OAuth scope:', scope);
   console.log('Discord OAuth full URL:', authUrl.toString());
   window.location.href = authUrl.toString();
 }

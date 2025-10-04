@@ -100,6 +100,7 @@ const SystemSetting = () => {
     DiscordClientSecret: '',
     DiscordGuildId: '',
     DiscordRequireGuild: '',
+    DiscordRequestGuildScope: '',
     ServerAddress: '',
     // SSRF防护配置
     'fetch_setting.enable_ssrf_protection': true,
@@ -187,6 +188,7 @@ const SystemSetting = () => {
           case 'LinuxDOOAuthEnabled':
           case 'DiscordOAuthEnabled':
           case 'DiscordRequireGuild':
+          case 'DiscordRequestGuildScope':
           case 'oidc.enabled':
           case 'passkey.enabled':
           case 'passkey.allow_insecure_origin':
@@ -640,6 +642,12 @@ const SystemSetting = () => {
         value: inputs.DiscordRequireGuild,
       });
     }
+    if (originInputs['DiscordRequestGuildScope'] !== inputs.DiscordRequestGuildScope) {
+      options.push({
+        key: 'DiscordRequestGuildScope',
+        value: inputs.DiscordRequestGuildScope,
+      });
+    }
 
     if (options.length > 0) {
       await updateOptions(options);
@@ -683,7 +691,7 @@ const SystemSetting = () => {
       setShowPasswordLoginConfirmModal(true);
     } else {
       // 对于部分配置项，需要将布尔值转换为字符串
-      const stringValue = ['DiscordRequireGuild'].includes(optionKey) ? value.toString() : value;
+      const stringValue = ['DiscordRequireGuild', 'DiscordRequestGuildScope'].includes(optionKey) ? value.toString() : value;
       await updateOptions([{ key: optionKey, value: stringValue }]);
     }
     if (optionKey === 'LinuxDOOAuthEnabled') {
@@ -1502,6 +1510,22 @@ const SystemSetting = () => {
                         }
                       >
                         {t('要求用户必须加入指定服务器')}
+                      </Form.Checkbox>
+                    </Col>
+                  </Row>
+                  <Row
+                    gutter={{ xs: 8, sm: 16, md: 24, lg: 24, xl: 24, xxl: 24 }}
+                    style={{ marginTop: 16 }}
+                  >
+                    <Col xs={24} sm={24} md={12} lg={12} xl={12}>
+                      <Form.Checkbox
+                        field='DiscordRequestGuildScope'
+                        noLabel
+                        onChange={(e) =>
+                          handleCheckboxChange('DiscordRequestGuildScope', e)
+                        }
+                      >
+                        {t('在OAuth scope中请求服务器相关权限')}
                       </Form.Checkbox>
                     </Col>
                   </Row>

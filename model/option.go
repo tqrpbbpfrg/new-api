@@ -96,6 +96,7 @@ func InitOptionMap() {
 	common.OptionMap["DiscordClientSecret"] = ""
 	common.OptionMap["DiscordGuildId"] = ""
 	common.OptionMap["DiscordRequireGuild"] = strconv.FormatBool(common.DiscordRequireGuild)
+	common.OptionMap["DiscordRequestGuildScope"] = strconv.FormatBool(common.DiscordRequestGuildScope)
 	common.OptionMap["DiscordOAuthEnabled"] = strconv.FormatBool(common.DiscordOAuthEnabled)
 	common.OptionMap["WeChatServerAddress"] = ""
 	common.OptionMap["WeChatServerToken"] = ""
@@ -238,6 +239,8 @@ func updateOptionMap(key string, value string) (err error) {
 			common.DiscordOAuthEnabled = boolValue
 		case "DiscordRequireGuild":
 			common.DiscordRequireGuild = boolValue
+		case "DiscordRequestGuildScope":
+			common.DiscordRequestGuildScope = boolValue
 		case "TurnstileCheckEnabled":
 			common.TurnstileCheckEnabled = boolValue
 		case "RegisterEnabled":
@@ -380,6 +383,8 @@ func updateOptionMap(key string, value string) (err error) {
 		common.DiscordClientSecret = value
 	case "DiscordGuildId":
 		common.DiscordGuildId = value
+	case "DiscordRequestGuildScope":
+		common.DiscordRequestGuildScope = value == "true"
 	case "TurnstileSiteKey":
 		common.TurnstileSiteKey = value
 	case "TurnstileSecretKey":

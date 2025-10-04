@@ -55,6 +55,8 @@ func GetStatus(c *gin.Context) {
 		"linuxdo_minimum_trust_level": common.LinuxDOMinimumTrustLevel,
 		"discord_oauth":               common.DiscordOAuthEnabled,
 		"discord_client_id":           common.DiscordClientId,
+		// 是否在 OAuth scope 中请求 guilds 相关权限（前端字段期望）
+		"discord_request_guild_scope": common.DiscordRequestGuildScope,
 		"telegram_oauth":              common.TelegramOAuthEnabled,
 		"telegram_bot_name":           common.TelegramBotName,
 		"system_name":                 common.SystemName,

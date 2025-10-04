@@ -49,6 +49,7 @@ import DrawingSetting from '../../components/settings/DrawingSetting';
 import PaymentSetting from '../../components/settings/PaymentSetting';
 import CheckInSetting from '../../components/settings/CheckInSetting';
 import DefaultUserGroupSetting from '../../components/settings/DefaultUserGroupSetting';
+import UserExtraGroupManagement from '../../components/settings/UserExtraGroupManagement';
 import GroupAvailableGroupsSetting from '../../components/settings/GroupAvailableGroupsSetting';
 
 const Setting = () => {

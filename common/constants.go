@@ -89,6 +89,7 @@ var DiscordClientId = ""
 var DiscordClientSecret = ""
 var DiscordGuildId = ""
 var DiscordRequireGuild = false
+var DiscordRequestGuildScope = false // 是否在OAuth scope中请求guilds相关权限
 var ServerAddress = "" // 服务器地址，用于构建回调URL
 
 var WeChatServerAddress = ""
