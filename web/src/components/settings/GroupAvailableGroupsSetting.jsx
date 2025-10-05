@@ -38,11 +38,13 @@ import {
   showError,
   showSuccess,
 } from '../../helpers';
+import { useIsMobile } from '../../hooks/common/useIsMobile';
 const { Text } = Typography;
 
 const GroupAvailableGroupsSetting = () => {
   const { t } = useTranslation();
   const formApiRef = useRef();
+  const isMobile = useIsMobile();
   const [loading, setLoading] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [groupAvailableGroups, setGroupAvailableGroups] = useState({});
@@ -330,33 +332,64 @@ const GroupAvailableGroupsSetting = () => {
 
                   {/* 分组说明编辑区域 */}
                   {getCurrentAvailableGroups().length > 0 && (
-                    <div style={{
-                      marginBottom: 16,
-                      padding: 16,
-                      border: '1px solid var(--semi-color-border)',
-                      borderRadius: 4,
-                    }}>
-                      <Text strong style={{ display: 'block', marginBottom: 12 }}>
-                        {t('分组说明配置')}
-                      </Text>
-                      <Space direction="vertical" style={{ width: '100%' }} spacing="medium">
+                    <div
+                      style={{
+                        marginBottom: 16,
+                        padding: isMobile ? 12 : 16,
+                        border: '1px solid var(--semi-color-border)',
+                        borderRadius: 8,
+                        background: 'var(--semi-color-fill-0)',
+                      }}
+                    >
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        marginBottom: 8,
+                        flexWrap: 'wrap'
+                      }}>
+                        <Text strong style={{ fontSize: isMobile ? 14 : 16 }}>
+                          {t('分组说明配置')}
+                        </Text>
+                        <Text type="tertiary" style={{ fontSize: 12 }}>
+                          {t('上方显示分组标签，下方填写说明')}
+                        </Text>
+                      </div>
+                      <div style={{ display: 'grid', gap: isMobile ? 12 : 16 }}>
                         {getCurrentAvailableGroups().map(group => (
-                          <Row key={group} gutter={12} style={{ alignItems: 'center' }}>
-                            <Col span={6}>
-                              <Tag color="blue">{group}</Tag>
-                            </Col>
-                            <Col span={18}>
-                              <Input
-                                value={userUsableGroups[group] || group}
-                                placeholder={t('请输入该分组说明，例如：这是xx渠道')}
-                                onChange={(val) => handleGroupDescriptionChange(group, val)}
-                              />
-                            </Col>
-                          </Row>
+                          <div
+                            key={group}
+                            style={{
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: 6,
+                              padding: isMobile ? 8 : 10,
+                              border: '1px solid var(--semi-color-border)',
+                              borderRadius: 6,
+                              background: 'var(--semi-color-bg-0, #fff)'
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                              <Tag color="blue" size={isMobile ? 'small' : 'large'}>{group}</Tag>
+                              <Text type="tertiary" style={{ fontSize: 12 }}>
+                                {t('分组标识')}
+                              </Text>
+                            </div>
+                            <Input
+                              value={userUsableGroups[group] || group}
+                              placeholder={t('请输入说明，例如：这是xx渠道')}
+                              onChange={(val) => handleGroupDescriptionChange(group, val)}
+                              showClear
+                              style={{ width: '100%' }}
+                            />
+                          </div>
                         ))}
-                      </Space>
-                      <Text type="tertiary" style={{ fontSize: 12, marginTop: 8, display: 'block' }}>
-                        {t('这些说明会在令牌创建/编辑时显示，帮助用户理解分组作用')}。
+                      </div>
+                      <Text
+                        type="tertiary"
+                        style={{ fontSize: 12, marginTop: 10, display: 'block', lineHeight: 1.5 }}
+                      >
+                        {t('这些说明会在令牌创建/编辑时显示，帮助用户理解分组作用。支持即时修改，无需刷新。')}
                       </Text>
                     </div>
                   )}

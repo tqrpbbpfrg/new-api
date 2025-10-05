@@ -42,7 +42,7 @@ func GetUserGroups(c *gin.Context) {
 	extraGroups := user.GetExtraGroups()
 	
 	// 调试日志
-	common.SysLog(fmt.Sprintf("[GetUserGroups] User %d (%s) - Main Group: %s, Extra Groups: %v", 
+	common.SysLog(fmt.Sprintf("[GetUserGroups] User %d (%s) - Main Group: %s, Extra Groups: %v",
 		userId, user.Username, user.Group, extraGroups))
 	
 	// 收集用户可选分组：主分组的可选分组 + 额外分组本身
@@ -50,8 +50,17 @@ func GetUserGroups(c *gin.Context) {
 	
 	// 1. 添加主分组的可选分组
 	mainGroupUsableGroups := setting.GetUserUsableGroups(user.Group)
-	common.SysLog(fmt.Sprintf("[GetUserGroups] User %d - Main Group '%s' has usable groups: %v", 
+	common.SysLog(fmt.Sprintf("[GetUserGroups] User %d - Main Group '%s' has usable groups: %v",
 		userId, user.Group, mainGroupUsableGroups))
+	
+	// 如果主分组的可选分组为空或只有default，确保至少包含用户的主分组本身
+	if len(mainGroupUsableGroups) == 0 || (len(mainGroupUsableGroups) == 1 && mainGroupUsableGroups["default"] != "") {
+		common.SysLog(fmt.Sprintf("[GetUserGroups] User %d - No available groups configured for main group '%s', adding main group itself",
+			userId, user.Group))
+		// 添加用户的主分组本身
+		availableGroupsSet[user.Group] = true
+	}
+	
 	for groupName := range mainGroupUsableGroups {
 		availableGroupsSet[groupName] = true
 	}
@@ -60,11 +69,11 @@ func GetUserGroups(c *gin.Context) {
 	for _, extraGroup := range extraGroups {
 		availableGroupsSet[extraGroup] = true
 	}
-	common.SysLog(fmt.Sprintf("[GetUserGroups] User %d - Added extra groups to available set: %v", 
+	common.SysLog(fmt.Sprintf("[GetUserGroups] User %d - Added extra groups to available set: %v",
 		userId, extraGroups))
 	
 	// 调试日志
-	common.SysLog(fmt.Sprintf("[GetUserGroups] User %d - Final available groups set: %v", 
+	common.SysLog(fmt.Sprintf("[GetUserGroups] User %d - Final available groups set: %v",
 		userId, availableGroupsSet))
 	
 	// 构建返回数据
