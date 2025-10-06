@@ -613,19 +613,21 @@ const EditChannelModal = (props) => {
     }
   };
 
-  // 查看渠道密钥（直接获取，无需验证）
-  const handleShow2FAModal = async () => {
+  // 查看渠道密钥（点击眼睛图标时获取）
+  const handleViewKey = async () => {
+    if (!isEdit) return; // 非编辑模式不需要获取
+    
     try {
       // 直接调用API获取密钥
       const res = await API.get(`/api/channel/key/${channelId}`);
       const { success, message, data } = res.data;
       
       if (success && data?.key) {
-        showSuccess(t('密钥获取成功'));
-        setKeyDisplayState({
-          showModal: true,
-          keyData: data.key,
-        });
+        // 直接将密钥填充到输入框中
+        if (formApiRef.current) {
+          formApiRef.current.setValue('key', data.key);
+        }
+        handleInputChange('key', data.key);
       } else {
         showError(message || t('获取密钥失败'));
       }
@@ -1410,16 +1412,6 @@ const EditChannelModal = (props) => {
                                   )}
                                 </Text>
                               )}
-                            {isEdit && (
-                              <Button
-                                size='small'
-                                type='primary'
-                                theme='outline'
-                                onClick={handleShow2FAModal}
-                              >
-                                {t('查看密钥')}
-                              </Button>
-                            )}
                             {batchExtra}
                           </div>
                         }
@@ -1492,11 +1484,7 @@ const EditChannelModal = (props) => {
                           {useManualInput && !batch ? (
                             <Form.TextArea
                               field='key'
-                              label={
-                                isEdit
-                                  ? t('密钥（编辑模式下，保存的密钥不会显示）')
-                                  : t('密钥')
-                              }
+                              label={t('密钥')}
                               placeholder={t(
                                 '请输入 JSON 格式的密钥内容，例如：\n{\n  "type": "service_account",\n  "project_id": "your-project-id",\n  "private_key_id": "...",\n  "private_key": "...",\n  "client_email": "...",\n  "client_id": "...",\n  "auth_uri": "...",\n  "token_uri": "...",\n  "auth_provider_x509_cert_url": "...",\n  "client_x509_cert_url": "..."\n}',
                               )}
@@ -1528,16 +1516,6 @@ const EditChannelModal = (props) => {
                                         )}
                                       </Text>
                                     )}
-                                  {isEdit && (
-                                    <Button
-                                      size='small'
-                                      type='primary'
-                                      theme='outline'
-                                      onClick={handleShow2FAModal}
-                                    >
-                                      {t('查看密钥')}
-                                    </Button>
-                                  )}
                                   {batchExtra}
                                 </div>
                               }
@@ -1575,11 +1553,7 @@ const EditChannelModal = (props) => {
                       ) : (
                         <Form.Input
                           field='key'
-                          label={
-                            isEdit
-                              ? t('密钥（编辑模式下，保存的密钥不会显示）')
-                              : t('密钥')
-                          }
+                          label={t('密钥')}
                           placeholder={t(type2secretPrompt(inputs.type))}
                           rules={
                             isEdit
@@ -1589,6 +1563,7 @@ const EditChannelModal = (props) => {
                           mode='password'
                           autoComplete='new-password'
                           onChange={(value) => handleInputChange('key', value)}
+                          onFocus={isEdit ? handleViewKey : undefined}
                           extraText={
                             <div className='flex items-center gap-2'>
                               {isEdit &&
@@ -1600,16 +1575,6 @@ const EditChannelModal = (props) => {
                                     )}
                                   </Text>
                                 )}
-                              {isEdit && (
-                                <Button
-                                  size='small'
-                                  type='primary'
-                                  theme='outline'
-                                  onClick={handleShow2FAModal}
-                                >
-                                  {t('查看密钥')}
-                                </Button>
-                              )}
                               {batchExtra}
                             </div>
                           }

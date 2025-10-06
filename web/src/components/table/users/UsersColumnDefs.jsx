@@ -95,7 +95,7 @@ const renderUsername = (text, record) => {
 /**
  * Render user statistics
  */
-const renderStatistics = (text, record, showEnableDisableModal, t) => {
+const renderStatistics = (text, record, t) => {
   const isDeleted = record.DeletedAt !== null;
 
   // Determine tag text & color like original status column
@@ -322,7 +322,7 @@ export const getUsersColumns = ({
       title: t('状态'),
       dataIndex: 'info',
       render: (text, record, index) =>
-        renderStatistics(text, record, showEnableDisableModal, t),
+        renderStatistics(text, record, t),
     },
     {
       title: t('剩余额度/总额度'),
