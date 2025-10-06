@@ -613,26 +613,21 @@ const EditChannelModal = (props) => {
     }
   };
 
-  // 查看渠道密钥（透明验证）
+  // 查看渠道密钥（直接获取，无需验证）
   const handleShow2FAModal = async () => {
     try {
-      // 使用 withVerification 包装，会自动处理需要验证的情况
-      const result = await withVerification(
-        createApiCalls.viewChannelKey(channelId),
-        {
-          title: t('查看渠道密钥'),
-          description: t('为了保护账户安全，请验证您的身份。'),
-          preferredMethod: 'passkey', // 优先使用 Passkey
-        }
-      );
-
-      // 如果直接返回了结果（已验证），显示密钥
-      if (result && result.success && result.data?.key) {
+      // 直接调用API获取密钥
+      const res = await API.get(`/api/channel/key/${channelId}`);
+      const { success, message, data } = res.data;
+      
+      if (success && data?.key) {
         showSuccess(t('密钥获取成功'));
         setKeyDisplayState({
           showModal: true,
-          keyData: result.data.key,
+          keyData: data.key,
         });
+      } else {
+        showError(message || t('获取密钥失败'));
       }
     } catch (error) {
       console.error('Failed to view channel key:', error);
@@ -1605,6 +1600,16 @@ const EditChannelModal = (props) => {
                                     )}
                                   </Text>
                                 )}
+                              {isEdit && (
+                                <Button
+                                  size='small'
+                                  type='primary'
+                                  theme='outline'
+                                  onClick={handleShow2FAModal}
+                                >
+                                  {t('查看密钥')}
+                                </Button>
+                              )}
                               {batchExtra}
                             </div>
                           }

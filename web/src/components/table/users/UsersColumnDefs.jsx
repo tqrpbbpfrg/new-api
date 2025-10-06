@@ -204,7 +204,7 @@ const renderOperations = (
     setShowEditUser,
     showPromoteModal,
     showDemoteModal,
-    showEnableDisableModal,
+    manageUser,
     showDeleteModal,
     showResetPasskeyModal,
     showResetTwoFAModal,
@@ -243,14 +243,14 @@ const renderOperations = (
         <Button
           type='danger'
           size='small'
-          onClick={() => showEnableDisableModal(record, 'disable')}
+          onClick={() => manageUser(record.id, 'disable', record)}
         >
           {t('禁用')}
         </Button>
       ) : (
         <Button
           size='small'
-          onClick={() => showEnableDisableModal(record, 'enable')}
+          onClick={() => manageUser(record.id, 'enable', record)}
         >
           {t('启用')}
         </Button>
@@ -303,7 +303,7 @@ export const getUsersColumns = ({
   setShowEditUser,
   showPromoteModal,
   showDemoteModal,
-  showEnableDisableModal,
+  manageUser,
   showDeleteModal,
   showResetPasskeyModal,
   showResetTwoFAModal,
@@ -359,7 +359,7 @@ export const getUsersColumns = ({
           setShowEditUser,
           showPromoteModal,
           showDemoteModal,
-          showEnableDisableModal,
+          manageUser,
           showDeleteModal,
           showResetPasskeyModal,
           showResetTwoFAModal,

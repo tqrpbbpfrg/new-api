@@ -36,6 +36,7 @@ type Log struct {
 	Group            string `json:"group" gorm:"index"`
 	Ip               string `json:"ip" gorm:"index;default:''"`
 	Other            string `json:"other"`
+	UserGroup        string `json:"user_group" gorm:"->"`
 }
 
 const (
@@ -238,9 +239,13 @@ func GetAllLogs(logType int, startTimestamp int64, endTimestamp int64, modelName
 	}
 
 	channelIds := types.NewSet[int]()
+	userIds := types.NewSet[int]()
 	for _, log := range logs {
 		if log.ChannelId != 0 {
 			channelIds.Add(log.ChannelId)
+		}
+		if log.UserId != 0 {
+			userIds.Add(log.UserId)
 		}
 	}
 
@@ -258,6 +263,23 @@ func GetAllLogs(logType int, startTimestamp int64, endTimestamp int64, modelName
 		}
 		for i := range logs {
 			logs[i].ChannelName = channelMap[logs[i].ChannelId]
+		}
+	}
+
+	if userIds.Len() > 0 {
+		var users []struct {
+			Id    int    `gorm:"column:id"`
+			Group string `gorm:"column:group"`
+		}
+		if err = DB.Table("users").Select("id, "+commonGroupCol).Where("id IN ?", userIds.Items()).Find(&users).Error; err != nil {
+			return logs, total, err
+		}
+		userGroupMap := make(map[int]string, len(users))
+		for _, user := range users {
+			userGroupMap[user.Id] = user.Group
+		}
+		for i := range logs {
+			logs[i].UserGroup = userGroupMap[logs[i].UserId]
 		}
 	}
 
@@ -312,9 +334,10 @@ func SearchUserLogs(userId int, keyword string) (logs []*Log, err error) {
 }
 
 type Stat struct {
-	Quota int `json:"quota"`
-	Rpm   int `json:"rpm"`
-	Tpm   int `json:"tpm"`
+	Quota     int `json:"quota"`
+	Rpm       int `json:"rpm"`
+	Tpm       int `json:"tpm"`
+	CallCount int `json:"call_count"`
 }
 
 func SumUsedQuota(logType int, startTimestamp int64, endTimestamp int64, modelName string, username string, tokenName string, channel int, group string) (stat Stat) {
@@ -323,13 +346,21 @@ func SumUsedQuota(logType int, startTimestamp int64, endTimestamp int64, modelNa
 	// 为rpm和tpm创建单独的查询
 	rpmTpmQuery := LOG_DB.Table("logs").Select("count(*) rpm, sum(prompt_tokens) + sum(completion_tokens) tpm")
 
+	// 为当日总调用次数创建单独的查询
+	now := time.Now()
+	todayStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).Unix()
+	todayEnd := time.Date(now.Year(), now.Month(), now.Day(), 23, 59, 59, 0, now.Location()).Unix()
+	callCountQuery := LOG_DB.Table("logs").Select("count(*) call_count")
+
 	if username != "" {
 		tx = tx.Where("username = ?", username)
 		rpmTpmQuery = rpmTpmQuery.Where("username = ?", username)
+		callCountQuery = callCountQuery.Where("username = ?", username)
 	}
 	if tokenName != "" {
 		tx = tx.Where("token_name = ?", tokenName)
 		rpmTpmQuery = rpmTpmQuery.Where("token_name = ?", tokenName)
+		callCountQuery = callCountQuery.Where("token_name = ?", tokenName)
 	}
 	if startTimestamp != 0 {
 		tx = tx.Where("created_at >= ?", startTimestamp)
@@ -340,25 +371,33 @@ func SumUsedQuota(logType int, startTimestamp int64, endTimestamp int64, modelNa
 	if modelName != "" {
 		tx = tx.Where("model_name like ?", modelName)
 		rpmTpmQuery = rpmTpmQuery.Where("model_name like ?", modelName)
+		callCountQuery = callCountQuery.Where("model_name like ?", modelName)
 	}
 	if channel != 0 {
 		tx = tx.Where("channel_id = ?", channel)
 		rpmTpmQuery = rpmTpmQuery.Where("channel_id = ?", channel)
+		callCountQuery = callCountQuery.Where("channel_id = ?", channel)
 	}
 	if group != "" {
 		tx = tx.Where(logGroupCol+" = ?", group)
 		rpmTpmQuery = rpmTpmQuery.Where(logGroupCol+" = ?", group)
+		callCountQuery = callCountQuery.Where(logGroupCol+" = ?", group)
 	}
 
 	tx = tx.Where("type = ?", LogTypeConsume)
 	rpmTpmQuery = rpmTpmQuery.Where("type = ?", LogTypeConsume)
+	callCountQuery = callCountQuery.Where("type = ?", LogTypeConsume)
 
 	// 只统计最近60秒的rpm和tpm
 	rpmTpmQuery = rpmTpmQuery.Where("created_at >= ?", time.Now().Add(-60*time.Second).Unix())
 
+	// 统计当日的总调用次数
+	callCountQuery = callCountQuery.Where("created_at >= ? AND created_at <= ?", todayStart, todayEnd)
+
 	// 执行查询
 	tx.Scan(&stat)
 	rpmTpmQuery.Scan(&stat)
+	callCountQuery.Scan(&stat)
 
 	return stat
 }

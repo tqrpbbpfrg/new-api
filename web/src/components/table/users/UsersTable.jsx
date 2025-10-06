@@ -27,7 +27,6 @@ import {
 import { getUsersColumns } from './UsersColumnDefs';
 import PromoteUserModal from './modals/PromoteUserModal';
 import DemoteUserModal from './modals/DemoteUserModal';
-import EnableDisableUserModal from './modals/EnableDisableUserModal';
 import DeleteUserModal from './modals/DeleteUserModal';
 import ResetPasskeyModal from './modals/ResetPasskeyModal';
 import ResetTwoFAModal from './modals/ResetTwoFAModal';
@@ -55,10 +54,8 @@ const UsersTable = (usersData) => {
   // Modal states
   const [showPromoteModal, setShowPromoteModal] = useState(false);
   const [showDemoteModal, setShowDemoteModal] = useState(false);
-  const [showEnableDisableModal, setShowEnableDisableModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [modalUser, setModalUser] = useState(null);
-  const [enableDisableAction, setEnableDisableAction] = useState('');
   const [showResetPasskeyModal, setShowResetPasskeyModal] = useState(false);
   const [showResetTwoFAModal, setShowResetTwoFAModal] = useState(false);
 
@@ -71,12 +68,6 @@ const UsersTable = (usersData) => {
   const showDemoteUserModal = (user) => {
     setModalUser(user);
     setShowDemoteModal(true);
-  };
-
-  const showEnableDisableUserModal = (user, action) => {
-    setModalUser(user);
-    setEnableDisableAction(action);
-    setShowEnableDisableModal(true);
   };
 
   const showDeleteUserModal = (user) => {
@@ -105,11 +96,6 @@ const UsersTable = (usersData) => {
     setShowDemoteModal(false);
   };
 
-  const handleEnableDisableConfirm = () => {
-    manageUser(modalUser.id, enableDisableAction, modalUser);
-    setShowEnableDisableModal(false);
-  };
-
   const handleResetPasskeyConfirm = async () => {
     await resetUserPasskey(modalUser);
     setShowResetPasskeyModal(false);
@@ -128,7 +114,7 @@ const UsersTable = (usersData) => {
       setShowEditUser,
       showPromoteModal: showPromoteUserModal,
       showDemoteModal: showDemoteUserModal,
-      showEnableDisableModal: showEnableDisableUserModal,
+      manageUser,
       showDeleteModal: showDeleteUserModal,
       showResetPasskeyModal: showResetPasskeyUserModal,
       showResetTwoFAModal: showResetTwoFAUserModal,
@@ -139,7 +125,7 @@ const UsersTable = (usersData) => {
     setShowEditUser,
     showPromoteUserModal,
     showDemoteUserModal,
-    showEnableDisableUserModal,
+    manageUser,
     showDeleteUserModal,
     showResetPasskeyUserModal,
     showResetTwoFAUserModal,
@@ -204,15 +190,6 @@ const UsersTable = (usersData) => {
         onCancel={() => setShowDemoteModal(false)}
         onConfirm={handleDemoteConfirm}
         user={modalUser}
-        t={t}
-      />
-
-      <EnableDisableUserModal
-        visible={showEnableDisableModal}
-        onCancel={() => setShowEnableDisableModal(false)}
-        onConfirm={handleEnableDisableConfirm}
-        user={modalUser}
-        action={enableDisableAction}
         t={t}
       />
 
